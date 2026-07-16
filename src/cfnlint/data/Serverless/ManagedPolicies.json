@@ -347,6 +347,7 @@
  "AWSHealthOmicsServiceLinkedRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/AWSHealthOmicsServiceLinkedRolePolicy",
  "AWSHealth_EventProcessorServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/AWSHealth_EventProcessorServiceRolePolicy",
  "AWSIAMIdentityCenterAllowListForIdentityContext": "arn:aws:iam::aws:policy/AWSIAMIdentityCenterAllowListForIdentityContext",
+ "AWSIAMRoleManagerServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/AWSIAMRoleManagerServiceRolePolicy",
  "AWSIPAMServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/AWSIPAMServiceRolePolicy",
  "AWSIQContractServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/AWSIQContractServiceRolePolicy",
  "AWSIQFullAccess": "arn:aws:iam::aws:policy/AWSIQFullAccess",
@@ -1519,6 +1520,7 @@
  "WAFLoggingServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/WAFLoggingServiceRolePolicy",
  "WAFRegionalLoggingServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/WAFRegionalLoggingServiceRolePolicy",
  "WAFV2LoggingServiceRolePolicy": "arn:aws:iam::aws:policy/aws-service-role/WAFV2LoggingServiceRolePolicy",
+ "WellArchitectedAgentResourceScanning": "arn:aws:iam::aws:policy/WellArchitectedAgentResourceScanning",
  "WellArchitectedConsoleFullAccess": "arn:aws:iam::aws:policy/WellArchitectedConsoleFullAccess",
  "WellArchitectedConsoleReadOnlyAccess": "arn:aws:iam::aws:policy/WellArchitectedConsoleReadOnlyAccess",
  "WorkLinkServiceRolePolicy": "arn:aws:iam::aws:policy/WorkLinkServiceRolePolicy"

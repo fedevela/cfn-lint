@@ -27545,6 +27545,7 @@
    "createdataproduct": {},
    "createdataproductrevision": {},
    "createdatasource": {},
+   "createdesignation": {},
    "createdomain": {},
    "createdomainunit": {},
    "createenvironment": {},
@@ -27575,6 +27576,7 @@
    "deletedataexportconfiguration": {},
    "deletedataproduct": {},
    "deletedatasource": {},
+   "deletedesignation": {},
    "deletedomain": {
     "Resources": [
      "domain"
@@ -27614,10 +27616,12 @@
    "getcompute": {},
    "getconnection": {},
    "getconversation": {},
+   "getcurrenteffectivepolicy": {},
    "getdataexportconfiguration": {},
    "getdataproduct": {},
    "getdatasource": {},
    "getdatasourcerun": {},
+   "getdesignation": {},
    "getdomain": {
     "Resources": [
      "domain"
@@ -27669,6 +27673,7 @@
    "listdatasourcerunactivities": {},
    "listdatasourceruns": {},
    "listdatasources": {},
+   "listdesignations": {},
    "listdomains": {},
    "listdomainunitsforparent": {},
    "listentityowners": {},
@@ -27762,6 +27767,7 @@
    "updateconnection": {},
    "updatedatasource": {},
    "updatedatasourcerunactivities": {},
+   "updatedesignation": {},
    "updatedomain": {
     "Resources": [
      "domain"
@@ -27785,7 +27791,8 @@
    "updatesubscriptionrequest": {},
    "updatesubscriptiontarget": {},
    "updateuserprofile": {},
-   "validatepassrole": {}
+   "validatepassrole": {},
+   "validatepolicy": {}
   },
   "Resources": {
    "domain": {
@@ -46387,6 +46394,7 @@
  },
  "glue": {
   "Actions": {
+   "accessdataqualityruntimeconfiguration": {},
    "authorizeinboundintegration": {
     "Resources": [
      "integration"
@@ -49576,6 +49584,12 @@
      "Integration"
     ]
    },
+   "listpatientmedications": {
+    "Resources": [
+     "Domain",
+     "Integration"
+    ]
+   },
    "listproviders": {
     "Resources": [
      "Domain",
@@ -49615,6 +49629,12 @@
      "Integration"
     ]
    },
+   "resetpassword": {
+    "Resources": [
+     "Domain",
+     "Integration"
+    ]
+   },
    "scheduleappointment": {
     "Resources": [
      "Domain",
@@ -49631,6 +49651,12 @@
     "Resources": [
      "Domain",
      "PatientInsightsJob"
+    ]
+   },
+   "submitmedicationrenewal": {
+    "Resources": [
+     "Domain",
+     "Integration"
     ]
    },
    "tagresource": {
@@ -49725,10 +49751,16 @@
      "datastore"
     ]
    },
+   "createdatatransformationprofile": {},
    "createfhirdatastore": {},
    "createresource": {
     "Resources": [
      "datastore"
+    ]
+   },
+   "deletedatatransformationprofile": {
+    "Resources": [
+     "dataTransformationProfile"
     ]
    },
    "deletefhirdatastore": {
@@ -49741,6 +49773,7 @@
      "datastore"
     ]
    },
+   "describedatatransformationjob": {},
    "describefhirbulkdeletejob": {
     "Resources": [
      "datastore"
@@ -49796,6 +49829,11 @@
      "datastore"
     ]
    },
+   "getdatatransformationprofile": {
+    "Resources": [
+     "dataTransformationProfile"
+    ]
+   },
    "getexportedfile": {
     "Resources": [
      "datastore"
@@ -49811,6 +49849,13 @@
      "datastore"
     ]
    },
+   "listdatatransformationjobs": {},
+   "listdatatransformationprofiles": {},
+   "listdatatransformationprofileversions": {
+    "Resources": [
+     "dataTransformationProfile"
+    ]
+   },
    "listfhirdatastores": {},
    "listfhirexportjobs": {
     "Resources": [
@@ -49824,6 +49869,7 @@
    },
    "listtagsforresource": {
     "Resources": [
+     "dataTransformationProfile",
      "datastore"
     ]
    },
@@ -49862,6 +49908,11 @@
      "datastore"
     ]
    },
+   "publishdatatransformationprofile": {
+    "Resources": [
+     "dataTransformationProfile"
+    ]
+   },
    "questionnairepackage": {
     "Resources": [
      "datastore"
@@ -49890,6 +49941,11 @@
    "searchwithpost": {
     "Resources": [
      "datastore"
+    ]
+   },
+   "startdatatransformationjob": {
+    "Resources": [
+     "dataTransformationProfile"
     ]
    },
    "startfhirbulkdeletejob": {
@@ -49929,17 +49985,34 @@
    },
    "tagresource": {
     "Resources": [
+     "dataTransformationProfile",
      "datastore"
+    ]
+   },
+   "transformdata": {
+    "Resources": [
+     "dataTransformationProfile"
     ]
    },
    "untagresource": {
     "Resources": [
+     "dataTransformationProfile",
      "datastore"
+    ]
+   },
+   "updatedatatransformationprofile": {
+    "Resources": [
+     "dataTransformationProfile"
     ]
    },
    "updatefhirdatastore": {
     "Resources": [
      "datastore"
+    ]
+   },
+   "updateprofilewithagent": {
+    "Resources": [
+     "dataTransformationProfile"
     ]
    },
    "updateresource": {
@@ -49952,6 +50025,7 @@
      "datastore"
     ]
    },
+   "validatesource": {},
    "versionreadresource": {
     "Resources": [
      "datastore"
@@ -49962,6 +50036,14 @@
    "datastore": {
     "ARNFormats": [
      "arn:${Partition}:healthlake:${Region}:${Account}:datastore/fhir/.*"
+    ],
+    "ConditionKeys": [
+     "aws:ResourceTag/${TagKey}"
+    ]
+   },
+   "datatransformationprofile": {
+    "ARNFormats": [
+     "arn:${Partition}:healthlake:${Region}:${Account}:dataTransformationProfile/.*"
     ],
     "ConditionKeys": [
      "aws:ResourceTag/${TagKey}"
@@ -72521,7 +72603,12 @@
      "datasource"
     ]
    },
-   "submitautooptimizejob": {}
+   "submitautooptimizejob": {},
+   "viewloginpage": {
+    "Resources": [
+     "application"
+    ]
+   }
   },
   "Resources": {
    "application": {
@@ -73923,6 +74010,21 @@
      "ProspectingFromEngagementTask"
     ]
    },
+   "getqualificationsassociationdetails": {
+    "Resources": [
+     "Partner"
+    ]
+   },
+   "getqualificationsassociationtask": {
+    "Resources": [
+     "Partner"
+    ]
+   },
+   "getqualificationsdisassociationtask": {
+    "Resources": [
+     "Partner"
+    ]
+   },
    "getrelationship": {
     "Resources": [
      "Relationship"
@@ -74085,6 +74187,16 @@
    "startprospectingfromengagementtask": {
     "Resources": [
      "Engagement"
+    ]
+   },
+   "startqualificationsassociationtask": {
+    "Resources": [
+     "Partner"
+    ]
+   },
+   "startqualificationsdisassociationtask": {
+    "Resources": [
+     "Partner"
     ]
    },
    "startresourcesnapshotjob": {
@@ -78684,6 +78796,12 @@
      "ingestion"
     ]
    },
+   "createknowledgebase": {
+    "Resources": [
+     "datasource",
+     "knowledgeBase"
+    ]
+   },
    "createlimitsprofile": {
     "Resources": [
      "limitsProfile"
@@ -79752,6 +79870,11 @@
    "updateidentitypropagationconfig": {},
    "updateiprestriction": {},
    "updatekeyregistration": {},
+   "updateknowledgebase": {
+    "Resources": [
+     "knowledgeBase"
+    ]
+   },
    "updateknowledgebasepermissions": {
     "Resources": [
      "knowledgeBase"
@@ -86432,7 +86555,7 @@
    },
    "createaccessgrant": {
     "Resources": [
-     "accessgrantslocation"
+     "accessgrant"
     ]
    },
    "createaccessgrantsinstance": {
@@ -86442,7 +86565,7 @@
    },
    "createaccessgrantslocation": {
     "Resources": [
-     "accessgrantsinstance"
+     "accessgrantslocation"
     ]
    },
    "createaccesspoint": {
@@ -93144,6 +93267,11 @@
      "hub"
     ]
    },
+   "batchgetenabledregionsv2": {
+    "Resources": [
+     "hubv2"
+    ]
+   },
    "batchgetsecuritycontrols": {},
    "batchgetstandardscontrolassociations": {},
    "batchimportfindings": {
@@ -93384,6 +93512,11 @@
    "getcontrolfindingsummary": {
     "Resources": [
      "hub"
+    ]
+   },
+   "getcoveragestatisticsv2": {
+    "Resources": [
+     "hubv2"
     ]
    },
    "getenabledstandards": {
@@ -100027,6 +100160,9 @@
    "device": {
     "ARNFormats": [
      "arn:${Partition}:storagegateway:${Region}:${Account}:gateway/.*"
+    ],
+    "ConditionKeys": [
+     "aws:ResourceTag/${TagKey}"
     ]
    },
    "fs-association": {
@@ -100072,6 +100208,9 @@
    "target": {
     "ARNFormats": [
      "arn:${Partition}:storagegateway:${Region}:${Account}:gateway/.*"
+    ],
+    "ConditionKeys": [
+     "aws:ResourceTag/${TagKey}"
     ]
    },
    "volume": {
@@ -100312,7 +100451,9 @@
   "Actions": {
    "getcarbonfootprintsummary": {},
    "getestimatedcarbonemissions": {},
-   "getestimatedcarbonemissionsdimensionvalues": {}
+   "getestimatedcarbonemissionsdimensionvalues": {},
+   "getestimatedwaterallocation": {},
+   "getestimatedwaterallocationdimensionvalues": {}
   },
   "Resources": {}
  },
