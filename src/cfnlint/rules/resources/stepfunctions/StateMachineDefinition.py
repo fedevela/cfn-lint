@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT-0
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cfnlint.data.schemas.other.resources
 import cfnlint.data.schemas.other.step_functions
@@ -14,6 +14,19 @@ import cfnlint.helpers
 from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.jsonschema.CfnLintJsonSchema import CfnLintJsonSchema, SchemaDetails
 from cfnlint.schema.resolver import RefResolver
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from typing import TypedDict
+
+    class _TaskResourceSubstitutionScope(TypedDict):
+        """GEV-001..004: resource-local inputs for the ARN exemption seam."""
+
+        # GEV-002, GEV-004: binds lookup to the definition's owning resource.
+        logical_resource_id: str
+        # GEV-001..003: exact keys are authoritative; values remain opaque.
+        definition_substitutions: Mapping[str, Any]
 
 
 class StateMachineDefinition(CfnLintJsonSchema):
@@ -79,6 +92,10 @@ class StateMachineDefinition(CfnLintJsonSchema):
 
         # GEV-001, GEV-002, GEV-003, GEV-004 pseudocode -- declared Task
         # Resource substitution gate:
+        #
+        # OWNERSHIP / DEPENDENCY:
+        #   this rule assembles _TaskResourceSubstitutionScope from the outer
+        #   CloudFormation validator before delegating to the nested ASL validator
         #
         # INPUTS:
         #   inline_definition := instance
