@@ -201,8 +201,19 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             ):
                 continue
 
-            # Pseudocode contract: CFNLINT-001, CFNLINT-002, CFNLINT-004,
+            # Architecture boundary: CFNLINT-001, CFNLINT-002, CFNLINT-004,
             # CFNLINT-005.
+            # Ownership: find_in_map owns whether the canonical third-argument
+            # intrinsic is eligible for a definitive mapping-key comparison.
+            # Input boundary: YAML decoding has already normalized !Sub and Fn::Sub;
+            # this resolver must depend only on that canonical intrinsic form.
+            # Integration seam: keep the deployment-dependence gate immediately
+            # before resolve_value(instance[2]) and before mismatch accumulation.
+            # Dependency direction: find_in_map may consume Validator resolution and
+            # Context data; it must not move this policy into E1011, YAML decoding, or
+            # general pseudo-parameter resolution.
+            #
+            # Pseudocode contract:
             # INPUT: the parsed third FindInMap argument and validation context.
             # TREAT short-form !Sub and long-form Fn::Sub as the same semantic node.
             # IF that node substitutes AWS::AccountId AND no authoritative deployment
