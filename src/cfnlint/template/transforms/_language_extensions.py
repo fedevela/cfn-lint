@@ -48,6 +48,20 @@ class _TypeError(Exception):
 
 
 def language_extension(cfn: Any) -> TransformResult:
+    # PSEUDOCODE [CFNLINT-004, CFNLINT-010] — preserve the observable lint
+    # contract at the Language Extensions boundary:
+    # INPUT: a decoded template selected for AWS::LanguageExtensions.
+    # ATTEMPT the existing transform over the complete template.
+    # IF every intrinsic and Fn::ForEach collection resolves, RETURN the
+    # transform's empty match list and transformed template; linting therefore
+    # continues without an E0001 transform diagnostic.
+    # ELSE IF a known value, type, or resolution failure reaches this boundary,
+    # CONVERT that failure into the existing E0001 TransformError and return no
+    # transformed template.
+    # ELSE CONVERT an unexpected failure through the same established E0001
+    # path.
+    # The account-ID mapping reproduction must complete the success branch;
+    # existing valid Fn::FindInMap and Fn::ForEach inputs retain that same branch.
     transform = _Transform()
     try:
         return transform.transform(cfn)
@@ -344,6 +358,24 @@ class _ForEachValueFnFindInMap(_ForEachValue):
         only_params: bool = False,
         default_on_resolver_failure: bool = True,
     ) -> Any:
+        # PSEUDOCODE [CFNLINT-010, CFNLINT-011] — resolve a mapping value used
+        # as an Fn::ForEach collection without specializing the valid lookup:
+        # INPUT: mapping name, first-level selector, second-level key, template
+        # mappings, transform parameters, and optional default behavior.
+        # RESOLVE the mapping name through the established intrinsic-value path.
+        # RESOLVE the first-level selector through that same path; when it is
+        # Ref AWS::AccountId, use the deterministic account-ID string already
+        # supplied by Ref resolution.
+        # LOOK UP that exact string against the decoded mapping keys, including
+        # an originally unquoted account-ID key, without numeric coercion.
+        # RESOLVE the second-level key and READ its mapped value.
+        # IF the value is an array, RETURN the array unchanged so the caller can
+        # use it as the ordered Fn::ForEach collection.
+        # ELSE RETURN any other valid mapped value unchanged, preserving prior
+        # Fn::FindInMap transformation behavior.
+        # IF intrinsic resolution fails and an enabled default exists, RETURN
+        # the resolved default; ELSE FOLLOW the existing compatible list-value
+        # fallback; IF neither path resolves, RAISE the established error.
         if params is None:
             params = {}
         t_map = deepcopy(self._map)
@@ -537,6 +569,23 @@ class _ForEachCollection:
     def values(
         self, cfn: Any, collection_cache: MutableMapping[str, Any]
     ) -> Iterator[str | dict[Any, Any]]:
+        # PSEUDOCODE [CFNLINT-004, CFNLINT-010, CFNLINT-011] — hand a resolved
+        # account mapping array into the established Fn::ForEach iteration flow:
+        # INPUT: a literal or intrinsic collection and the current transform
+        # context/cache.
+        # IF the collection is literal, RESOLVE and YIELD each existing member
+        # in source order, retaining the previous valid Fn::ForEach behavior.
+        # ELSE RESOLVE the intrinsic collection once.
+        # IF it is a list, VALIDATE each member as scalar-compatible and YIELD
+        # every member in order; this includes the array selected by an unquoted
+        # account-ID mapping key through Ref AWS::AccountId.
+        # ELSE IF it resolves to a non-list or contains an invalid member, FAIL
+        # with the established collection value/type error.
+        # ELSE IF resolution is deferred, REUSE cached placeholder members or
+        # CREATE and cache the existing deterministic-shape placeholder stream.
+        # ONLY IF no literal, intrinsic, or deferred path exists, RAISE
+        # "Fn::ForEach could not be resolved"; the reproduction must not reach
+        # this failure path, so its successful transform emits no E0001.
         # PSEUDOCODE [CFNLINT-003] — accept a mapped Emails array as the
         # iteration collection:
         # INPUT: the Fn::ForEach collection expression and template context.
