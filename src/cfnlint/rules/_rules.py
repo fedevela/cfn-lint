@@ -145,6 +145,33 @@ class Rules(TypedRules):
                 self.run_check(rule.matchall, filename, rule_id, config, filename, cfn),
             )
 
+        # IAMMP-009 verification:
+        # test_iammp_009_validating_multiple_managed_policies_identifies_every_oversized_policy_document
+        # test_iammp_009_validating_multiple_managed_policies_does_not_identify_compliant_policy_documents_as_oversized
+        # IAMMP-009 logic obligation
+        # INPUT: every resource in one template, including multiple
+        # AWS::IAM::ManagedPolicy resources whose independently evaluated
+        # PolicyDocuments may be oversized or compliant.
+        # TRANSITION:
+        #   1. Visit each template resource exactly once without using a prior
+        #      resource's size result to stop or gate later resource validation.
+        #   2. For the current managed policy, establish its logical-resource
+        #      path and hand its Properties to the existing Properties/E3033
+        #      PolicyDocument maximum-length flow.
+        #   3. Retain every size error returned for the current resource, with
+        #      that resource's logical name and PolicyDocument path attached.
+        #   4. Continue to the next resource after either a size error or a
+        #      size success; aggregate, rather than replace, returned matches.
+        # PER-RESOURCE DECISION:
+        #   - IF the current PolicyDocument's exact compact size is greater than
+        #     its schema maximum, emit its attributed E3033 match.
+        #   - ELSE emit no E3033 size match for that PolicyDocument.
+        # OUTPUT: the collected E3033 PolicyDocument paths correspond exactly to
+        # all oversized managed policies and exclude every compliant one.
+        # FAILURE PATH: no resource may inherit another resource's size state,
+        # path, or diagnostic, and one failure must not short-circuit, collapse,
+        # overwrite, or duplicate another resource's independently produced match.
+        # NON-GOAL: do not sum policy sizes or perform aggregate quota validation.
         for resource_name, resource_attributes in cfn.get_resources().items():
             resource_type = resource_attributes.get("Type")
             resource_properties = resource_attributes.get("Properties")
