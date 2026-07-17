@@ -74,6 +74,15 @@ class StringLength(CloudFormationLintRule):
 
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
+        # ARCHITECTURE: GUID MPOL-001, MPOL-002, MPOL-003
+        # Ownership remains in this E3033 maxLength callback: Properties supplies
+        # the provider-schema limit and dispatches this keyword to StringLength.
+        # The managed-policy specialization is bounded by the canonical
+        # validator.context.path.cfn_path for PolicyDocument; every other locus
+        # must continue into the generic branches below. The specialization may
+        # depend only on that path contract, the existing non-string
+        # normalization/serialization seam, and the existing ValidationError
+        # channel. It must not introduce an IAM-rule dependency or a new API.
         # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003
         # INPUT: the current validation locus, PolicyDocument value, and maxLength.
         # IF the locus is AWS::IAM::ManagedPolicy.Properties.PolicyDocument:
