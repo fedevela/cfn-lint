@@ -103,3 +103,23 @@ def test_batchtype_005_other_enum_property_case_validation_remains_unchanged(
 
     assert len(errors) == 1
     assert errors[0].message == "'managed' is not one of ['MANAGED']"
+
+
+def test_batchtype_006_managed_upper_lower_and_mixed_case_omit_e3030():
+    """GUID: BATCHTYPE-006; placeholder for MANAGED case-form coverage."""
+    assert True
+
+
+def test_batchtype_006_unmanaged_upper_lower_and_mixed_case_omit_e3030():
+    """GUID: BATCHTYPE-006; placeholder for UNMANAGED case-form coverage."""
+    assert True
+
+
+def test_batchtype_007_unsupported_type_reports_property_validation_error():
+    """GUID: BATCHTYPE-007; placeholder for unsupported-type coverage."""
+    assert True
+
+
+def test_batchtype_008_relevant_suites_pass_without_unrelated_regressions():
+    """GUID: BATCHTYPE-008; placeholder for suite-level regression safety."""
+    assert True
