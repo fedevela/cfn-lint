@@ -70,77 +70,11 @@
   "Condition": {
    "additionalProperties": false,
    "patternProperties": {
-    "ForAllValues:^(Not)?IpAddress$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^Arn(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^Arn(Not)?Like$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^Date(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^Number(Less|Greater)Than(Equals)?$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^Number(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^String(Not)?Equals(IgnoreCase)?$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAllValues:^String(Not)?Like$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^(Not)?IpAddress$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^Arn(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^Arn(Not)?Like$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^Date(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^Number(Less|Greater)Than(Equals)?$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^Number(Not)?Equals$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^String(Not)?Equals(IgnoreCase)?$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "ForAnyValues:^String(Not)?Like?$": {
-     "$ref": "#/definitions/ConditionSetValue"
-    },
-    "^(Not)?IpAddress(Exists)?$": {
+    "^(?:Arn(?:Equals|Like|NotEquals|NotLike)|BinaryEquals|Bool|Date(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|IpAddress|NotIpAddress|Numeric(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|String(?:Equals(?:IgnoreCase)?|NotEquals(?:IgnoreCase)?|Like|NotLike))(?:IfExists)?$": {
      "$ref": "#/definitions/ConditionValue"
     },
-    "^Arn(Not)?Equals(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^Arn(Not)?Like(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^Date(Not)?Equals(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^Number(Less|Greater)Than(Equals)?(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^Number(Not)?Equals(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^String(Not)?Equals(IgnoreCase)?(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
-    },
-    "^String(Not)?Like(Exists)?$": {
-     "$ref": "#/definitions/ConditionValue"
+    "^For(?:AllValues|AnyValue):(?:Arn(?:Equals|Like|NotEquals|NotLike)|BinaryEquals|Bool|Date(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|IpAddress|NotIpAddress|Numeric(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|String(?:Equals(?:IgnoreCase)?|NotEquals(?:IgnoreCase)?|Like|NotLike))(?:IfExists)?$": {
+     "$ref": "#/definitions/ConditionSetValue"
     }
    },
    "properties": {

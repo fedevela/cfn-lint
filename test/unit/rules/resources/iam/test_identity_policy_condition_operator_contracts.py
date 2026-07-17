@@ -3,47 +3,120 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+import pytest
 
-def test_iamop_001_managed_policy_string_equals_if_exists_emits_no_e3510():
-    """GUID: IAMOP-001; exact operator is accepted for AWS::IAM::ManagedPolicy."""
-    assert True
-
-
-def test_iamop_001_iam_policy_string_equals_if_exists_emits_no_e3510():
-    """GUID: IAMOP-001; exact operator is accepted for AWS::IAM::Policy."""
-    assert True
+from cfnlint.jsonschema import CfnTemplateValidator
+from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 
 
-def test_iamop_002_managed_policy_for_any_value_string_equals_emits_no_e3510():
-    """GUID: IAMOP-002; exact operator is accepted for AWS::IAM::ManagedPolicy."""
-    assert True
+RESOURCE_TYPES = ("AWS::IAM::ManagedPolicy", "AWS::IAM::Policy")
+BASE_OPERATORS = (
+    "ArnEquals",
+    "ArnLike",
+    "ArnNotEquals",
+    "ArnNotLike",
+    "BinaryEquals",
+    "Bool",
+    "DateEquals",
+    "DateNotEquals",
+    "DateLessThan",
+    "DateLessThanEquals",
+    "DateGreaterThan",
+    "DateGreaterThanEquals",
+    "IpAddress",
+    "NotIpAddress",
+    "NumericEquals",
+    "NumericNotEquals",
+    "NumericLessThan",
+    "NumericLessThanEquals",
+    "NumericGreaterThan",
+    "NumericGreaterThanEquals",
+    "StringEquals",
+    "StringEqualsIgnoreCase",
+    "StringNotEquals",
+    "StringNotEqualsIgnoreCase",
+    "StringLike",
+    "StringNotLike",
+)
 
 
-def test_iamop_002_iam_policy_for_any_value_string_equals_emits_no_e3510():
-    """GUID: IAMOP-002; exact operator is accepted for AWS::IAM::Policy."""
-    assert True
+def _errors_for(resource_type, operator):
+    rule = IdentityPolicy()
+    resource_path = f"Resources/{resource_type}/Properties/PolicyDocument"
+    assert resource_path in rule.keywords
+
+    condition_value = ["value"] if operator.startswith("For") else "value"
+    policy = {
+        "Version": "2012-10-17",
+        "Statement": {
+            "Effect": "Allow",
+            "Action": "*",
+            "Resource": "*",
+            "Condition": {operator: {"aws:TagKeys": condition_value}},
+        },
+    }
+    return list(
+        rule.validate(
+            validator=CfnTemplateValidator(),
+            policy=policy,
+            schema={},
+            policy_type=None,
+        )
+    )
 
 
-def test_iamop_003_managed_policy_for_all_values_string_equals_emits_no_e3510():
-    """GUID: IAMOP-003; exact operator is accepted for AWS::IAM::ManagedPolicy."""
-    assert True
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+def test_iamop_001_string_equals_if_exists_emits_no_e3510(resource_type):
+    """GUID: IAMOP-001; exact operator is accepted for both IAM resources."""
+    assert _errors_for(resource_type, "StringEqualsIfExists") == []
 
 
-def test_iamop_003_iam_policy_for_all_values_string_equals_emits_no_e3510():
-    """GUID: IAMOP-003; exact operator is accepted for AWS::IAM::Policy."""
-    assert True
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+def test_iamop_002_for_any_value_string_equals_emits_no_e3510(resource_type):
+    """GUID: IAMOP-002; exact operator is accepted for both IAM resources."""
+    assert _errors_for(resource_type, "ForAnyValue:StringEquals") == []
 
 
-def test_iamop_007_confirmed_iam_resources_accept_exact_documented_if_exists():
-    """GUID: IAMOP-007; both confirmed resources accept exact IfExists forms."""
-    assert True
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+def test_iamop_003_for_all_values_string_equals_emits_no_e3510(resource_type):
+    """GUID: IAMOP-003; exact operator is accepted for both IAM resources."""
+    assert _errors_for(resource_type, "ForAllValues:StringEquals") == []
 
 
-def test_iamop_007_confirmed_iam_resources_accept_exact_for_any_value():
-    """GUID: IAMOP-007; both confirmed resources accept exact ForAnyValue forms."""
-    assert True
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+@pytest.mark.parametrize("base_operator", BASE_OPERATORS)
+def test_iamop_007_accepts_documented_if_exists_forms(
+    resource_type, base_operator
+):
+    """GUID: IAMOP-007; documented IfExists forms are accepted exactly."""
+    assert _errors_for(resource_type, f"{base_operator}IfExists") == []
 
 
-def test_iamop_007_confirmed_iam_resources_accept_exact_for_all_values():
-    """GUID: IAMOP-007; both confirmed resources accept exact ForAllValues forms."""
-    assert True
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+@pytest.mark.parametrize("qualifier", ("ForAnyValue", "ForAllValues"))
+@pytest.mark.parametrize("suffix", ("", "IfExists"))
+@pytest.mark.parametrize("base_operator", BASE_OPERATORS)
+def test_iamop_007_accepts_documented_set_operator_forms(
+    resource_type, qualifier, suffix, base_operator
+):
+    """GUID: IAMOP-007; documented set-operator forms are accepted exactly."""
+    assert _errors_for(resource_type, f"{qualifier}:{base_operator}{suffix}") == []
+
+
+@pytest.mark.parametrize(
+    "operator",
+    (
+        "StringEqualsExists",
+        "StringEqualsIfExist",
+        "ForAnyValues:StringEquals",
+        "ForAnyValueStringEquals",
+        "ForAllValue:StringEquals",
+        "ForAllValues:StringResembles",
+        "ArbitraryIfExists",
+    ),
+)
+def test_iamop_007_rejects_malformed_or_undocumented_forms(operator):
+    """GUID: IAMOP-007; modifier-like names do not open the closed vocabulary."""
+    errors = _errors_for("AWS::IAM::ManagedPolicy", operator)
+    assert len(errors) == 1
+    assert errors[0].validator == "additionalProperties"
