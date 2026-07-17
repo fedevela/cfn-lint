@@ -36,6 +36,12 @@ class EqualsIsUseful(CloudFormationLintRule):
     #     REJECT the description as inconsistent with detection behavior.
     #   EXPOSE the same identifier, severity classification, and description for
     #   findings handed off from every invocation of equals_is_useful.
+
+    # ARCHITECTURE — W8003-005 / W8003-006
+    # This class metadata is the single owner of the finding identity and the
+    # user-facing description for both constant outcomes. CloudFormationLintRule
+    # derives warning severity from the W-prefixed id, so outcome handling must
+    # depend on this shared contract rather than carry separate metadata.
     id = "W8003"
     shortdesc = "Fn::Equals will always return true or false"
     description = (
@@ -46,6 +52,11 @@ class EqualsIsUseful(CloudFormationLintRule):
     tags = ["functions", "equals"]
 
     def equals_is_useful(self, validator, s, instance, schema):
+        # ARCHITECTURE — W8003-003 / W8003-005
+        # Constant-result selection and diagnostic text belong at this analysis
+        # boundary. ValidationError(rule=self) is the integration seam that binds
+        # the selected result to the shared W8003 identity; the Equals parent keeps
+        # ownership of traversal and source-location propagation.
         # PSEUDOCODE — W8003-001 / W8003-002 / W8003-003
         # Verification loci:
         # - test_W8003_001_identical_literal_equals_when_linted_reports_true_finding
