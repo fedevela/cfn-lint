@@ -22,11 +22,13 @@ if TYPE_CHECKING:
     from typing import TypedDict
 
     class _TaskResourceSubstitutionScope(TypedDict):
-        """GEV-001..004: resource-local inputs for the ARN exemption seam."""
+        """GEV-001..005: resource-local inputs for the ARN exemption seam."""
 
         # GEV-002, GEV-004: binds lookup to the definition's owning resource.
         logical_resource_id: str
         # GEV-001..003: exact keys are authoritative; values remain opaque.
+        # GEV-005: entries are lookup inputs only; they do not exempt concrete
+        # Task.Resource values from the nested ASL ARN-pattern contract.
         definition_substitutions: Mapping[str, Any]
 
 
