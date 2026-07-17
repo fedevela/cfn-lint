@@ -511,7 +511,7 @@ def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compli
 # dispatch -> StringLength/E3033 -> path-preserving diagnostic. The reproduction
 # cell depends on its dedicated adapter rather than on synthetic boundary fixtures;
 # no production module may depend on this test-only matrix or its helpers.
-def test_iammp_010_over_limit_managed_policy_reports_size_limit_error():
+def test_iammp_010_over_limit_managed_policy_reports_size_limit_error(validator):
     """IAMMP-010: an over-limit policy must report the size-limit error."""
     # IAMMP-010 logic obligation: over-limit regression branch.
     # INPUT: construct a statically determinable managed PolicyDocument whose
@@ -526,10 +526,19 @@ def test_iammp_010_over_limit_managed_policy_reports_size_limit_error():
     # managed policy's PolicyDocument locus.
     # FAILURE PATH: reject a missing, duplicated, differently located, or
     # differently classified size-limit result.
-    assert True
+    compact, _ = _policy_document_json_variants(6145)
+
+    errors = _managed_policy_size_errors(validator, compact)
+
+    assert len(errors) == 1
+    assert errors[0].message == "Item is too long"
+    assert list(errors[0].path) == ["Properties", "PolicyDocument"]
+    assert errors[0].rule.id == "E3033"
 
 
-def test_iammp_010_exactly_at_limit_managed_policy_does_not_report_size_limit_error():
+def test_iammp_010_exactly_at_limit_managed_policy_does_not_report_size_limit_error(
+    validator,
+):
     """IAMMP-010: an exactly-at-limit policy must not report a size error."""
     # IAMMP-010 logic obligation: exactly-at-limit regression branch.
     # INPUT: construct a statically determinable managed PolicyDocument whose
@@ -541,10 +550,16 @@ def test_iammp_010_exactly_at_limit_managed_policy_does_not_report_size_limit_er
     # OUTPUT: verify equality is accepted without a managed-policy size error.
     # FAILURE PATH: do not treat equality as overflow, and do not use the absence
     # of unrelated lint results as the success criterion.
-    assert True
+    compact, _ = _policy_document_json_variants(6144)
+
+    errors = _managed_policy_size_errors(validator, compact)
+
+    assert errors == []
 
 
-def test_iammp_010_under_limit_managed_policy_does_not_report_size_limit_error():
+def test_iammp_010_under_limit_managed_policy_does_not_report_size_limit_error(
+    validator,
+):
     """IAMMP-010: an under-limit policy must not report a size-limit error."""
     # IAMMP-010 logic obligation: under-limit regression branch.
     # INPUT: construct a statically determinable managed PolicyDocument whose
@@ -556,10 +571,16 @@ def test_iammp_010_under_limit_managed_policy_does_not_report_size_limit_error()
     # OUTPUT: verify the compliant document contributes no size-limit error.
     # FAILURE PATH: preserve independently applicable lint results rather than
     # interpreting or suppressing them as managed-policy size failures.
-    assert True
+    compact, _ = _policy_document_json_variants(6143)
+
+    errors = _managed_policy_size_errors(validator, compact)
+
+    assert errors == []
 
 
-def test_iammp_010_formatting_only_whitespace_changes_do_not_alter_size_validation_result():
+def test_iammp_010_formatting_only_whitespace_changes_do_not_alter_size_validation_result(
+    validator,
+):
     """IAMMP-010: formatting-only whitespace must not alter the size result."""
     # IAMMP-010 logic obligation: whitespace-insensitive regression branch.
     # INPUT: derive compact and whitespace-expanded JSON texts that deserialize
@@ -574,10 +595,18 @@ def test_iammp_010_formatting_only_whitespace_changes_do_not_alter_size_validati
     # OUTPUT: verify both variants produce the same no-size-error result.
     # FAILURE PATH: fail if source formatting changes the result or if the
     # expanded source-text length is mistaken for compact policy size.
-    assert True
+    compact, whitespace = _policy_document_json_variants(6144)
+    assert len(whitespace) > 6144
+
+    compact_errors = _managed_policy_size_errors(validator, compact)
+    whitespace_errors = _managed_policy_size_errors(validator, whitespace)
+
+    assert compact_errors == whitespace_errors == []
 
 
-def test_iammp_010_supplied_reproduction_is_invalid_when_oversized_managed_policy_reports_policy_document_size_error():
+def test_iammp_010_supplied_reproduction_is_invalid_when_oversized_managed_policy_reports_policy_document_size_error(
+    validator,
+):
     """IAMMP-010: the oversized reproduction must fail with a policy size error."""
     # IAMMP-010 logic obligation: supplied-reproduction regression branch.
     # INPUT: use the supplied template reproduction containing its oversized,
@@ -592,4 +621,14 @@ def test_iammp_010_supplied_reproduction_is_invalid_when_oversized_managed_polic
     # error, preserving the resource/property locus in the reported path.
     # FAILURE PATH: reject validity inferred from unrelated errors, a size error
     # at another path, or validation that silently accepts the oversized policy.
-    assert True
+    errors = _iammp_005_supplied_reproduction_errors(validator)
+    size_errors = [
+        error
+        for error in errors
+        if error.rule.id == "E3033"
+        and list(error.path) == ["Properties", "PolicyDocument"]
+    ]
+
+    assert errors
+    assert len(size_errors) == 1
+    assert size_errors[0].message == "Item is too long"
