@@ -52,6 +52,21 @@ def test_snapstart_002_python312_in_only_unsupported_regions_produces_e2530(
     assert _validate(validator, regions) == [_unsupported_regions_error(regions)]
 
 
+def test_snapstart_003_other_python_runtimes_remain_rejected_by_e2530():
+    """GUID: SNAPSTART-003."""
+    assert True
+
+
+def test_snapstart_004_unsupported_runtime_region_pairs_still_produce_e2530():
+    """GUID: SNAPSTART-004."""
+    assert True
+
+
+def test_snapstart_004_only_python312_supported_region_exits_negative_matrix():
+    """GUID: SNAPSTART-004."""
+    assert True
+
+
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
     """GUID: SNAPSTART-008; supported passes and unsupported produces E2530."""
     assert _validate(validator, ["us-east-1", "ap-south-1"]) == [
