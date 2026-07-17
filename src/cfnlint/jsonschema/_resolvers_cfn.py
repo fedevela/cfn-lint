@@ -48,26 +48,31 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
 # - The receiving-property validator owns compatibility errors. It must receive only
 #   the selected value and its mapping path, never the unused DefaultValue.
 # Dependency direction: mapping lookup -> resolver applicability -> property validator.
+def _find_in_map_default(validator: Validator, default_value: Any) -> ResolutionResult:
+    for value, v, _ in validator.resolve_value(default_value):
+        yield value, v.evolve(
+            context=v.context.evolve(
+                path=v.context.path.evolve(
+                    value_path=deque([4, "DefaultValue"])
+                )
+            ),
+        ), None
+
+
 def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     if not validator.is_type(instance, "array"):
         return
     if len(instance) not in [3, 4]:
         return
 
+    default_value = None
     default_value_found = False
     if len(instance) == 4:
         options = instance[3]
         if validator.is_type(options, "object"):
             if "DefaultValue" in options:
                 default_value_found = True
-                for value, v, _ in validator.resolve_value(options["DefaultValue"]):
-                    yield value, v.evolve(
-                        context=v.context.evolve(
-                            path=v.context.path.evolve(
-                                value_path=deque([4, "DefaultValue"])
-                            )
-                        ),
-                    ), None
+                default_value = options["DefaultValue"]
 
     if not default_value_found and not validator.context.mappings.maps:
         if validator.context.mappings.is_transform:
@@ -79,12 +84,18 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             ),
             path=deque([0]),
         )
+    elif default_value_found and not validator.context.mappings.maps:
+        if validator.context.mappings.is_transform:
+            yield from _find_in_map_default(validator, default_value)
+            return
 
     mappings = list(validator.context.mappings.maps.keys())
     results = []
     found_valid_combination = False
     k, v = is_function(instance[0])
     if k == "Ref" and v in PSEUDOPARAMS:
+        if default_value_found:
+            yield from _find_in_map_default(validator, default_value)
         return
     for map_name, map_v, _ in validator.resolve_value(instance[0]):
         if not validator.is_type(map_name, "string"):
@@ -136,6 +147,7 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                                 top_level_key,
                                 second_level_key,
                             ):
+                                found_valid_combination = True
                                 found_second_key = True
                                 yield (
                                     value,
@@ -284,8 +296,14 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                         None,
                     )
 
-    if not found_valid_combination:
-        yield from iter(results)
+    if found_valid_combination:
+        return
+
+    if default_value_found:
+        yield from _find_in_map_default(validator, default_value)
+        return
+
+    yield from iter(results)
 
 
 def get_azs(validator: Validator, instance: Any) -> ResolutionResult:

@@ -232,7 +232,6 @@ def test_invalid_functions(name, instance, response):
             "Valid FindInMap with valid keys and a default value",
             {"Fn::FindInMap": ["foo", "first", "second", {"DefaultValue": "default"}]},
             [
-                ("default", deque([4, "DefaultValue"]), None),
                 ("bar", deque(["Mappings", "foo", "first", "second"]), None),
             ],
         ),
