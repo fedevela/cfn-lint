@@ -402,16 +402,76 @@ def test_gev_004_foreach_a_1_a_2_b_1_b_2_dynamic_getatt_emits_no_e1010(
     assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
 
 
-def test_gev_005_dynamic_sub_resource_with_invalid_attribute_emits_attribute_finding():
+@pytest.mark.parametrize("template", [_gev_literal_map_template], indirect=True)
+def test_gev_005_dynamic_sub_resource_with_invalid_attribute_emits_attribute_finding(
+    validator, rule
+):
     """GEV-005: preserve invalid-attribute validation after dynamic-name support."""
-    assert True
+    instance = {
+        "Fn::GetAtt": [
+            {
+                "Fn::Sub": [
+                    "InputQueue${EscapedInput}",
+                    {"EscapedInput": "a1"},
+                ]
+            },
+            "InvalidAttribute",
+        ]
+    }
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            (
+                "'InvalidAttribute' is not one of ['Arn', 'QueueName', "
+                "'QueueUrl'] in ['us-east-1']"
+            ),
+            path=deque(["Fn::GetAtt", 1]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_010_determinable_dynamic_sub_undeclared_resource_emits_reference_finding():
+@pytest.mark.parametrize("template", [_gev_literal_map_template], indirect=True)
+def test_gev_010_determinable_dynamic_sub_undeclared_resource_emits_reference_finding(
+    validator, rule
+):
     """GEV-010: reject a determinable dynamic name absent from Resources."""
-    assert True
+    instance = {
+        "Fn::GetAtt": [
+            {
+                "Fn::Sub": [
+                    "InputQueue${EscapedInput}",
+                    {"EscapedInput": "missing"},
+                ]
+            },
+            "Arn",
+        ]
+    }
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            (
+                "'InputQueuemissing' is not one of ['InputQueuea1'] when "
+                "{'Fn::Sub': ['InputQueue${EscapedInput}', "
+                "{'EscapedInput': 'missing'}]} is resolved"
+            ),
+            path=deque(["Fn::GetAtt", 0]),
+            schema_path=deque(["enum"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_005_gev_010_dynamic_sub_declared_resource_valid_attribute_no_findings():
+@pytest.mark.parametrize("template", [_gev_literal_map_template], indirect=True)
+def test_gev_005_gev_010_dynamic_sub_declared_resource_valid_attribute_no_findings(
+    gev_literal_map_getatt_case, validator, rule
+):
     """GEV-005/GEV-010: valid resolved resource and attribute remain accepted."""
-    assert True
+    case = gev_literal_map_getatt_case
+    rule.child_rules = {}
+
+    assert list(
+        rule.fn_getatt(validator, case["schema"], case["instance"], {})
+    ) == []
