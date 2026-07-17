@@ -32,6 +32,24 @@ class GetAtt(BaseFn):
         super().__init__("Fn::GetAtt", all_types)
 
     def schema(self, validator, instance) -> dict[str, Any]:
+        # GEV-003 / GEV-004 -- mapped Fn::Sub resource-name validation:
+        # INPUT: each Fn::GetAtt composition delivered after LanguageExtensions
+        # expands the reported Fn::ForEach for a-1, a-2, b-1, and b-2.
+        # REQUIRE AWS::LanguageExtensions; otherwise use the existing function-
+        # admission failure path without changing Fn::ForEach or Fn::Sub semantics.
+        # FOR EACH delivered composition, in transformed collection order:
+        #   read the resource-name operand as complete Fn::Sub [string, variable_map];
+        #   admit Fn::Sub as a string-producing resource-name function;
+        #   FOR EACH variable-map entry, resolve its value through the shared resolver;
+        #     IF the value is Fn::FindInMap and resolves, bind the mapped result;
+        #     ELSE preserve the existing malformed/unresolvable-function failure path;
+        #   substitute all resolved bindings into the Fn::Sub string;
+        #   FOR EACH resulting logical-name candidate:
+        #     IF the candidate is a declared resource, hand it to normal attribute
+        #     validation and emit no E1010 solely for the Fn::FindInMap binding;
+        #     ELSE preserve the existing E1010 unknown-resource failure path.
+        # OUTPUT: all four declared-resource candidates continue independently to
+        # attribute validation; one iteration's resolution must not affect another.
         # GEV-001 / GEV-002 -- Fn::GetAtt resource-name resolution logic:
         # INPUT: the first Fn::GetAtt operand and the template transform/resource set.
         # IF AWS::LanguageExtensions is declared:
