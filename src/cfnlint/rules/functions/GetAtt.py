@@ -54,7 +54,7 @@ class GetAtt(BaseFn):
         # resource_functions contract; no GetAtt-local substitution adapter is needed.
         resource_functions = []
         if validator.context.transforms.has_language_extensions_transform():
-            resource_functions = ["Ref"]
+            resource_functions = ["Ref", "Fn::Sub"]
 
         return {
             "type": ["string", "array"],

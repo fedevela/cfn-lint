@@ -33,17 +33,18 @@ _template = {
 _template_with_transform = _template.copy()
 _template_with_transform["Transform"] = "AWS::LanguageExtensions"
 
+_gev_literal_map_template = {
+    "Transform": "AWS::LanguageExtensions",
+    "Resources": {
+        "InputQueuea1": {"Type": "AWS::SQS::Queue"},
+    },
+}
+
 
 @pytest.fixture(scope="module")
 def gev_literal_map_getatt_case():
     """GEV-001/GEV-002 integration seam for GetAtt -> Sub -> resource lookup."""
     return {
-        "template": {
-            "Transform": "AWS::LanguageExtensions",
-            "Resources": {
-                "InputQueuea1": {"Type": "AWS::SQS::Queue"},
-            },
-        },
         "instance": {
             "Fn::GetAtt": [
                 {
@@ -293,15 +294,30 @@ def test_validate(name, instance, schema, child_rules, expected, validator, rule
     assert errs == expected, f"Test {name!r} got {errs!r}"
 
 
+@pytest.mark.parametrize("template", [_gev_literal_map_template], indirect=True)
 def test_gev_001_language_extensions_accepts_complete_literal_map_sub_as_getatt_resource_name(
-    gev_literal_map_getatt_case,
+    gev_literal_map_getatt_case, validator, rule
 ):
     """GEV-001: a complete literal-map Fn::Sub resource name emits no E1010."""
-    assert True
+    case = gev_literal_map_getatt_case
+    rule.child_rules = {}
+
+    assert list(
+        rule.fn_getatt(validator, case["schema"], case["instance"], {})
+    ) == []
 
 
+@pytest.mark.parametrize("template", [_gev_literal_map_template], indirect=True)
 def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_declared_resource(
-    gev_literal_map_getatt_case,
+    gev_literal_map_getatt_case, validator, rule
 ):
     """GEV-002: literal a1 resolves to the declared InputQueuea1 resource."""
-    assert True
+    case = gev_literal_map_getatt_case
+    rule.child_rules = {}
+    resource_name = case["instance"]["Fn::GetAtt"][0]
+    resolutions = list(validator.resolve_value(resource_name))
+
+    assert [value for value, _, _ in resolutions] == ["InputQueuea1"]
+    assert list(
+        rule.fn_getatt(validator, case["schema"], case["instance"], {})
+    ) == []
