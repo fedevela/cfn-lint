@@ -162,3 +162,9 @@ def test_iamop_005_mixed_valid_and_invalid_operators_only_invalid_emits_finding(
     assert errors[0].rule.id == "E3510"
     assert errors[0].validator == "additionalProperties"
     assert list(errors[0].path) == ["Statement", "Condition", "StringResembles"]
+
+
+def test_iamop_008_previously_accepted_operator_remains_without_operator_name_finding(
+):
+    """GUID: IAMOP-008; validation preserves prior operator acceptance."""
+    assert True

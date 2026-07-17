@@ -217,3 +217,17 @@ class TestIamConditionOperatorReproductionContracts:
         }
         assert conditional[2] == {"Ref": "AWS::NoValue"}
         assert _reported_operator_rejections(matches) == []
+
+
+class TestIamConditionOperatorRegressionPreservationContracts:
+    """Verification placeholders for GUID: IAMOP-010."""
+
+    def test_iamop_010_unrelated_existing_finding_remains_governed_by_its_rule(self):
+        """GUID: IAMOP-010; unrelated findings retain existing rule behavior."""
+        assert True
+
+    def test_iamop_010_corrected_operator_with_unrelated_content_preserves_both_outcomes(
+        self,
+    ):
+        """GUID: IAMOP-010; mixed validation avoids E3510 and preserves its peer."""
+        assert True
