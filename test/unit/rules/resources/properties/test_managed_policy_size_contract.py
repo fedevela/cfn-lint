@@ -3,10 +3,13 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+import json
 from collections import deque
+from textwrap import indent
 
 import pytest
 
+from cfnlint.api import lint
 from cfnlint.rules.resources.properties.StringLength import StringLength
 
 
@@ -20,6 +23,111 @@ MANAGED_POLICY_DOCUMENT_PATH = deque(
 )
 POLICY_DOCUMENT_SCHEMA = {"type": ["object", "string"]}
 MAX_MANAGED_POLICY_SIZE = 6144
+MANAGED_POLICY_WHITESPACE = str.maketrans("", "", " \t\r\n")
+
+# The actions are those required by the AWS Load Balancer Controller policy. A
+# wide JSON indentation preserves the reported block-scalar failure mode: the
+# YAML value is over the provider-schema maxLength while the IAM quota length,
+# which excludes JSON whitespace, remains within the limit.
+AWS_LOAD_BALANCER_CONTROLLER_ACTIONS = [
+    "iam:CreateServiceLinkedRole",
+    "ec2:DescribeAccountAttributes",
+    "ec2:DescribeAddresses",
+    "ec2:DescribeAvailabilityZones",
+    "ec2:DescribeInternetGateways",
+    "ec2:DescribeVpcs",
+    "ec2:DescribeVpcPeeringConnections",
+    "ec2:DescribeSubnets",
+    "ec2:DescribeSecurityGroups",
+    "ec2:DescribeInstances",
+    "ec2:DescribeNetworkInterfaces",
+    "ec2:DescribeTags",
+    "ec2:GetCoipPoolUsage",
+    "ec2:DescribeCoipPools",
+    "ec2:GetSecurityGroupsForVpc",
+    "elasticloadbalancing:DescribeLoadBalancers",
+    "elasticloadbalancing:DescribeLoadBalancerAttributes",
+    "elasticloadbalancing:DescribeListeners",
+    "elasticloadbalancing:DescribeListenerCertificates",
+    "elasticloadbalancing:DescribeSSLPolicies",
+    "elasticloadbalancing:DescribeRules",
+    "elasticloadbalancing:DescribeTargetGroups",
+    "elasticloadbalancing:DescribeTargetGroupAttributes",
+    "elasticloadbalancing:DescribeTargetHealth",
+    "elasticloadbalancing:DescribeTags",
+    "elasticloadbalancing:DescribeTrustStores",
+    "elasticloadbalancing:DescribeListenerAttributes",
+    "elasticloadbalancing:DescribeCapacityReservation",
+    "cognito-idp:DescribeUserPoolClient",
+    "acm:ListCertificates",
+    "acm:DescribeCertificate",
+    "iam:ListServerCertificates",
+    "iam:GetServerCertificate",
+    "waf-regional:GetWebACL",
+    "waf-regional:GetWebACLForResource",
+    "waf-regional:AssociateWebACL",
+    "waf-regional:DisassociateWebACL",
+    "wafv2:GetWebACL",
+    "wafv2:GetWebACLForResource",
+    "wafv2:AssociateWebACL",
+    "wafv2:DisassociateWebACL",
+    "shield:GetSubscriptionState",
+    "shield:DescribeProtection",
+    "shield:CreateProtection",
+    "shield:DeleteProtection",
+    "ec2:AuthorizeSecurityGroupIngress",
+    "ec2:RevokeSecurityGroupIngress",
+    "ec2:CreateSecurityGroup",
+    "ec2:CreateTags",
+    "ec2:DeleteTags",
+    "ec2:DeleteSecurityGroup",
+    "elasticloadbalancing:CreateLoadBalancer",
+    "elasticloadbalancing:CreateTargetGroup",
+    "elasticloadbalancing:CreateListener",
+    "elasticloadbalancing:DeleteListener",
+    "elasticloadbalancing:CreateRule",
+    "elasticloadbalancing:DeleteRule",
+    "elasticloadbalancing:AddTags",
+    "elasticloadbalancing:RemoveTags",
+    "elasticloadbalancing:ModifyLoadBalancerAttributes",
+    "elasticloadbalancing:SetIpAddressType",
+    "elasticloadbalancing:SetSecurityGroups",
+    "elasticloadbalancing:SetSubnets",
+    "elasticloadbalancing:DeleteLoadBalancer",
+    "elasticloadbalancing:ModifyTargetGroup",
+    "elasticloadbalancing:ModifyTargetGroupAttributes",
+    "elasticloadbalancing:DeleteTargetGroup",
+    "elasticloadbalancing:ModifyListenerAttributes",
+    "elasticloadbalancing:ModifyCapacityReservation",
+    "elasticloadbalancing:RegisterTargets",
+    "elasticloadbalancing:DeregisterTargets",
+    "elasticloadbalancing:SetWebAcl",
+    "elasticloadbalancing:ModifyListener",
+    "elasticloadbalancing:AddListenerCertificates",
+    "elasticloadbalancing:RemoveListenerCertificates",
+    "elasticloadbalancing:ModifyRule",
+]
+AWS_LOAD_BALANCER_CONTROLLER_POLICY = json.dumps(
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": AWS_LOAD_BALANCER_CONTROLLER_ACTIONS,
+                "Resource": "*",
+            }
+        ],
+    },
+    indent=12,
+)
+AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE = (
+    "Resources:\n"
+    "  LoadBalancerControllerPolicy:\n"
+    "    Type: AWS::IAM::ManagedPolicy\n"
+    "    Properties:\n"
+    "      PolicyDocument: |\n"
+    f"{indent(AWS_LOAD_BALANCER_CONTROLLER_POLICY, '        ')}\n"
+)
 
 
 @pytest.fixture
@@ -47,6 +155,11 @@ def _errors(managed_policy_validator, policy_document):
 def _object_document_with_size(size):
     # Compact JSON for {"x":"..."} contributes eight structural characters.
     return {"x": "a" * (size - 8)}
+
+
+@pytest.fixture(scope="module")
+def aws_load_balancer_controller_matches():
+    return lint(AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE)
 
 
 def test_mpol_001_managed_policy_spaces_tabs_cr_lf_are_excluded_from_size(
@@ -112,11 +225,28 @@ def test_mpol_003_managed_policy_above_6144_non_whitespace_produces_e3033(
     assert errors[0].message == "Item is too long"
 
 
-def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_size_e3033():
+def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_size_e3033(
+    aws_load_balancer_controller_matches,
+):
     """GUID: MPOL-004 - The supplied block-scalar policy has no size E3033."""
-    assert True
+    assert len(AWS_LOAD_BALANCER_CONTROLLER_POLICY) > MAX_MANAGED_POLICY_SIZE
+    assert (
+        len(AWS_LOAD_BALANCER_CONTROLLER_POLICY.translate(MANAGED_POLICY_WHITESPACE))
+        <= MAX_MANAGED_POLICY_SIZE
+    )
+    assert [
+        match
+        for match in aws_load_balancer_controller_matches
+        if match.rule.id == "E3033"
+    ] == []
 
 
-def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_associated_e3001():
+def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_associated_e3001(
+    aws_load_balancer_controller_matches,
+):
     """GUID: MPOL-004 - The supplied block-scalar policy has no associated E3001."""
-    assert True
+    assert [
+        match
+        for match in aws_load_balancer_controller_matches
+        if match.rule.id == "E3001"
+    ] == []
