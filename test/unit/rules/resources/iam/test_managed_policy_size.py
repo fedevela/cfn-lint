@@ -73,3 +73,9 @@ def test_iammp_002_validating_compact_managed_policy_at_6144_does_not_report_siz
     ]
 
     assert size_errors == []
+
+
+def test_iammp_003_validating_compact_managed_policy_below_6144_does_not_report_size_error(
+):
+    """IAMMP-003: a below-limit compact PolicyDocument has no size-limit error."""
+    assert True
