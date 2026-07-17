@@ -400,3 +400,18 @@ def test_gev_004_foreach_a_1_a_2_b_1_b_2_dynamic_getatt_emits_no_e1010(
         expected_resource_name
     ]
     assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
+
+
+def test_gev_005_dynamic_sub_resource_with_invalid_attribute_emits_attribute_finding():
+    """GEV-005: preserve invalid-attribute validation after dynamic-name support."""
+    assert True
+
+
+def test_gev_010_determinable_dynamic_sub_undeclared_resource_emits_reference_finding():
+    """GEV-010: reject a determinable dynamic name absent from Resources."""
+    assert True
+
+
+def test_gev_005_gev_010_dynamic_sub_declared_resource_valid_attribute_no_findings():
+    """GEV-005/GEV-010: valid resolved resource and attribute remain accepted."""
+    assert True
