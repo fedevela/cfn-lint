@@ -45,8 +45,8 @@ class EqualsIsUseful(CloudFormationLintRule):
     id = "W8003"
     shortdesc = "Fn::Equals will always return true or false"
     description = (
-        "Validate Fn::Equals to see if its comparing two strings or two equal items."
-        " While this works it may not be intended."
+        "Validate Fn::Equals expressions that statically return either true or false."
+        " While these expressions work, they may not be intended."
     )
     source_url = "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-conditions.html#intrinsic-function-reference-conditions-equals"
     tags = ["functions", "equals"]
@@ -97,7 +97,12 @@ class EqualsIsUseful(CloudFormationLintRule):
         ):
             return
 
+        def _comparison_value(value):
+            if validator.is_type(value, "boolean"):
+                return "true" if value else "false"
+            return str(value)
+
+        result = _comparison_value(instance[0]) == _comparison_value(instance[1])
         yield ValidationError(
-            f"{instance!r} will always return {True!r} or {False!r}",
-            rule=self,
+            f"{instance!r} will always return {str(result).lower()}", rule=self
         )
