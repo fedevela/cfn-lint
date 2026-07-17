@@ -117,6 +117,9 @@ class StringLength(CloudFormationLintRule):
     # test_iammp_002_validating_compact_managed_policy_at_6144_does_not_report_size_error
     # IAMMP-003 verification:
     # test_iammp_003_validating_compact_managed_policy_below_6144_does_not_report_size_error
+    # IAMMP-005 verification:
+    # test_iammp_005_validating_supplied_reproduction_reports_template_invalid
+    # test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_error
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
         # IAMMP-001 logic obligation
@@ -166,6 +169,26 @@ class StringLength(CloudFormationLintRule):
         # from other applicable validation obligations remain unaffected.
         # FAILURE PATH: only a count greater than 6,144 enters the size-error
         # branch; a below-limit count must never enter that branch.
+        # IAMMP-005 logic obligation
+        # INPUT: the supplied reproduction template containing an
+        # AWS::IAM::ManagedPolicy whose PolicyDocument is statically
+        # determinable, plus the schema-provided maximum of 6,144 characters.
+        # TRANSITION:
+        #   1. During template validation, hand the managed policy's complete
+        #      PolicyDocument to the existing maximum-length validation flow.
+        #   2. Serialize the document with compact separators and count the
+        #      resulting policy characters.
+        #   3. Compare that count with the schema-provided maximum.
+        # DECISION:
+        #   - IF the count is greater than 6,144, emit a policy-document size
+        #     ValidationError at the current PolicyDocument path.
+        #   - ELSE emit no IAMMP-005 size error and continue validation.
+        # HANDOFF: return the emitted error to template-level validation; the
+        # presence of that error causes the supplied reproduction to be reported
+        # invalid while preserving AWS::IAM::ManagedPolicy/PolicyDocument as its
+        # resource and property locus.
+        # FAILURE PATH: do not split, shorten, rewrite, or otherwise repair the
+        # oversized policy; report the size failure without mutating the input.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
