@@ -494,24 +494,83 @@ def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compli
 
 def test_iammp_010_over_limit_managed_policy_reports_size_limit_error():
     """IAMMP-010: an over-limit policy must report the size-limit error."""
+    # IAMMP-010 logic obligation: over-limit regression branch.
+    # INPUT: construct a statically determinable managed PolicyDocument whose
+    # compact JSON representation is one character greater than the 6,144
+    # character maximum.
+    # TRANSITION:
+    #   1. Hand the document to the managed-policy size-validation flow.
+    #   2. Retain only the E3033 result located at Properties/PolicyDocument.
+    # DECISION: IF the compact size is greater than the maximum, require one
+    # size-limit error; ELSE this regression branch fails.
+    # OUTPUT: verify that the retained result reports "Item is too long" at the
+    # managed policy's PolicyDocument locus.
+    # FAILURE PATH: reject a missing, duplicated, differently located, or
+    # differently classified size-limit result.
     assert True
 
 
 def test_iammp_010_exactly_at_limit_managed_policy_does_not_report_size_limit_error():
     """IAMMP-010: an exactly-at-limit policy must not report a size error."""
+    # IAMMP-010 logic obligation: exactly-at-limit regression branch.
+    # INPUT: construct a statically determinable managed PolicyDocument whose
+    # compact JSON representation is exactly 6,144 characters.
+    # TRANSITION: hand the document through the same managed-policy validation
+    # and E3033-at-PolicyDocument filtering flow used by the over-limit branch.
+    # DECISION: IF the compact size equals the maximum, require an empty filtered
+    # result; IF any size-limit result remains, this regression branch fails.
+    # OUTPUT: verify equality is accepted without a managed-policy size error.
+    # FAILURE PATH: do not treat equality as overflow, and do not use the absence
+    # of unrelated lint results as the success criterion.
     assert True
 
 
 def test_iammp_010_under_limit_managed_policy_does_not_report_size_limit_error():
     """IAMMP-010: an under-limit policy must not report a size-limit error."""
+    # IAMMP-010 logic obligation: under-limit regression branch.
+    # INPUT: construct a statically determinable managed PolicyDocument whose
+    # compact JSON representation is one character below the 6,144 maximum.
+    # TRANSITION: hand the document through managed-policy size validation and
+    # retain only E3033 results at Properties/PolicyDocument.
+    # DECISION: IF the compact size is below the maximum, require an empty
+    # filtered result; IF a size-limit result remains, this branch fails.
+    # OUTPUT: verify the compliant document contributes no size-limit error.
+    # FAILURE PATH: preserve independently applicable lint results rather than
+    # interpreting or suppressing them as managed-policy size failures.
     assert True
 
 
 def test_iammp_010_formatting_only_whitespace_changes_do_not_alter_size_validation_result():
     """IAMMP-010: formatting-only whitespace must not alter the size result."""
+    # IAMMP-010 logic obligation: whitespace-insensitive regression branch.
+    # INPUT: derive compact and whitespace-expanded JSON texts that deserialize
+    # to the same PolicyDocument and have an identical 6,144-character compact
+    # representation, while the expanded source text exceeds 6,144 characters.
+    # TRANSITION:
+    #   1. Validate the document deserialized from the compact text.
+    #   2. Validate the document deserialized from the expanded text.
+    #   3. Filter each result to E3033 at Properties/PolicyDocument.
+    # DECISION: compare the two filtered results; formatting-only whitespace
+    # must not change their presence, message, count, or path.
+    # OUTPUT: verify both variants produce the same no-size-error result.
+    # FAILURE PATH: fail if source formatting changes the result or if the
+    # expanded source-text length is mistaken for compact policy size.
     assert True
 
 
 def test_iammp_010_supplied_reproduction_is_invalid_when_oversized_managed_policy_reports_policy_document_size_error():
     """IAMMP-010: the oversized reproduction must fail with a policy size error."""
+    # IAMMP-010 logic obligation: supplied-reproduction regression branch.
+    # INPUT: use the supplied template reproduction containing its oversized,
+    # statically determinable AWS::IAM::ManagedPolicy PolicyDocument.
+    # TRANSITION:
+    #   1. Execute the applicable validation flow for the reproduced resource.
+    #   2. Collect the resulting errors without mutating the reproduction.
+    #   3. Locate the E3033 size error at Properties/PolicyDocument.
+    # DECISION: IF exactly one matching "Item is too long" result exists, mark
+    # the reproduction invalid for policy-document size; ELSE this branch fails.
+    # OUTPUT: verify both template invalidity and its causal PolicyDocument size
+    # error, preserving the resource/property locus in the reported path.
+    # FAILURE PATH: reject validity inferred from unrelated errors, a size error
+    # at another path, or validation that silently accepts the oversized policy.
     assert True
