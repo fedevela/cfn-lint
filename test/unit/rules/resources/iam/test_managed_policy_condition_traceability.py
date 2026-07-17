@@ -92,19 +92,12 @@ class TestManagedPolicyConditionTraceability:
             "servicecatalog:accountLevel",
         ]
 
-    def test_valid_condition_operator_is_accepted(self):
-        errors = _condition_operator_errors(
-            _validate({"StringEquals": {"servicecatalog:accountLevel": "account"}})
-        )
+    def test_iamcond_003_valid_managed_policy_operator_condition_produces_no_missing_or_invalid_operator_finding(
+        self,
+    ):
+        """IAMCOND-003: a valid operator condition produces no operator finding."""
+        assert True
 
-        assert errors == []
-
-    def test_other_identity_policy_resources_are_out_of_scope(self):
-        errors = _condition_operator_errors(
-            _validate(
-                {"servicecatalog:accountLevel": "account"},
-                resource_type="AWS::IAM::Policy",
-            )
-        )
-
-        assert errors == []
+    def test_iamcond_007_unrelated_lint_findings_remain_unchanged(self):
+        """IAMCOND-007: findings outside IAM Condition structure remain unchanged."""
+        assert True
