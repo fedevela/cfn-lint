@@ -128,6 +128,30 @@ class FindInMap(BaseFn):
         # INVARIANT: a message-only enhancement may change the excessive-depth text,
         # but must not change either side's valid/invalid classification.
 
+        # Pseudocode — GUID: E1011-005
+        # INPUT: the excessive-depth condition and its pre-enhancement E1011 finding.
+        # IF the condition is excessive Fn::FindInMap nesting:
+        #   - retain the E1011 rule identifier;
+        #   - retain the diagnostic location, path, schema path, validator name,
+        #     context, cause, path override, and every other metadata field;
+        #   - replace only the finding message with the targeted depth wording;
+        #   - emit exactly one finding and end the excessive-depth branch.
+        # FAILURE PATH: never rebuild, relocate, or reclassify the finding in a way
+        # that changes its diagnostic envelope apart from message text.
+
+        # Pseudocode — GUID: E1011-006
+        # INPUT: any value not classified as excessive Fn::FindInMap nesting.
+        # IF Language Extensions is active:
+        #   - preserve the existing transform-specific validator preparation;
+        #   - delegate to the existing shared validation flow;
+        #   - propagate its findings and wording unchanged, then return.
+        # ELSE:
+        #   - preserve the existing ordinary validator preparation;
+        #   - delegate to the existing shared validation flow;
+        #   - propagate its findings and wording unchanged.
+        # FAILURE PATH: do not apply the targeted depth message to type, item,
+        # function, mapping-key, option, or any other unrelated validation failure.
+
         # GUID: E1011-001, E1011-002, E1011-003, E1011-004
         key, value = self.key_value(instance)
         has_language_extensions = (

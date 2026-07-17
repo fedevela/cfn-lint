@@ -26,6 +26,19 @@ class Tagging(CloudFormationLintRule):
         self._schema = load_resource(resources, "tagging.json")
 
     def tagging(self, validator: Validator, t: Any, instance: Any, schema: Any):
+        # Pseudocode — GUID: E1011-007
+        # INPUT: the existing E3024 tagging schema, validation context, and instance.
+        # IF the schema is not taggable:
+        #   - return without producing a tagging finding, as before.
+        # ELSE:
+        #   - preserve the existing tagging-specific validator configuration;
+        #   - validate against the unchanged tagging schema;
+        #   - retain each finding's E3024 identity, wording, location, path, metadata,
+        #     detection behavior, and emission order;
+        #   - emit each finding unchanged.
+        # FAILURE PATH: do not consume E1011 depth state or apply E1011 message logic
+        # to any tagging result.
+
         if not t.get("taggable"):
             return
 
