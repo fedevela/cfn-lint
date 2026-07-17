@@ -112,7 +112,7 @@ class StringLength(CloudFormationLintRule):
 
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
-        # ARCHITECTURE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004
+        # ARCHITECTURE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004, MPOL-005
         # Ownership remains in this E3033 maxLength callback: Properties supplies
         # the provider-schema limit and dispatches this keyword to StringLength.
         # The managed-policy specialization is bounded by the canonical
@@ -122,8 +122,14 @@ class StringLength(CloudFormationLintRule):
         # normalization/serialization seam, and the existing ValidationError
         # channel. The block-scalar reproduction enters through this same seam;
         # its E3001 envelope remains owned by Configuration, with no reverse
-        # dependency from this property rule. Do not introduce an IAM-rule
-        # dependency, reproduction-specific adapter, or new public API.
+        # dependency from this property rule. Unrelated-result aggregation
+        # remains owned by the enclosing lint traversal: this callback may emit
+        # only its size-related E3033 through ValidationError and must neither
+        # mutate validation context nor consume results from sibling rules. A
+        # separate invalid condition therefore stays behind its owning rule's
+        # existing validation seam. Do not introduce an IAM-rule dependency,
+        # reproduction-specific adapter, cross-rule result filtering, or new
+        # public API.
         # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004, MPOL-005
         # INPUT: the current validation locus, PolicyDocument value, and maxLength.
         # IF the locus is AWS::IAM::ManagedPolicy.Properties.PolicyDocument:
