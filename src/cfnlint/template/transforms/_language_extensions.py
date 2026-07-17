@@ -121,6 +121,25 @@ class _Transform:
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
                 if re.match(FUNCTION_FOR_EACH, k):
+                    # PSEUDOCODE [CFNLINT-005, CFNLINT-006, CFNLINT-007,
+                    # CFNLINT-008] — expand mapped emails into subscriptions:
+                    # INPUT: a valid Fn::ForEach directive, its resolved email
+                    # collection, and an output fragment describing one
+                    # AWS::SNS::Subscription.
+                    # FOR each resolved email, in collection order:
+                    #   BIND the loop identifier to that exact email.
+                    #   TRANSFORM one independent copy of the output fragment.
+                    #   SUBSTITUTE the bound email into the generated resource
+                    #   identifier using the placeholder form declared there.
+                    #   SUBSTITUTE the exact bound email into Endpoint.
+                    #   EMIT one subscription keyed by that generated identifier.
+                    #   IF its identifier is already present, FAIL with a
+                    #   duplicate-resource error instead of overwriting it.
+                    # AFTER all emails are emitted, REMOVE the Fn::ForEach
+                    # directive from the transformed object.
+                    # OUTPUT: one distinct subscription per distinct email; a
+                    # singleton [test@test.com] therefore emits exactly one
+                    # subscription whose Endpoint is test@test.com.
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach
@@ -508,6 +527,19 @@ class _ForEachCollection:
     def values(
         self, cfn: Any, collection_cache: MutableMapping[str, Any]
     ) -> Iterator[str | dict[Any, Any]]:
+        # PSEUDOCODE [CFNLINT-003] — accept a mapped Emails array as the
+        # iteration collection:
+        # INPUT: the Fn::ForEach collection expression and template context.
+        # IF the collection was declared directly as a list, resolve and YIELD
+        # each member through the existing direct-collection path.
+        # ELSE RESOLVE the intrinsic collection expression.
+        # IF resolution returns a list, YIELD every member unchanged and in
+        # source order so each becomes one loop value.
+        # ELSE IF resolution returns a non-list value, FAIL because Fn::ForEach
+        # requires a list collection.
+        # ELSE IF intrinsic resolution fails, FOLLOW the existing cached
+        # unresolved-collection path.
+        # IF no path supplies collection values, FAIL as unresolved.
         if self._collection:
             for item in self._collection:
                 try:
