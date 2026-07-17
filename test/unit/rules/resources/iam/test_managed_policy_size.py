@@ -51,6 +51,39 @@ def _managed_policy_size_errors(validator, policy_document_json):
     ]
 
 
+def _iammp_005_supplied_reproduction_errors(validator):
+    template = {
+        "Resources": {
+            "OversizedManagedPolicy": {
+                "Type": "AWS::IAM::ManagedPolicy",
+                "Properties": {
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": "service:Action",
+                                "Resource": "a" * 6144,
+                            }
+                        ],
+                    }
+                },
+            }
+        }
+    }
+    rule = Properties()
+    rule.child_rules["E3033"] = StringLength()
+
+    return list(
+        rule.validate(
+            validator,
+            {},
+            template["Resources"]["OversizedManagedPolicy"],
+            {},
+        )
+    )
+
+
 def test_iammp_001_static_managed_policy_compact_over_6144_reports_policy_doc_error(
     validator,
 ):
@@ -189,11 +222,22 @@ def test_iammp_004_compliant_compact_and_whitespace_policy_neither_report_size_e
         assert _managed_policy_size_errors(validator, policy_document_json) == []
 
 
-def test_iammp_005_validating_supplied_reproduction_reports_template_invalid():
+def test_iammp_005_validating_supplied_reproduction_reports_template_invalid(
+    validator,
+):
     """IAMMP-005: the supplied reproduction is reported invalid."""
-    assert True
+    errors = _iammp_005_supplied_reproduction_errors(validator)
+
+    assert errors
 
 
-def test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_error():
+def test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_error(
+    validator,
+):
     """IAMMP-005: the oversized ManagedPolicy reports a PolicyDocument size error."""
-    assert True
+    errors = _iammp_005_supplied_reproduction_errors(validator)
+
+    assert len(errors) == 1
+    assert errors[0].message == "Item is too long"
+    assert list(errors[0].path) == ["Properties", "PolicyDocument"]
+    assert errors[0].rule.id == "E3033"
