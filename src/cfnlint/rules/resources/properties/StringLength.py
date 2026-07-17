@@ -62,7 +62,7 @@ class StringLength(CloudFormationLintRule):
 
         return obj
 
-    # IAMMP-001/IAMMP-002/IAMMP-003 architecture boundary:
+    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004 architecture boundary:
     # - the managed-policy schema owns applicability and the 6,144 limit;
     # - this private helper owns compact object serialization and the inclusive
     #   maximum contract: below-limit and exact-limit values produce no error;
@@ -71,6 +71,32 @@ class StringLength(CloudFormationLintRule):
     #   retains the current PolicyDocument path when an error exists.
     # Dependency direction is schema -> maxLength -> this helper -> ValidationError.
     def _non_string_max_length(self, instance, mL):
+        # IAMMP-004 verification:
+        # test_iammp_004_whitespace_only_policy_changes_preserve_size_validation_result
+        # test_iammp_004_oversized_compact_and_whitespace_policy_both_report_size_error
+        # test_iammp_004_compliant_compact_and_whitespace_policy_neither_report_size_error
+        # IAMMP-004 logic obligation
+        # INPUT: a statically determinable AWS::IAM::ManagedPolicy
+        # PolicyDocument and the schema-provided maximum, where an equivalent
+        # policy variant may differ only in IAM-insignificant JSON whitespace.
+        # TRANSITION:
+        #   1. Remove intrinsic-function contributions according to the existing
+        #      deterministic size-check normalization.
+        #   2. Serialize the remaining policy content with compact JSON
+        #      separators so formatting whitespace outside JSON values contributes
+        #      zero characters; preserve whitespace inside values as policy content.
+        #   3. Count the compact representation and compare it to the maximum.
+        # DECISION:
+        #   - IF the compact count is greater than the maximum, emit one
+        #     size-limit ValidationError.
+        #   - ELSE complete without emitting a size-limit ValidationError.
+        # INVARIANT: two policies differing only in IAM-insignificant whitespace
+        # produce the same compact representation, count, branch, and validation
+        # result.
+        # FAILURE PATH: an oversized compact policy and its whitespace-only
+        # variant both enter the error branch; neither compliant variant enters it.
+        # NON-WHITESPACE PATH: content changes are retained during serialization
+        # and are evaluated independently; IAMMP-004 asserts no invariance for them.
         j = self._remove_functions(instance)
         if len(json.dumps(j, separators=(",", ":"), default=self._serialize_date)) > mL:
             yield ValidationError("Item is too long")
