@@ -224,10 +224,39 @@ class TestIamConditionOperatorRegressionPreservationContracts:
 
     def test_iamop_010_unrelated_existing_finding_remains_governed_by_its_rule(self):
         """GUID: IAMOP-010; unrelated findings retain existing rule behavior."""
+        # PSEUDOCODE — GUID: IAMOP-010 (unrelated-rule isolation obligation)
+        # INPUT: a template that triggers a known finding whose rule and
+        # acceptance conditions do not concern IAM Condition operator names.
+        # INVOKE the normal lint entry point with the existing rule configuration.
+        # FOR EACH emitted finding at the known unrelated-content locus:
+        #   IF the finding belongs to the established unrelated rule:
+        #     RETAIN its rule identity, path, message semantics, and existing
+        #     acceptance conditions without E3510 reclassification or suppression.
+        #   ELSE IF IAM operator-name validation claims that unrelated locus:
+        #     RECORD a validation-boundary regression.
+        # IF the established unrelated rule's expected outcome is absent or changed:
+        #   RECORD an unrelated-rule behavior regression.
+        # FAIL with every recorded regression; otherwise PRESERVE the finding under
+        # the same unrelated validation rule and its existing acceptance conditions.
         assert True
 
     def test_iamop_010_corrected_operator_with_unrelated_content_preserves_both_outcomes(
         self,
     ):
         """GUID: IAMOP-010; mixed validation avoids E3510 and preserves its peer."""
+        # PSEUDOCODE — GUID: IAMOP-010 (mixed-content isolation obligation)
+        # INPUT: one template containing both a corrected valid IAM Condition
+        # operator and content governed by a known unrelated validation rule.
+        # INVOKE the normal lint entry point once so both validation paths observe
+        # the same unchanged template and collect the complete finding sequence.
+        # PARTITION findings by the corrected operator locus, the unrelated-content
+        # locus, and all remaining loci without changing their owning rule IDs.
+        # IF E3510 rejects the corrected valid operator name at its locus:
+        #   RECORD a false operator-name finding.
+        # IF the unrelated rule's established outcome is absent, suppressed,
+        # reclassified, or evaluated under different acceptance conditions:
+        #   RECORD an unrelated-rule behavior regression.
+        # LEAVE findings at all remaining loci governed by their existing rules.
+        # FAIL with both categories of recorded regression; otherwise REPORT no
+        # false E3510 for the operator and the unchanged unrelated-rule outcome.
         assert True

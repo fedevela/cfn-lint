@@ -167,4 +167,17 @@ def test_iamop_005_mixed_valid_and_invalid_operators_only_invalid_emits_finding(
 def test_iamop_008_previously_accepted_operator_remains_without_operator_name_finding(
 ):
     """GUID: IAMOP-008; validation preserves prior operator acceptance."""
+    # PSEUDOCODE — GUID: IAMOP-008
+    # INPUT: the closed baseline of IAM Condition operator names accepted before
+    # the correction, paired with every identity-policy resource type in scope.
+    # FOR EACH baseline operator and resource type:
+    #   CONSTRUCT an otherwise valid policy containing that exact operator name.
+    #   INVOKE identity-policy validation and collect its findings.
+    #   IF any finding is an E3510 operator-name rejection at that operator locus:
+    #     RECORD the operator, resource type, path, and finding as a regression.
+    #   ELSE:
+    #     PRESERVE the operator's prior accepted state; do not broaden the set
+    #     with undocumented names or alter the status of previously invalid names.
+    # FAIL with all recorded regressions; otherwise REPORT no operator-name
+    # findings for every previously accepted operator/resource pairing.
     assert True
