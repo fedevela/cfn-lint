@@ -914,17 +914,69 @@ class TestNonEmptyForEachContract(TestCase):
 
 
 class TestInvalidOrUnresolvableForEachCollectionContract(TestCase):
+    @staticmethod
+    def _template(collection):
+        return convert_dict(
+            {
+                "Transform": "AWS::LanguageExtensions",
+                "Resources": {
+                    "IndependentResource": {"Type": "AWS::S3::Bucket"},
+                    "Fn::ForEach::Buckets": [
+                        "Identifier",
+                        collection,
+                        {"LoopBucket${Identifier}": {"Type": "AWS::S3::Bucket"}},
+                    ],
+                },
+            }
+        )
+
+    def _transform(self, collection):
+        cfn = Template(
+            filename="",
+            template=self._template(collection),
+            regions=["us-east-1"],
+        )
+        return language_extension(cfn)
+
+    @staticmethod
+    def _lint(template):
+        rules = Rules({"E0001": TransformError()})
+        runner = TemplateRunner(
+            filename="",
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        )
+        return list(runner.run())
+
+    def assert_collection_transform_error(self, collection, message):
+        matches, transformed = self._transform(collection)
+
+        self.assertIsNone(transformed)
+        self.assertEqual([match.rule.id for match in matches], ["E0001"])
+        self.assertIn(message, matches[0].message)
+
+        lint_matches = self._lint(self._template(collection))
+        self.assertEqual([match.rule.id for match in lint_matches], ["E0001"])
+        self.assertIn(message, lint_matches[0].message)
+
     def test_foreach_009_invalid_collection_transform_and_lint_reports_genuine_error_not_empty(
         self,
     ):
         """FOREACH-009: Invalid collections retain a genuine transformation error."""
-        pass
+        self.assert_collection_transform_error(
+            "not-a-list",
+            "Collection must be a list or an object",
+        )
 
     def test_foreach_009_unresolvable_collection_transform_and_lint_reports_genuine_error_not_empty(
         self,
     ):
         """FOREACH-009: Unresolvable collections retain a genuine transform error."""
-        pass
+        self.assert_collection_transform_error(
+            {"Ref": "MissingCollection"},
+            "Can't resolve Fn::Ref",
+        )
 
 
 class TestTransformValues(TestCase):

@@ -597,34 +597,21 @@ class _ForEachCollection:
                     yield v
             return
         if self._fn:
-            try:
-                values = self._fn.value(cfn, {}, False)
-                if isinstance(values, list):
-                    for value in values:
-                        if isinstance(value, (str, dict)):
-                            yield value
-                        else:
-                            raise _ValueError(
-                                (
-                                    "Fn::ForEach collection value "
-                                    f"must be a {_SCALAR_TYPES!r}"
-                                ),
-                                self._obj,
-                            )
-                    return
-                raise _ValueError(
-                    "Fn::ForEach collection must return a list", self._obj
-                )
-            except _ResolveError:
-                if self._fn.hash in collection_cache:
-                    yield from iter(collection_cache[self._fn.hash])
-                else:
-                    collection_cache[self._fn.hash] = []
-                    for _ in range(0, 2):
-                        v = "".join(random.choices(string.ascii_letters, k=_N))  # nosec
-                        collection_cache[self._fn.hash].append(v)
-                        yield v
+            values = self._fn.value(cfn, {}, False)
+            if isinstance(values, list):
+                for value in values:
+                    if isinstance(value, (str, dict)):
+                        yield value
+                    else:
+                        raise _ValueError(
+                            (
+                                "Fn::ForEach collection value "
+                                f"must be a {_SCALAR_TYPES!r}"
+                            ),
+                            self._obj,
+                        )
                 return
+            raise _ValueError("Fn::ForEach collection must return a list", self._obj)
         raise _ResolveError("Fn::ForEach could not be resolved", self._obj)
 
 
