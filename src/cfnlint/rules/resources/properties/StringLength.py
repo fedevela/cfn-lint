@@ -74,6 +74,21 @@ class StringLength(CloudFormationLintRule):
 
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
+        # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003
+        # INPUT: the current validation locus, PolicyDocument value, and maxLength.
+        # IF the locus is AWS::IAM::ManagedPolicy.Properties.PolicyDocument:
+        #   NORMALIZE the document through the existing intrinsic-function and
+        #   compact-serialization flow used for non-string length validation.
+        #   SET measured_length to the count of serialized characters excluding
+        #   exactly space, tab, carriage return, and line feed.                 [MPOL-001]
+        #   (Documents differing only by those characters therefore transition
+        #   to the same measured_length and the same validation outcome.)       [MPOL-001]
+        #   IF measured_length <= 6144 (including below and exact boundary):
+        #     RETURN without a size-related E3033.                              [MPOL-002]
+        #   ELSE (measured_length > 6144):
+        #     YIELD the existing maxLength ValidationError for E3033 and RETURN.[MPOL-003]
+        # ELSE:
+        #   CONTINUE through the existing generic string/function/object branches.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
