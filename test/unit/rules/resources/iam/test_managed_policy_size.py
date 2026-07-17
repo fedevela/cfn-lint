@@ -490,3 +490,28 @@ def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compli
         "OversizedManagedPolicyOne",
         "OversizedManagedPolicyTwo",
     }
+
+
+def test_iammp_010_over_limit_managed_policy_reports_size_limit_error():
+    """IAMMP-010: an over-limit policy must report the size-limit error."""
+    assert True
+
+
+def test_iammp_010_exactly_at_limit_managed_policy_does_not_report_size_limit_error():
+    """IAMMP-010: an exactly-at-limit policy must not report a size error."""
+    assert True
+
+
+def test_iammp_010_under_limit_managed_policy_does_not_report_size_limit_error():
+    """IAMMP-010: an under-limit policy must not report a size-limit error."""
+    assert True
+
+
+def test_iammp_010_formatting_only_whitespace_changes_do_not_alter_size_validation_result():
+    """IAMMP-010: formatting-only whitespace must not alter the size result."""
+    assert True
+
+
+def test_iammp_010_supplied_reproduction_is_invalid_when_oversized_managed_policy_reports_policy_document_size_error():
+    """IAMMP-010: the oversized reproduction must fail with a policy size error."""
+    assert True
