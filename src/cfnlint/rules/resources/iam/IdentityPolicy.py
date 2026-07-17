@@ -31,3 +31,30 @@ class IdentityPolicy(Policy):
             "identity",
             "policy_identity.json",
         )
+
+        # IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005 — logic obligation:
+        # detect a condition key placed where a condition operator is required in
+        # an AWS::IAM::ManagedPolicy, and locate the resulting finding precisely.
+        #
+        # PSEUDOCODE validate_managed_policy_condition(policy_document, policy_path):
+        #   IF policy_path is not an AWS::IAM::ManagedPolicy PolicyDocument:
+        #     RETURN without applying this managed-policy-specific check
+        #   FOR EACH statement in the policy document, preserving its source path:
+        #     IF statement.Condition is absent:
+        #       CONTINUE
+        #     IF statement.Condition cannot be traversed as an object:
+        #       HAND OFF to the existing policy-schema type-validation path
+        #       CONTINUE
+        #     FOR EACH direct_child_name in statement.Condition:
+        #       IF direct_child_name matches the recognized IAM condition-operator
+        #       grammar or catalog:
+        #         HAND OFF its value for normal operator/value validation
+        #         CONTINUE
+        #       CLASSIFY direct_child_name as a condition key, not an operator;
+        #       namespace separation (for example, "servicecatalog:accountLevel")
+        #       does not make the name an operator
+        #       EMIT one missing-or-invalid-condition-operator finding
+        #       SET finding.path to statement.Condition/direct_child_name;
+        #       statement.Condition itself is the permitted fallback locus
+        #   RETURN all findings through the active lint pass (including when
+        #   informational checks are enabled)
