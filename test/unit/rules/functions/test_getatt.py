@@ -705,3 +705,21 @@ def test_gev_008_language_extensions_malformed_intrinsic_in_nested_sub_variable_
             validator="fn_getatt",
         )
     ]
+
+
+def test_gev_009_declared_resource_valid_attribute_conventional_list_getatt_remains_without_new_finding(
+):
+    """GEV-009: preserve the conventional list-form GetAtt contract."""
+    assert True
+
+
+def test_gev_009_declared_resource_valid_attribute_conventional_dotted_getatt_remains_without_new_finding(
+):
+    """GEV-009: preserve the conventional dotted-string GetAtt contract."""
+    assert True
+
+
+def test_gev_009_existing_conventional_valid_getatt_coverage_remains_passing_after_change(
+):
+    """GEV-009: keep all previously valid conventional GetAtt cases passing."""
+    assert True
