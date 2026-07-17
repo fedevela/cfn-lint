@@ -107,6 +107,22 @@ class FindInMap(BaseFn):
     def fn_findinmap(
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # Pseudocode — GUID: E1011-003, E1011-004
+        # INPUT: the Fn::FindInMap value and whether Language Extensions is active.
+        # DERIVE the unchanged supported boundary:
+        #   - without Language Extensions, accept the map name plus two lookup levels;
+        #   - with Language Extensions, allow a fourth item only when it represents
+        #     the options position, never as an additional lookup level.
+        # IF the value crosses that boundary:
+        #   - classify it as invalid under E1011;
+        #   - emit the excessive-depth finding with its existing location metadata;
+        #   - stop this branch before ordinary validation can duplicate or replace it.
+        # ELSE:
+        #   - emit no boundary-related E1011 finding;
+        #   - hand the value to the existing transform-specific or ordinary validator.
+        # INVARIANT: a message-only enhancement may change the excessive-depth text,
+        # but must not change either side's valid/invalid classification.
+
         # GUID: E1011-001, E1011-002
         key, value = self.key_value(instance)
         has_language_extensions = (
