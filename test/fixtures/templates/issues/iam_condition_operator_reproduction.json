@@ -1,0 +1,90 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "ClusterName": {
+      "Type": "String",
+      "Default": "parallelcluster"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "c5.large"
+    },
+    "EnableConditionalPolicy": {
+      "Type": "String",
+      "AllowedValues": ["true", "false"],
+      "Default": "true"
+    }
+  },
+  "Conditions": {
+    "IncludeConditionalPolicy": {
+      "Fn::Equals": [
+        {"Ref": "EnableConditionalPolicy"},
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "ClusterPolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "ec2:RunInstances",
+              "Resource": "*",
+              "Condition": {
+                "StringEqualsIfExists": {
+                  "ec2:InstanceType": {"Ref": "InstanceType"}
+                },
+                "ForAnyValue:StringEquals": {
+                  "aws:TagKeys": [
+                    {"Fn::Sub": "${ClusterName}-compute"}
+                  ]
+                }
+              }
+            },
+            {
+              "Fn::If": [
+                "IncludeConditionalPolicy",
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:GetObject",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${ClusterName}-bucket/*"
+                  },
+                  "Condition": {
+                    "ForAllValues:StringEquals": {
+                      "aws:TagKeys": [
+                        {
+                          "Fn::Join": [
+                            "-",
+                            [
+                              {"Ref": "ClusterName"},
+                              "storage"
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    "ForAnyValue:StringEqualsIfExists": {
+                      "s3:ExistingObjectTag/parallelcluster": {
+                        "Fn::If": [
+                          "IncludeConditionalPolicy",
+                          "true",
+                          "false"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {"Ref": "AWS::NoValue"}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

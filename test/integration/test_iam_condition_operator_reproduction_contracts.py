@@ -3,6 +3,64 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+import json
+from pathlib import Path
+
+from cfnlint import lint
+
+
+FIXTURE = Path(
+    "test/fixtures/templates/issues/iam_condition_operator_reproduction.json"
+)
+POLICY_PATH = (
+    "Resources",
+    "ClusterPolicy",
+    "Properties",
+    "PolicyDocument",
+)
+OPERATOR_LOCI = (
+    (POLICY_PATH + ("Statement", 0, "Condition"), "StringEqualsIfExists"),
+    (
+        POLICY_PATH + ("Statement", 0, "Condition"),
+        "ForAnyValue:StringEquals",
+    ),
+    (
+        POLICY_PATH + ("Statement", 1, "Fn::If", 1, "Condition"),
+        "ForAllValues:StringEquals",
+    ),
+    (
+        POLICY_PATH + ("Statement", 1, "Fn::If", 1, "Condition"),
+        "ForAnyValue:StringEqualsIfExists",
+    ),
+)
+
+
+def _at_path(document, path):
+    value = document
+    for part in path:
+        value = value[part]
+    return value
+
+
+def _load_and_lint_unchanged_fixture():
+    original = FIXTURE.read_bytes()
+    document = json.loads(original)
+    matches = lint(original.decode("utf-8"))
+    assert FIXTURE.read_bytes() == original, "linting modified the reproduction fixture"
+    return document, matches
+
+
+def _reported_operator_rejections(matches):
+    rejections = []
+    for condition_path, operator in OPERATOR_LOCI:
+        for match in matches:
+            if match.rule.id != "E3510" or operator not in match.message:
+                continue
+            match_path = tuple(match.path)
+            if match_path[: len(condition_path)] == condition_path:
+                rejections.append((condition_path + (operator,), match))
+    return rejections
+
 
 class TestIamConditionOperatorReproductionContracts:
     """Integration ownership boundary for GUID: IAMOP-004 and IAMOP-009."""
@@ -12,10 +70,9 @@ class TestIamConditionOperatorReproductionContracts:
     # The canonical input belongs under test/fixtures/templates/issues; this
     # module may observe that fixture and lint findings but must never normalize,
     # rewrite, or otherwise own the reproduction template's content.
-    # Dependency direction is this contract -> the established integration runner
-    # seam (BaseCliTestCase.run_module_integration_scenarios) -> normal cfn-lint
-    # validation. Production IAM validation must not depend on this test scaffold,
-    # and this scaffold must not bypass the normal lint pipeline.
+    # Dependency direction is this contract -> the public lint API -> the normal
+    # cfn-lint Runner validation pipeline. Production IAM validation must not
+    # depend on this test scaffold.
 
     def test_iamop_004_linting_unchanged_reproduction_emits_none_of_four_e3510_findings(
         self,
@@ -37,9 +94,21 @@ class TestIamConditionOperatorReproductionContracts:
         #     LEAVE the finding outside this requirement's result.
         # FAIL with the recorded paths and names when any reported occurrence was
         # rejected; otherwise ACCEPT all four occurrences without requiring edits.
-        assert True
+        document, matches = _load_and_lint_unchanged_fixture()
 
-    def test_iamop_009_linting_unchanged_reproduction_accepts_intrinsics_in_same_locations(
+        observed_loci = {
+            condition_path + (operator,)
+            for condition_path, operator in OPERATOR_LOCI
+            if operator in _at_path(document, condition_path)
+        }
+        expected_loci = {
+            condition_path + (operator,)
+            for condition_path, operator in OPERATOR_LOCI
+        }
+        assert observed_loci == expected_loci, "reproduction operator loci drifted"
+        assert _reported_operator_rejections(matches) == []
+
+    def test_iamop_009_accepts_intrinsics_in_unchanged_reproduction(
         self,
     ):
         """GUID: IAMOP-009; surrounding intrinsics remain accepted in place."""
@@ -57,9 +126,67 @@ class TestIamConditionOperatorReproductionContracts:
         #     RECORD the path, intrinsic kind, and finding.
         # FAIL with all recorded intrinsic rejections; otherwise ACCEPT the
         # surrounding intrinsic functions in their original locations.
-        assert True
+        document, matches = _load_and_lint_unchanged_fixture()
 
-    def test_iamop_009_linting_unchanged_reproduction_accepts_conditional_policy_structures(
+        expected_intrinsics = (
+            (
+                POLICY_PATH
+                + (
+                    "Statement",
+                    0,
+                    "Condition",
+                    "StringEqualsIfExists",
+                    "ec2:InstanceType",
+                ),
+                "Ref",
+            ),
+            (
+                POLICY_PATH
+                + (
+                    "Statement",
+                    0,
+                    "Condition",
+                    "ForAnyValue:StringEquals",
+                    "aws:TagKeys",
+                    0,
+                ),
+                "Fn::Sub",
+            ),
+            (
+                POLICY_PATH
+                + (
+                    "Statement",
+                    1,
+                    "Fn::If",
+                    1,
+                    "Condition",
+                    "ForAllValues:StringEquals",
+                    "aws:TagKeys",
+                    0,
+                ),
+                "Fn::Join",
+            ),
+            (
+                POLICY_PATH
+                + (
+                    "Statement",
+                    1,
+                    "Fn::If",
+                    1,
+                    "Condition",
+                    "ForAnyValue:StringEqualsIfExists",
+                    "s3:ExistingObjectTag/parallelcluster",
+                ),
+                "Fn::If",
+            ),
+        )
+        for path, intrinsic in expected_intrinsics:
+            assert set(_at_path(document, path)) == {intrinsic}, (
+                f"expected {intrinsic} at {path!r}"
+            )
+        assert _reported_operator_rejections(matches) == []
+
+    def test_iamop_009_accepts_conditional_structures_in_unchanged_reproduction(
         self,
     ):
         """GUID: IAMOP-009; conditional policy structures need no template changes."""
@@ -79,4 +206,14 @@ class TestIamConditionOperatorReproductionContracts:
         # CONFIRM the fixture content still equals the retained original content.
         # FAIL with all recorded conditional-structure rejections; otherwise
         # ACCEPT the structures without template modification.
-        assert True
+        document, matches = _load_and_lint_unchanged_fixture()
+
+        conditional = _at_path(document, POLICY_PATH + ("Statement", 1, "Fn::If"))
+        assert len(conditional) == 3
+        assert conditional[0] == "IncludeConditionalPolicy"
+        assert set(conditional[1]["Condition"]) == {
+            "ForAllValues:StringEquals",
+            "ForAnyValue:StringEqualsIfExists",
+        }
+        assert conditional[2] == {"Ref": "AWS::NoValue"}
+        assert _reported_operator_rejections(matches) == []
