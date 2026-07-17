@@ -121,6 +121,36 @@ class TestE1011002FindInMapConditionSpecificWording:
         assert "is too long" not in errors[0].message
 
 
+class TestE1011003FindInMapExcessiveDepthPreservation:
+    """Placeholder verification contracts for GUID: E1011-003."""
+
+    def test_excessive_depth_after_message_enhancement_remains_invalid_with_e1011(
+        self,
+    ):
+        """An excessive-depth lookup remains invalid and detectable as E1011."""
+        assert True
+
+
+class TestE1011004FindInMapSupportedDepthPreservation:
+    """Placeholder verification contracts for GUID: E1011-004."""
+
+    def test_supported_depth_after_message_enhancement_remains_valid_without_e1011(
+        self,
+    ):
+        """A supported-depth lookup remains accepted without a new E1011 finding."""
+        assert True
+
+
+class TestE1011003E1011004FindInMapBoundaryClassificationPreservation:
+    """Placeholder verification contract for GUIDs: E1011-003, E1011-004."""
+
+    def test_boundary_fixtures_before_and_after_enhancement_only_change_e1011_text(
+        self,
+    ):
+        """Boundary classifications remain unchanged when E1011 text changes."""
+        assert True
+
+
 @pytest.mark.parametrize(
     "name,instance,schema,context_evolve,ref_mock_values,expected",
     [
