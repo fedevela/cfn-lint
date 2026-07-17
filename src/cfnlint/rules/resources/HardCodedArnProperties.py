@@ -156,6 +156,14 @@ class HardCodedArnProperties(CloudFormationLintRule):
 
             # Lambda is added for authorizer's Uniform Resource Identifier (URI)
             # https://github.com/aws-cloudformation/cfn-lint/issues/3716
+            # ARCHITECTURE [I3042-OAI-003, I3042-OAI-004]
+            # Account-segment acceptance is owned by this I3042 match boundary:
+            # _match_values() supplies candidate[2] as the account segment and
+            # candidate[3] as narrowly scoped canonical-OAI context.  Both rejected
+            # literals and misplaced pseudo parameters leave through the existing
+            # RuleMatch reporting seam.  Keep this policy local to I3042 so neither
+            # ARN extraction nor the canonical-OAI exception becomes a general
+            # account allowlist, and keep partition/region validation independent.
             # PSEUDOCODE [I3042-OAI-003, I3042-OAI-004]
             # INPUT: accountId configuration, the parsed account segment in
             # candidate[2], the canonical-OAI decision in candidate[3], source
