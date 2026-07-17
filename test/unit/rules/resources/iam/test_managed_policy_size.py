@@ -243,11 +243,41 @@ def test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_err
     assert errors[0].rule.id == "E3033"
 
 
-def test_iammp_006_oversized_aws_iam_managedpolicy_applies_6144_character_limit():
+def test_iammp_006_oversized_aws_iam_managedpolicy_applies_6144_character_limit(
+    validator,
+):
     """IAMMP-006: an oversized ManagedPolicy is subject to the 6,144 limit."""
-    assert True
+    compact, _ = _policy_document_json_variants(6145)
+
+    errors = _managed_policy_size_errors(validator, compact)
+
+    assert len(errors) == 1
+    assert errors[0].message == "Item is too long"
+    assert list(errors[0].path) == ["Properties", "PolicyDocument"]
+    assert errors[0].rule.id == "E3033"
 
 
-def test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_limit():
+def test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_limit(
+    validator,
+):
     """IAMMP-006: the managed-policy size check excludes other resource types."""
-    assert True
+    compact, _ = _policy_document_json_variants(6145)
+    rule = Properties()
+    rule.child_rules["E3033"] = StringLength()
+    resource = {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+            "PolicyDocument": json.loads(compact),
+            "PolicyName": "InlinePolicy",
+            "Roles": ["ExampleRole"],
+        },
+    }
+
+    errors = [
+        error
+        for error in rule.validate(validator, {}, resource, {})
+        if error.rule.id == "E3033"
+        and list(error.path) == ["Properties", "PolicyDocument"]
+    ]
+
+    assert errors == []
