@@ -107,6 +107,22 @@ class SnapStartSupported(CfnLintKeyword):
             # region selection. Runtime capability checks consume context.regions at
             # this existing seam and must not introduce a second defaulting path.
 
+            # SNAPSTART-007 logic obligation: preserve validation-path parity.
+            # INPUT: resolved AWS::Lambda::Function properties and the selected
+            # regions, whether linting began with CloudFormation or transformed SAM.
+            # FLOW:
+            # 1. Converge both entry paths on this E2530 evaluator; do not branch on
+            #    template origin or caller identity.
+            # 2. Apply the same exact-runtime dispatch and per-region capability
+            #    comparison to each equivalent resolved configuration.
+            # 3. For supported regions, finish without an E2530 diagnostic.
+            # 4. For unsupported regions, hand the same ordered unsupported-region
+            #    set to the existing E2530 ValidationError path below.
+            # OUTPUT: direct cfn-lint and sam validate --lint yield equal E2530
+            # results for equal resolved properties and region selections.
+            # FAILURE: unresolved or non-equivalent inputs retain their existing
+            # condition-resolution and transform-error paths outside this parity.
+
             # SNAPSTART-003 logic obligation: preserve an exact runtime boundary.
             # INPUT: the resolved runtime and every region selected by the context.
             # DECISION: enter a Python capability path only when the canonical runtime

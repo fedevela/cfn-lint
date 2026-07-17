@@ -191,6 +191,22 @@ class Transform:
                 )
             )
 
+            # SNAPSTART-006 logic obligation: preserve the effective SAM runtime.
+            # INPUT: a SnapStart-enabled AWS::Serverless::Function with python3.12
+            # either in its Properties or inherited from Globals.Function.
+            # FLOW:
+            # 1. Let the SAM translator resolve property precedence and inheritance.
+            # 2. Retain the resolved Runtime and SnapStart on each generated
+            #    AWS::Lambda::Function in the transformed template.
+            # 3. Hand that template to normal rule evaluation so E2530 consumes the
+            #    same effective properties regardless of the runtime's SAM source.
+            # 4. If every selected region supports python3.12, complete E2530 without
+            #    an unsupported-runtime diagnostic; otherwise use its regional path.
+            # OUTPUT: direct and Globals-inherited python3.12 configurations produce
+            # the same supported-region acceptance from equivalent resolved inputs.
+            # FAILURE: if SAM translation fails, return the transform error upstream;
+            # do not fabricate an E2530 result from an unresolved SAM configuration.
+
         except InvalidDocumentException as e:
             # pylint: disable=import-outside-toplevel
             from cfnlint.match import Match  # pylint: disable=cyclic-import
