@@ -127,15 +127,22 @@ class _Transform:
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
                 if re.match(FUNCTION_FOR_EACH, k):
-                    # PSEUDOCODE [CFNLINT-006] — nested expansion handoff:
+                    # PSEUDOCODE [CFNLINT-002, CFNLINT-006] — nested expansion
+                    # handoff:
                     # INPUT the enclosing iteration bindings, the inner fragment,
-                    # and each value yielded by the current iteration.
+                    # and each value yielded by the current iteration; when an
+                    # `Fn::FindInMap` collection resolves to a list, use that list
+                    # as the iteration data.
                     # FOR EACH value, extend (without discarding) the enclosing
-                    # bindings, recursively expand the fragment, and retain every
-                    # field of each generated resource, including `Condition`.
+                    # bindings, recursively expand the fragment, resolve an
+                    # `Fn::Sub` condition such as `ShouldCreate${BucketName}` from
+                    # the active binding, and retain the resulting `Condition`.
                     # MERGE the complete inner result into the enclosing result;
                     # IF a generated key already exists, follow the existing
                     # duplicate-key failure path instead of losing either result.
+                    # IF collection or substitution input cannot be resolved,
+                    # preserve the existing unresolved/error path; do not fabricate
+                    # a condition name or suppress a downstream warning.
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach

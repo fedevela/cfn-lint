@@ -47,15 +47,18 @@ class Used(CloudFormationLintRule):
             # remains an ordinary resource field and no iteration-specific port,
             # adapter, or generated-name knowledge belongs in this rule.
             # Get resource's Conditions
-            # PSEUDOCODE [CFNLINT-001, CFNLINT-006, CFNLINT-007]:
+            # PSEUDOCODE [CFNLINT-001, CFNLINT-002, CFNLINT-006, CFNLINT-007]:
             # INPUT all resources from the fully transformed template, including
             # resources emitted by nested `Fn::ForEach` expansion.
             # FOR EACH resource with a `Condition`, carry its resolved value into
             # the same referenced-condition collection used by direct resources.
             # COMPARE declared condition names to collected values generically;
             # a matching resolved string marks that declaration used, independent
-            # of iteration depth or name, while an absent/unresolved match remains
-            # eligible for the existing W8001 unused-condition result.
+            # of iteration depth or name. Thus resolved references to each of
+            # `ShouldCreateBucket1`, `ShouldCreateBucket2`, and
+            # `ShouldCreateBucket3` produce no W8001 for those declarations.
+            # IF a declaration has no exact collected match, keep it eligible for
+            # the existing W8001 result; do not suppress unrelated conditions.
             for _, resource_values in cfn.get_resources().items():
                 if "Condition" in resource_values:
                     ref_conditions.append(resource_values["Condition"])
