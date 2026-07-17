@@ -288,6 +288,15 @@ class Runner:
             ):
                 ignore_bad_template = True
         for filename in filenames:
+            # Pseudocode: existing explicit template workflow [CFNLINT-004]
+            # GIVEN filename is explicitly supplied and resolves to an existing file:
+            #     DECODE filename through the established template decoder.
+            #     IF decoding produces its established matches:
+            #         YIELD those matches through the unchanged result path.
+            #     ELSE:
+            #         HAND the decoded template to the established rule workflow.
+            #         YIELD every resulting finding without replacement or mutation.
+            #     HAND all yielded findings to the existing CLI result collector.
             (template, matches) = decode(filename)
             if matches:
                 if ignore_bad_template or any(
@@ -323,6 +332,16 @@ class Runner:
         yield from runner.run()
 
     def _cli_output(self, matches: list[Match]) -> None:
+        # Pseudocode: existing explicit template observables [CFNLINT-004]
+        # RECEIVE the established findings for the existing explicit template.
+        # ORDER and FORMAT them through the established diagnostic path.
+        # IF formatted diagnostics are nonempty:
+        #     EMIT them through the configured output destination unchanged.
+        # ELSE:
+        #     EMIT no diagnostic output.
+        # DERIVE the exit status through the established severity policy:
+        #     NO qualifying findings transitions to the established success status.
+        #     QUALIFYING findings transition to their established nonzero status.
         formatter = get_formatter(self.config)
         matches.sort(key=lambda x: (x.filename, x.linenumber, x.rule.id))
         output = formatter.print_matches(matches, self.rules, config=self.config)
