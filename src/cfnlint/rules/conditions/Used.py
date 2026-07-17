@@ -40,7 +40,8 @@ class Used(CloudFormationLintRule):
                     if isinstance(condtree[-1], (str)):
                         ref_conditions.append(condtree[-1])
 
-            # ARCHITECTURE [CFNLINT-001, CFNLINT-002, CFNLINT-006, CFNLINT-007]:
+            # ARCHITECTURE [CFNLINT-001, CFNLINT-002, CFNLINT-003, CFNLINT-004,
+            # CFNLINT-006, CFNLINT-007]:
             # `Template.get_resources()` is the integration seam between language
             # expansion and W8001.  This rule owns condition-use classification,
             # but depends only on the transformed resource view: `Condition`
@@ -75,6 +76,11 @@ class Used(CloudFormationLintRule):
                 if "Condition" in output_values:
                     ref_conditions.append(output_values["Condition"])
 
+            # ARCHITECTURE [CFNLINT-003, CFNLINT-004]: `ref_conditions` is the
+            # private input contract for per-declaration classification below.
+            # The contract carries resolved names without declaration identity;
+            # this W8001 boundary owns exact-name association and preserves each
+            # nonmatching declaration as an independently reportable result.
             # Check if the confitions are used
             # PSEUDOCODE [CFNLINT-003, CFNLINT-004] — exact classification:
             # FOR EACH declared condition, compare its complete name for equality
