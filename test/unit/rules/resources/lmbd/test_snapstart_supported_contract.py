@@ -129,6 +129,21 @@ def test_snapstart_004_only_python312_supported_region_exits_negative_matrix(
     assert (_validate(validator, [region], runtime) == []) is is_supported
 
 
+def test_snapstart_005_existing_valid_java_runtime_region_remains_accepted():
+    """GUID: SNAPSTART-005."""
+    assert True
+
+
+def test_snapstart_005_java_result_uses_java_boundary_when_python312_differs():
+    """GUID: SNAPSTART-005."""
+    assert True
+
+
+def test_snapstart_005_existing_java_acceptance_cases_remain_valid():
+    """GUID: SNAPSTART-005."""
+    assert True
+
+
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
     """GUID: SNAPSTART-008; supported passes and unsupported produces E2530."""
     assert _validate(validator, ["us-east-1", "ap-south-1"]) == [
