@@ -128,6 +128,8 @@ class StringLength(CloudFormationLintRule):
     # IAMMP-006 verification:
     # test_iammp_006_oversized_aws_iam_managedpolicy_applies_6144_character_limit
     # test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_limit
+    # IAMMP-007 verification:
+    # test_iammp_007_validating_managed_policy_with_unresolved_final_compact_content_does_not_report_estimated_size_error
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
         # IAMMP-001 logic obligation
@@ -216,6 +218,27 @@ class StringLength(CloudFormationLintRule):
         # schema validations remain unaffected.
         # FAILURE PATH: never infer managed-policy applicability from property
         # shape or content; resource-type/schema selection is the required gate.
+        # IAMMP-007 logic obligation
+        # INPUT: an AWS::IAM::ManagedPolicy PolicyDocument, its schema-provided
+        # maximum, and policy content that may contain values whose final compact
+        # representation cannot be resolved during static validation.
+        # TRANSITION:
+        #   1. Before using normalized content for a size decision, determine
+        #      whether every contribution to the final compact policy is known.
+        #   2. IF the final compact content is determinable, transition to the
+        #      existing exact compact serialization, count, and comparison flow.
+        #   3. ELSE transition to SIZE_UNRESOLVED and do not use a substituted,
+        #      partial, lower-bound, or upper-bound count as proof of oversize.
+        # DECISION:
+        #   - EXACT_SIZE greater than the maximum yields the existing size error.
+        #   - EXACT_SIZE at or below the maximum yields no size error.
+        #   - SIZE_UNRESOLVED yields no managed-policy size error.
+        # HANDOFF: after SIZE_UNRESOLVED, continue validation so independently
+        # applicable lint rules can inspect the resource and PolicyDocument.
+        # OUTPUT: unresolved final compact content is never rejected solely from
+        # an estimated managed-policy size.
+        # FAILURE PATH: this branch neither declares the policy deployable nor
+        # suppresses errors produced by any obligation other than this size check.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
