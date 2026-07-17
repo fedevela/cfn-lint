@@ -184,6 +184,32 @@ class StateMachineDefinition(CfnLintJsonSchema):
         #   IF local_substitutions contains unrelated entries:
         #       do not change concrete_resource classification or error flow
         #
+        # GEV-006 -- independent state-machine error preservation:
+        #   FOR EACH validation_error produced for inline_definition:
+        #       IF validation_error is the ARN-pattern failure for exactly one
+        #           locally declared Task.Resource placeholder:
+        #           suppress only validation_error
+        #           continue with the next nested validation error; do not stop,
+        #               return, or mark inline_definition globally valid
+        #       ELSE:
+        #           preserve validation_error regardless of whether another error
+        #               in the same definition was suppressed
+        #           normalize its message and rule ownership through the existing
+        #               E3601 handoff
+        #           yield it to the caller
+        #
+        # GEV-007 -- unrelated lint behavior preservation:
+        #   exemption_scope := one E3601 ARN-pattern error for one inline
+        #       Task.Resource occurrence
+        #   do not mutate the template, resource properties, validator context,
+        #       configured rule set, or errors produced by another rule
+        #   after this E3601 invocation completes:
+        #       return control normally to the lint-rule dispatcher
+        #       allow every unrelated resource, property, and configured rule to
+        #           follow its existing validation path
+        #       preserve each unrelated outcome without filtering, rewriting, or
+        #           replacing it because a declared placeholder was accepted
+        #
         # ISOLATION / FAILURE RULES:
         #   never consult or merge substitutions from another state machine
         #   never accept a different, partial, or case-variant placeholder name
