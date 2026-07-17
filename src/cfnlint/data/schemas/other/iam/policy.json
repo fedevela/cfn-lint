@@ -68,7 +68,7 @@
    ]
   },
   "Condition": {
-   "$comment": "ARCHITECTURE — GUID: IAMOP-005, IAMOP-006. This shared definition owns condition-operator name admission for identity-policy schemas. Its exact properties and case-sensitive patternProperties form the closed admission boundary; additionalProperties: false rejects unmatched operator keys. Callers route policy documents here without normalizing names, and Policy.validate owns diagnostic handoff.",
+   "$comment": "ARCHITECTURE — GUID: IAMOP-005, IAMOP-006, IAMOP-008. This shared definition owns condition-operator name admission for identity-policy schemas. Its exact properties and case-sensitive patternProperties form the closed admission boundary, including the previously accepted operator vocabulary; additionalProperties: false rejects unmatched operator keys. Callers route policy documents here without normalizing names, and Policy.validate owns diagnostic handoff. Changes for corrected names remain confined to this admission contract and must preserve every existing member.",
    "additionalProperties": false,
    "patternProperties": {
     "^(?:Arn(?:Equals|Like|NotEquals|NotLike)|BinaryEquals|Bool|Date(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|IpAddress|NotIpAddress|Numeric(?:Equals|NotEquals|LessThan(?:Equals)?|GreaterThan(?:Equals)?)|String(?:Equals(?:IgnoreCase)?|NotEquals(?:IgnoreCase)?|Like|NotLike))(?:IfExists)?$": {

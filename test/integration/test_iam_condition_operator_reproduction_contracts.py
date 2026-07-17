@@ -222,6 +222,15 @@ class TestIamConditionOperatorReproductionContracts:
 class TestIamConditionOperatorRegressionPreservationContracts:
     """Verification placeholders for GUID: IAMOP-010."""
 
+    # ARCHITECTURE — GUID: IAMOP-010
+    # This class owns isolation at the public lint integration boundary, where
+    # IdentityPolicy/E3510 and unrelated rules observe the same template. The
+    # production runner remains the composition owner: this contract may group
+    # findings by rule and locus, but must not reclassify, suppress, or replace
+    # findings owned by another rule. Dependency direction is this contract ->
+    # public lint API -> independently registered rules; no production rule may
+    # depend on this test scaffold or on another rule's acceptance conditions.
+
     def test_iamop_010_unrelated_existing_finding_remains_governed_by_its_rule(self):
         """GUID: IAMOP-010; unrelated findings retain existing rule behavior."""
         # PSEUDOCODE — GUID: IAMOP-010 (unrelated-rule isolation obligation)
