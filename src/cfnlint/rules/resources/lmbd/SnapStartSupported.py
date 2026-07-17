@@ -76,6 +76,22 @@ class SnapStartSupported(CfnLintKeyword):
             if snap_start.get("ApplyOn") != "PublishedVersions":
                 continue
 
+            # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008, SNAPSTART-009:
+            # IF runtime is "python3.12":
+            #   SNAPSTART-009: SET selected_regions to validator.context.regions so
+            #   explicit and implicit selection retain existing cfn-lint semantics.
+            #   SET unsupported_regions to an empty collection.
+            #   FOR EACH region in selected_regions:
+            #     LOOK UP support for the Python 3.12 and SnapStart combination in
+            #     that region's existing AWS regional-availability data.
+            #     SNAPSTART-001: IF supported, emit no E2530 for that region.
+            #     SNAPSTART-002, SNAPSTART-008: ELSE append the region to
+            #     unsupported_regions, independently of every other region.
+            #   SNAPSTART-002, SNAPSTART-008: IF unsupported_regions is not empty,
+            #   emit an unsupported SnapStart E2530 identifying only those regions.
+            #   END this scenario's runtime evaluation so supported Python 3.12 is
+            #   not rejected by the generic non-Java runtime failure path below.
+
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
                     region
