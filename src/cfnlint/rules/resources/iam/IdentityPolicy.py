@@ -9,6 +9,18 @@ from cfnlint.rules.resources.iam.Policy import Policy
 class IdentityPolicy(Policy):
     """Check IAM identity Policies"""
 
+    # IAMSID-001, IAMSID-002 architecture contract:
+    # - This rule owns the check because its keyword registry selects each identity
+    #   PolicyDocument and its validator already owns IAM-policy diagnostics.
+    # - The implementation seam is IdentityPolicy.validate, composed around
+    #   Policy.validate so the base class remains the sole owner of schema errors.
+    # - The policy_type argument carries the matched cfnLint keyword. Gate the new
+    #   check on the AWS::IAM::Role inline-policy keyword below; the other registered
+    #   identity-policy locations remain outside these requirements.
+    # - Emit a ValidationError with a path relative to the selected PolicyDocument.
+    #   The existing cfnLint dispatch composes that relative statement path with the
+    #   template path, preserving IAMSID-002 without coupling this rule to templates.
+
     id = "E3510"
     shortdesc = "Validate identity based IAM polices"
     description = (
