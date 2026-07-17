@@ -10,6 +10,23 @@ import pytest
 from cfnlint import lint
 
 
+ROLE_ARN = "arn:aws:iam::123456789012:role/StepFunctionsExecutionRole"
+
+
+def _lint_state_machine(properties):
+    template = {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Resources": {
+            "StateMachine": {
+                "Type": "AWS::StepFunctions::StateMachine",
+                "Properties": {"RoleArn": ROLE_ARN, **properties},
+            }
+        },
+    }
+
+    return lint(json.dumps(template))
+
+
 @pytest.fixture(scope="module")
 def reproduction_matches():
     """Validate the JSON reproduction once for all traced requirements."""
@@ -32,9 +49,7 @@ def reproduction_matches():
                             ],
                         ]
                     },
-                    "RoleArn": (
-                        "arn:aws:iam::123456789012:role/StepFunctionsExecutionRole"
-                    ),
+                    "RoleArn": ROLE_ARN,
                 },
             }
         },
@@ -77,16 +92,47 @@ def test_cfnlint_003_fn_join_definition_string_reproduction_validation_succeeds(
     assert reproduction_matches == []
 
 
-def test_cfnlint_004_directly_inspectable_invalid_definition_continues_to_emit_structural_diagnostic():
+def test_cfnlint_004_inspectable_invalid_definition_keeps_diagnostic():
     """GUID: CFNLINT-004 - inspectable invalid definitions retain diagnostics."""
-    assert True
+    matches = _lint_state_machine(
+        {
+            "Definition": {
+                "States": {"Hello": {"Type": "Pass", "End": True}},
+            }
+        }
+    )
+
+    assert any(
+        match.rule.id == "E3601"
+        and "'StartAt' is a required property" in match.message
+        for match in matches
+    )
 
 
-def test_cfnlint_005_intrinsic_definition_string_with_invalid_sibling_continues_to_emit_sibling_diagnostic():
+def test_cfnlint_005_opaque_definition_keeps_sibling_diagnostic():
     """GUID: CFNLINT-005 - opaque definitions preserve sibling diagnostics."""
-    assert True
+    matches = _lint_state_machine(
+        {
+            "DefinitionString": {"Fn::Join": ["", ["{}"]]},
+            "StateMachineType": "INVALID",
+        }
+    )
+
+    assert any(
+        match.rule.id == "E3030"
+        and "StateMachineType" in match.path
+        and "INVALID" in match.message
+        for match in matches
+    )
 
 
-def test_cfnlint_006_case_outside_definition_string_regression_retains_unchanged_outcome():
+def test_cfnlint_006_literal_definition_string_keeps_outcome():
     """GUID: CFNLINT-006 - validation outside the regression remains unchanged."""
-    assert True
+    definition = {
+        "StartAt": "Hello",
+        "States": {"Hello": {"Type": "Pass", "End": True}},
+    }
+
+    matches = _lint_state_machine({"DefinitionString": json.dumps(definition)})
+
+    assert matches == []
