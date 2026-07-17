@@ -53,7 +53,8 @@ class IdentityPolicy(Policy):
         "Resources/AWS::IAM::ManagedPolicy/Properties/PolicyDocument"
     )
 
-    # ARCHITECTURE (IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005):
+    # ARCHITECTURE (IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004,
+    # IAMCOND-005, IAMCOND-007):
     # This rule owns the managed-policy condition check because it already owns
     # the AWS::IAM::ManagedPolicy PolicyDocument integration path.  The Policy
     # base remains the shared schema-validation boundary; policy.json remains a
@@ -66,9 +67,14 @@ class IdentityPolicy(Policy):
     # ValidationResult entries with paths relative to PolicyDocument.  Condition
     # operator recognition stays behind that seam so namespace-bearing condition
     # keys cannot become dependencies or extensions of the shared policy schema.
+    # The private operator classifier is the acceptance contract for IAMCOND-003;
+    # valid operator branches remain inside this rule and outside its diagnostic
+    # output boundary.
     # IdentityPolicy.validate is the sole integration point: shared Policy
     # validation remains upstream, and the private managed-policy check contributes
     # findings through the same ValidationResult stream without a public API.
+    # That one-way dependency preserves IAMCOND-007: the supplemental seam may add
+    # condition-structure findings but does not own or transform upstream findings.
 
     id = "E3510"
     shortdesc = "Validate identity based IAM polices"
