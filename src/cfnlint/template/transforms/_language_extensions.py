@@ -401,15 +401,18 @@ class _ForEachValueFnFindInMap(_ForEachValue):
             except _ResolveError as e:
                 if len(self._map) == 4 and default_on_resolver_failure:
                     return self._map[3].value(cfn, params, only_params)
-                # no default value and map 1 exists
-                try:
-                    for _, v in mapping.get(
-                        t_map[1].value(cfn, params, only_params), {}
-                    ).items():
-                        if isinstance(v, list):
-                            return v
-                except _ResolveError:
-                    pass
+                # FIM-006/FIM-008: a four-argument lookup must retain its
+                # exact-tuple applicability.  Returning a list-valued sibling
+                # here would make unrelated mapping data the apparent result.
+                if len(self._map) == 3:
+                    try:
+                        for _, v in mapping.get(
+                            t_map[1].value(cfn, params, only_params), {}
+                        ).items():
+                            if isinstance(v, list):
+                                return v
+                    except _ResolveError:
+                        pass
                 raise _ResolveError("Can't resolve Fn::FindInMap", self._obj) from e
 
         if len(self._map) == 4 and default_on_resolver_failure:

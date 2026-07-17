@@ -66,6 +66,8 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
 #   substitute enumeration of sibling second-level values for an unresolved key.
 # - ResolutionResult is the integration seam to receiving-property validation;
 #   it carries selected applicable values and their source paths, not mapping rows.
+# - The LanguageExtensions preprocessor preserves a four-argument intrinsic when
+#   exact resolution fails; it must not replace it with a list-valued sibling.
 # - Unresolved lookup components remain owned by resolver control flow and must not
 #   widen the retrieval port or make unrelated values property-validation inputs
 #   (FIM-008). Exact resolved selection provides the same isolation for FIM-006.
