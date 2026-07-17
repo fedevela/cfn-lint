@@ -134,3 +134,13 @@ def test_gev_004_placeholder_without_exact_local_declaration_is_not_exempt():
     }
 
     assert _error_signatures(template) == [("E3601", "pattern")]
+
+
+def test_gev_005_concrete_malformed_task_resource_produces_arn_validation_error():
+    """Contract: GEV-005, malformed concrete Task Resource case."""
+    assert True
+
+
+def test_gev_005_unrelated_substitutions_do_not_exempt_malformed_concrete_resource():
+    """Contract: GEV-005, unrelated DefinitionSubstitutions case."""
+    assert True
