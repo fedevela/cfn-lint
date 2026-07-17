@@ -123,6 +123,15 @@ class _Transform:
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
                 if re.match(FUNCTION_FOR_EACH, k):
+                    # PSEUDOCODE [CFNLINT-006] — nested expansion handoff:
+                    # INPUT the enclosing iteration bindings, the inner fragment,
+                    # and each value yielded by the current iteration.
+                    # FOR EACH value, extend (without discarding) the enclosing
+                    # bindings, recursively expand the fragment, and retain every
+                    # field of each generated resource, including `Condition`.
+                    # MERGE the complete inner result into the enclosing result;
+                    # IF a generated key already exists, follow the existing
+                    # duplicate-key failure path instead of losing either result.
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach
@@ -193,6 +202,14 @@ class _Transform:
         elif isinstance(obj, list):
             for i, v in enumerate(obj):
                 obj[i] = self._walk(v, params, cfn)
+        # PSEUDOCODE [CFNLINT-001, CFNLINT-006, CFNLINT-007] — scalar resolution:
+        # IF the walked output value is a string and iteration bindings are active,
+        # resolve every supported identifier token from those bindings, regardless
+        # of the token's surrounding text or the declared condition's name.
+        # RETURN the resolved scalar through every recursive inner/outer handoff so
+        # a generated resource's `Condition` remains present in the final template.
+        # IF a token cannot be resolved, preserve it as unresolved; do not invent a
+        # condition reference or special-case known reproduction values.
         return obj
 
     def _replace_string_params(
