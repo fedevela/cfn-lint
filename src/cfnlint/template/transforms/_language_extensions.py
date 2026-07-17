@@ -443,7 +443,19 @@ class _ForEachValueFnFindInMap(_ForEachValue):
 
         if mapping:
             try:
-                return mapping.get(t_map[1].value(cfn, params, only_params), {}).get(
+                top_level_key = t_map[1].value(cfn, params, only_params)
+                # CFNLINT-011: YAML decodes an unquoted account ID as an int,
+                # while AWS::AccountId resolves to its complete string value.
+                if top_level_key not in mapping and isinstance(top_level_key, str):
+                    for candidate_key in mapping:
+                        if (
+                            isinstance(candidate_key, int)
+                            and not isinstance(candidate_key, bool)
+                            and str(candidate_key) == top_level_key
+                        ):
+                            top_level_key = candidate_key
+                            break
+                return mapping.get(top_level_key, {}).get(
                     t_map[2].value(cfn, params, only_params)
                 )
             except _ResolveError as e:
