@@ -22,6 +22,10 @@ class Equals(BaseFn):
 
     def __init__(self) -> None:
         super().__init__("Fn::Equals", ("boolean",))
+        # ARCHITECTURE — W8003-011
+        # Register W8003 only on the Fn::Equals structural rule. This child-rule
+        # port is the complete condition-function boundary for constant-result
+        # analysis; sibling condition-function rules remain outside the dependency.
         # ARCHITECTURE — W8003-001 / W8003-002 / W8003-007
         # Optional child-rule injection is the integration seam from structural
         # Fn::Equals traversal to constant-result analysis. The dependency points

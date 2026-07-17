@@ -52,6 +52,11 @@ class EqualsIsUseful(CloudFormationLintRule):
     tags = ["functions", "equals"]
 
     def equals_is_useful(self, validator, s, instance, schema):
+        # ARCHITECTURE — W8003-004
+        # This analysis boundary owns the literal-versus-unresolved operand
+        # classification. Only operands classified as statically known may reach
+        # comparison and finding construction; unresolved values leave through
+        # this boundary without creating a W8003 diagnostic.
         # ARCHITECTURE — W8003-003 / W8003-005
         # Constant-result selection and diagnostic text belong at this analysis
         # boundary. ValidationError(rule=self) is the integration seam that binds
