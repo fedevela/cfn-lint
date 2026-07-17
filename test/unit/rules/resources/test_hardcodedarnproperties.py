@@ -170,13 +170,32 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
         self,
     ):
         """GUID: I3042-OAI-003; hardcoded account segment produces a finding."""
-        self.assertTrue(True)
+        arn = CANONICAL_OAI_ARN.replace(":cloudfront:", ":123456789012:")
+
+        account_matches = [
+            match
+            for match in self._matches_for_oai_arn(arn)
+            if "hardcoded AccountId" in match.message
+        ]
+
+        self.assertEqual(1, len(account_matches))
+        self.assertEqual("I3042", account_matches[0].rule.id)
 
     def test_i3042_oai_004_accountid_true_misplaced_account_pseudo_parameter_produces_finding(
         self,
     ):
         """GUID: I3042-OAI-004; misplaced account pseudo parameter produces a finding."""
-        self.assertTrue(True)
+        arn = CANONICAL_OAI_ARN.replace(":cloudfront:", ":${AWS::Region}:")
+
+        account_matches = [
+            match
+            for match in self._matches_for_oai_arn(arn)
+            if "incorrectly placed Pseudo Parameters" in match.message
+            and "AccountId" in match.message
+        ]
+
+        self.assertEqual(1, len(account_matches))
+        self.assertEqual("I3042", account_matches[0].rule.id)
 
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""
