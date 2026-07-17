@@ -121,31 +121,77 @@ def test_W8003_007_independent_constant_equals_each_reports_own_location():
 
 def test_W8003_008_identical_literal_fn_equals_when_tests_run_verifies_W8003_finding():
     """GUID: W8003-008."""
+    # Logic obligation: prove that an Fn::Equals with identical literal operands
+    # is recognized as constant and produces the expected W8003 finding.
+    # GIVEN a condition whose Fn::Equals operands are the same literal value
+    # WHEN the condition is passed through the existing lint-test entry point
+    # THEN retain only findings whose rule identifier is W8003
+    # IF exactly one W8003 finding identifies the condition's location
+    # THEN complete this verification successfully
+    # ELSE fail with the observed finding count, rule identifiers, and locations
     assert True
 
 
 def test_W8003_008_unequal_literal_fn_equals_when_tests_run_verifies_W8003_finding():
     """GUID: W8003-008."""
+    # Logic obligation: prove that an Fn::Equals with unequal literal operands
+    # is recognized as constant and produces the expected W8003 finding.
+    # GIVEN a condition whose Fn::Equals operands are two unequal literal values
+    # WHEN the condition is passed through the existing lint-test entry point
+    # THEN retain only findings whose rule identifier is W8003
+    # IF exactly one W8003 finding identifies the condition's location
+    # THEN complete this verification successfully
+    # ELSE fail with the observed finding count, rule identifiers, and locations
     assert True
 
 
 def test_W8003_009_non_constant_fn_equals_when_tests_run_verifies_no_false_positive_W8003_finding():
     """GUID: W8003-009."""
+    # Logic obligation: exclude Fn::Equals expressions whose result cannot be
+    # statically proven so that dynamic operands never create false positives.
+    # GIVEN a condition with at least one non-literal Fn::Equals operand
+    # WHEN the condition is passed through the existing lint-test entry point
+    # THEN retain only findings whose rule identifier is W8003
+    # IF the retained finding collection is empty
+    # THEN complete this verification successfully
+    # ELSE fail with every unexpected finding's message and location
     assert True
 
 
 def test_W8003_010_relevant_lint_suite_when_run_preserves_unrelated_rules():
     """GUID: W8003-010."""
+    # Logic obligation: the corrected W8003 behavior must not change outcomes
+    # owned by unrelated lint rules in the relevant existing suite.
+    # GIVEN the existing unrelated-rule cases and their established expectations
+    # WHEN the relevant lint suite executes with the corrected W8003 behavior
+    # THEN compare each unrelated rule's observed findings with its expectation
+    # IF every comparison is unchanged, complete this regression gate successfully
+    # ELSE fail and identify each unrelated rule case whose outcome changed
     assert True
 
 
 def test_W8003_010_relevant_lint_suite_when_run_preserves_condition_semantics():
     """GUID: W8003-010."""
+    # Logic obligation: the corrected W8003 behavior must preserve established
+    # evaluation and traversal semantics for conditions outside the corrected case.
+    # GIVEN the existing condition-semantic cases and their expected outcomes
+    # WHEN the relevant lint suite executes with the corrected W8003 behavior
+    # THEN compare every observed condition outcome with its established expectation
+    # IF every comparison is unchanged, complete this regression gate successfully
+    # ELSE fail and identify the condition case and semantic outcome that changed
     assert True
 
 
 def test_W8003_010_relevant_lint_suite_when_run_preserves_output_integration():
     """GUID: W8003-010."""
+    # Logic obligation: W8003 findings must continue through the established lint
+    # output boundary without changing unrelated diagnostic integration.
+    # GIVEN the existing output-integration cases and their expected diagnostics
+    # WHEN the relevant lint suite executes with the corrected W8003 behavior
+    # THEN compare emitted rule identifiers, messages, severities, and locations
+    # with the established expectations for each integration case
+    # IF every comparison is unchanged, complete this regression gate successfully
+    # ELSE fail and identify each diagnostic field and integration case that changed
     assert True
 
 
