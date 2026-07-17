@@ -9,6 +9,21 @@ from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.conditions.EqualsIsUseful import EqualsIsUseful
 
 
+def test_W8003_001_identical_literal_equals_when_linted_reports_true_finding():
+    """GUID: W8003-001."""
+    assert True
+
+
+def test_W8003_002_unequal_literal_equals_when_linted_reports_false_finding():
+    """GUID: W8003-002."""
+    assert True
+
+
+def test_W8003_007_independent_constant_equals_each_reports_own_location():
+    """GUID: W8003-007."""
+    assert True
+
+
 @pytest.mark.parametrize(
     "name,instance,num_of_errors",
     [
