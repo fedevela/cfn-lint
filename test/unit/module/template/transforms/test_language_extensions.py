@@ -7,7 +7,11 @@ from copy import deepcopy
 from unittest import TestCase, mock
 
 import cfnlint.template.transforms._language_extensions
+from cfnlint import ConfigMixIn, Rules
 from cfnlint.decode import convert_dict
+from cfnlint.rules.errors import TransformError
+from cfnlint.rules.resources.ResourceType import ResourceType
+from cfnlint.runner import TemplateRunner
 from cfnlint.template import Template
 from cfnlint.template.transforms._language_extensions import (
     _ForEach,
@@ -698,31 +702,113 @@ class TestTransform(TestCase):
 
 
 class TestEmptyForEachContract(TestCase):
+    @staticmethod
+    def _template(collection):
+        return convert_dict(
+            {
+                "Transform": "AWS::LanguageExtensions",
+                "Mappings": {
+                    "Collections": {
+                        "Selected": {"Values": []},
+                    },
+                },
+                "Resources": {
+                    "IndependentResource": {"Type": "AWS::S3::Bucket"},
+                    "Fn::ForEach::Buckets": [
+                        "Identifier",
+                        collection,
+                        {"LoopBucket${Identifier}": {"Type": "AWS::S3::Bucket"}},
+                    ],
+                },
+            }
+        )
+
+    def _transform(self, collection):
+        cfn = Template(
+            filename="",
+            template=self._template(collection),
+            regions=["us-east-1"],
+        )
+        return language_extension(cfn)
+
+    @staticmethod
+    def _lint(template):
+        rules = Rules(
+            {
+                "E0001": TransformError(),
+                "E3006": ResourceType(),
+            }
+        )
+        runner = TemplateRunner(
+            filename="",
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        )
+        return list(runner.run())
+
     def test_foreach_001_direct_empty_collection_transforms_and_lints_without_resolution_error(
         self,
     ):
         """FOREACH-001: Direct empty collections transform and lint successfully."""
-        self.assertTrue(True)
+        matches, transformed = self._transform([])
+
+        self.assertListEqual(matches, [])
+        self.assertIsNotNone(transformed)
+        self.assertListEqual(self._lint(self._template([])), [])
 
     def test_foreach_002_findinmap_empty_collection_transforms_and_lints_without_resolution_error(
         self,
     ):
         """FOREACH-002: Fn::FindInMap empty collections transform and lint."""
-        self.assertTrue(True)
+        matches, transformed = self._transform(
+            {"Fn::FindInMap": ["Collections", "Selected", "Values"]}
+        )
+
+        self.assertListEqual(matches, [])
+        self.assertIsNotNone(transformed)
+        self.assertListEqual(
+            self._lint(
+                self._template(
+                    {"Fn::FindInMap": ["Collections", "Selected", "Values"]}
+                )
+            ),
+            [],
+        )
 
     def test_foreach_003_resolved_empty_collection_produces_zero_loop_resources(self):
         """FOREACH-003: A resolved empty collection produces no loop resources."""
-        self.assertTrue(True)
+        _, transformed = self._transform(
+            {"Fn::FindInMap": ["Collections", "Selected", "Values"]}
+        )
+
+        self.assertSetEqual(
+            set(transformed["Resources"]),
+            {"IndependentResource"},
+        )
 
     def test_foreach_004_empty_loop_leaves_no_partial_placeholder_or_malformed_resource(
         self,
     ):
         """FOREACH-004: Empty transforms leave no partial or malformed artifacts."""
-        self.assertTrue(True)
+        _, transformed = self._transform([])
+
+        self.assertDictEqual(
+            transformed["Resources"],
+            {"IndependentResource": {"Type": "AWS::S3::Bucket"}},
+        )
 
     def test_foreach_005_empty_loop_preserves_independent_content_for_validation(self):
         """FOREACH-005: Independent content survives for normal validation."""
-        self.assertTrue(True)
+        template = self._template([])
+        template["Resources"]["IndependentResource"]["Type"] = "Invalid::Type"
+        matches = self._lint(template)
+
+        self.assertEqual([match.rule.id for match in matches], ["E3006"])
+        self.assertEqual(
+            list(matches[0].path),
+            ["Resources", "IndependentResource", "Type"],
+        )
 
 
 class TestTransformValues(TestCase):
