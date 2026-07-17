@@ -27,6 +27,8 @@ def _lint_state_machine(properties):
     return lint(json.dumps(template))
 
 
+# ARCHITECTURE: CFNLINT-007 owns its supplied Fn::Join input and collected
+# diagnostics at this module-scoped fixture boundary.
 @pytest.fixture(scope="module")
 def reproduction_matches():
     """Validate the JSON reproduction once for all traced requirements."""
@@ -138,6 +140,8 @@ def test_cfnlint_006_literal_definition_string_keeps_outcome():
     assert matches == []
 
 
+# ARCHITECTURE: CFNLINT-007 verification consumes reproduction_matches through
+# three diagnostic-filter owners; implementation activates fixture injection.
 def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022():
     """GUID: CFNLINT-007 - supplied Fn::Join emits no E1022 diagnostic."""
     # PSEUDOCODE CONTRACT: CFNLINT-007 / no intrinsic-value E1022
