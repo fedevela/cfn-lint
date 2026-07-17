@@ -83,6 +83,8 @@ class StringLength(CloudFormationLintRule):
     # test_iammp_001_static_managed_policy_compact_over_6144_reports_policy_doc_error
     # IAMMP-002 verification:
     # test_iammp_002_validating_compact_managed_policy_at_6144_does_not_report_size_error
+    # IAMMP-003 verification:
+    # test_iammp_003_validating_compact_managed_policy_below_6144_does_not_report_size_error
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
         # IAMMP-001 logic obligation
@@ -115,6 +117,23 @@ class StringLength(CloudFormationLintRule):
         # from other applicable validation obligations remain unaffected.
         # FAILURE PATH: only a count greater than 6,144 enters the size-error
         # branch; equality must never enter that branch.
+        # IAMMP-003 logic obligation
+        # INPUT: a statically determinable AWS::IAM::ManagedPolicy
+        # PolicyDocument whose compact representation contains fewer than 6,144
+        # characters, and the schema-provided maximum is 6,144.
+        # TRANSITION:
+        #   1. Serialize the complete PolicyDocument with compact separators,
+        #      using the same representation measured by the size-limit flow.
+        #   2. Count the characters in the compact representation.
+        #   3. Compare the count to the maximum with a strict greater-than
+        #      decision.
+        #   4. IF the count is below 6,144, complete this size check without
+        #      yielding a managed-policy size-limit ValidationError.
+        #   5. ELSE hand off to the exact-limit or over-limit branch.
+        # OUTPUT: the below-limit branch contributes no size-limit error; errors
+        # from other applicable validation obligations remain unaffected.
+        # FAILURE PATH: only a count greater than 6,144 enters the size-error
+        # branch; a below-limit count must never enter that branch.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
