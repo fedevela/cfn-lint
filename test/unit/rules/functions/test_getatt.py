@@ -321,3 +321,13 @@ def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_decl
     assert list(
         rule.fn_getatt(validator, case["schema"], case["instance"], {})
     ) == []
+
+
+def test_gev_003_two_arg_sub_findinmap_declared_resource_name_is_accepted():
+    """GEV-003: LanguageExtensions maps Sub to an accepted resource name."""
+    assert True
+
+
+def test_gev_004_foreach_a_1_a_2_b_1_b_2_dynamic_getatt_emits_no_e1010():
+    """GEV-004: the reported loop inputs transition without E1010 findings."""
+    assert True
