@@ -707,19 +707,45 @@ def test_gev_008_language_extensions_malformed_intrinsic_in_nested_sub_variable_
     ]
 
 
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
 def test_gev_009_declared_resource_valid_attribute_conventional_list_getatt_remains_without_new_finding(
+    validator, rule
 ):
     """GEV-009: preserve the conventional list-form GetAtt contract."""
-    assert True
+    instance = {"Fn::GetAtt": ["MyBucket", "Arn"]}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
 
 
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
 def test_gev_009_declared_resource_valid_attribute_conventional_dotted_getatt_remains_without_new_finding(
+    validator, rule
 ):
     """GEV-009: preserve the conventional dotted-string GetAtt contract."""
-    assert True
+    instance = {"Fn::GetAtt": "MyBucket.Arn"}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
 
 
+@pytest.mark.parametrize("template", [_template], indirect=True)
+@pytest.mark.parametrize(
+    "instance,schema",
+    [
+        ({"Fn::GetAtt": ["MyBucket", "Arn"]}, {"type": "string"}),
+        ({"Fn::GetAtt": "MyCodePipeline.Version"}, {"type": ["integer"]}),
+        ({"Fn::GetAtt": "DocDBCluster.Port"}, {"type": ["string"]}),
+        (
+            {"Fn::GetAtt": "MyBucket.Arn"},
+            {"type": ["array", "string"]},
+        ),
+    ],
+)
 def test_gev_009_existing_conventional_valid_getatt_coverage_remains_passing_after_change(
+    instance, schema, validator, rule
 ):
     """GEV-009: keep all previously valid conventional GetAtt cases passing."""
-    assert True
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, schema, instance, {})) == []

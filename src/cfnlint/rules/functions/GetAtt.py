@@ -300,7 +300,7 @@ class GetAtt(BaseFn):
         # supported-attribute, and result-type checks for both representations.
         # Keep dependency direction from BaseFn structural validation, through this
         # normalization seam, to _resolve_getatt and then existing child rules. The
-        # GEV-009 test placeholders in test_getatt.py are the regression contract;
+        # GEV-009 behavioral tests in test_getatt.py are the regression contract;
         # no representation-specific semantic adapter or public API is required.
         errs = list(super().validate(validator, s, instance, schema))
         if errs:
