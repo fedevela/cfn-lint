@@ -562,23 +562,22 @@ class _ForEachCollection:
         if self._fn:
             try:
                 values = self._fn.value(cfn, {}, False)
-                if values:
-                    if isinstance(values, list):
-                        for value in values:
-                            if isinstance(value, (str, dict)):
-                                yield value
-                            else:
-                                raise _ValueError(
-                                    (
-                                        "Fn::ForEach collection value "
-                                        f"must be a {_SCALAR_TYPES!r}"
-                                    ),
-                                    self._obj,
-                                )
-                        return
+                if not isinstance(values, list):
                     raise _ValueError(
                         "Fn::ForEach collection must return a list", self._obj
                     )
+                for value in values:
+                    if isinstance(value, (str, dict)):
+                        yield value
+                    else:
+                        raise _ValueError(
+                            (
+                                "Fn::ForEach collection value "
+                                f"must be a {_SCALAR_TYPES!r}"
+                            ),
+                            self._obj,
+                        )
+                return
             except _ResolveError:
                 if self._fn.hash in collection_cache:
                     yield from iter(collection_cache[self._fn.hash])
