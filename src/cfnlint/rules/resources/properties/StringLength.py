@@ -62,7 +62,7 @@ class StringLength(CloudFormationLintRule):
 
         return obj
 
-    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004 architecture boundary:
+    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004/IAMMP-005 architecture boundary:
     # - the managed-policy schema owns applicability and the 6,144 limit;
     # - template parsing owns removal of source-format whitespace by producing
     #   the structured object received at this boundary;
@@ -72,9 +72,13 @@ class StringLength(CloudFormationLintRule):
     # - the helper also owns the inclusive maximum contract: below-limit and
     #   exact-limit values produce no error; only greater values do;
     # - maxLength owns keyword dispatch and yields into validator traversal, which
-    #   retains the current PolicyDocument path when an error exists.
+    #   retains the current PolicyDocument path when an error exists;
+    # - for IAMMP-005, Properties owns the integration seam from that yielded
+    #   E3033 error into the template-level validation result, whose non-empty
+    #   error set reports the supplied reproduction invalid without mutating it.
     # Dependency direction is parsed object + schema -> maxLength -> this helper
-    # -> ValidationError; the generic rule has no dependency on ManagedPolicy.
+    # -> ValidationError -> Properties/template result; the generic rule has no
+    # dependency on ManagedPolicy or on the supplied reproduction fixture.
     def _non_string_max_length(self, instance, mL):
         # IAMMP-004 verification:
         # test_iammp_004_whitespace_only_policy_changes_preserve_size_validation_result
