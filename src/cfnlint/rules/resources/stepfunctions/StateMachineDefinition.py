@@ -67,6 +67,22 @@ class StateMachineDefinition(CfnLintJsonSchema):
             if not value:
                 continue
 
+            # PSEUDOCODE CONTRACT: CFNLINT-001, CFNLINT-002, CFNLINT-003
+            # INPUT: the selected definition key/value and its template context.
+            # IF key is DefinitionString AND value is an Fn::Join expression:
+            #   HAND OFF Fn::Join shape and string-output checks to intrinsic validation.
+            #   MARK the generated string as not directly inspectable by ASL validation.
+            #   SKIP ASL object validation; EMIT neither an object-type E1022
+            #   (CFNLINT-001) nor missing StartAt/States E3601 (CFNLINT-002).
+            # ELSE IF value is literal JSON text:
+            #   PARSE it; on parse failure, stop structural validation without E3601.
+            #   On parse success, validate the resulting ASL object normally.
+            # ELSE:
+            #   VALIDATE the directly inspectable definition object normally.
+            # FAILURE: malformed Fn::Join remains reportable by intrinsic validation;
+            #   diagnostics for inspectable definitions and other properties are preserved.
+            # OUTPUT: if no independent diagnostic exists, the reproduction completes
+            #   validation successfully (CFNLINT-003).
             add_path_to_message = False
             if validator.is_type(value, "string"):
                 try:
