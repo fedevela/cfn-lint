@@ -39,6 +39,19 @@ class Equals(BaseFn):
             yield from iter(errs)
             return
 
+        # PSEUDOCODE — W8003-011
+        # Verification locus:
+        # - test_W8003_011_non_equals_condition_function_after_correction_receives_no_new_handling
+        # PROCEDURE preserve_equals_only_handoff(condition_function):
+        #   INPUT the condition function selected by existing condition traversal.
+        #   IF the selected function is not Fn::Equals:
+        #     DO NOT dispatch it to W8003.
+        #     LEAVE its existing validation and handling unchanged.
+        #     RETURN no W8003 finding from this handoff.
+        #   IF the selected function is Fn::Equals and structural validation succeeds:
+        #     HAND OFF only its operand list to the existing W8003 child rule.
+        #   DO NOT add branches, state transitions, or findings for any other
+        #   condition function.
         # PSEUDOCODE — W8003-007
         # Verification locus:
         # - test_W8003_007_independent_constant_equals_each_reports_own_location

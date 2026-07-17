@@ -57,6 +57,21 @@ class EqualsIsUseful(CloudFormationLintRule):
         # boundary. ValidationError(rule=self) is the integration seam that binds
         # the selected result to the shared W8003 identity; the Equals parent keeps
         # ownership of traversal and source-location propagation.
+        # PSEUDOCODE — W8003-004
+        # Verification locus:
+        # - test_W8003_004_non_constant_fn_equals_when_linted_produces_no_W8003_finding
+        # PROCEDURE preserve_non_constant_equals_boundary(instance):
+        #   INPUT the operands from one structurally valid Fn::Equals expression.
+        #   FOR EACH operand:
+        #     DETERMINE whether its value is statically known at lint time.
+        #     IF the value depends on a reference, intrinsic function, or other
+        #     unresolved expression:
+        #       CLASSIFY the Fn::Equals result as not statically proven constant.
+        #       RETURN no W8003 finding for this expression.
+        #   ONLY IF both values are statically known:
+        #     HAND OFF to constant-result comparison and diagnostic selection.
+        #   IF static classification cannot be completed safely:
+        #     RETURN no W8003 finding rather than infer a constant result.
         # PSEUDOCODE — W8003-001 / W8003-002 / W8003-003
         # Verification loci:
         # - test_W8003_001_identical_literal_equals_when_linted_reports_true_finding
