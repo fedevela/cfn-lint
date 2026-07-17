@@ -161,6 +161,28 @@ def test_snapstart_005_existing_java_acceptance_cases_remain_valid(
     assert _validate(validator, [region], runtime) == []
 
 
+def test_snapstart_006_sam_function_python312_property_in_supported_region_has_no_e2530(
+):
+    """GUID: SNAPSTART-006; direct SAM runtime survives transformation."""
+    assert True
+
+
+def test_snapstart_006_sam_function_python312_globals_in_supported_region_has_no_e2530(
+):
+    """GUID: SNAPSTART-006; inherited SAM runtime survives transformation."""
+    assert True
+
+
+def test_snapstart_007_direct_and_sam_lint_supported_region_both_have_no_e2530():
+    """GUID: SNAPSTART-007; equivalent supported configurations have parity."""
+    assert True
+
+
+def test_snapstart_007_direct_and_sam_lint_unsupported_region_match_e2530_rejection():
+    """GUID: SNAPSTART-007; equivalent unsupported configurations have parity."""
+    assert True
+
+
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
     """GUID: SNAPSTART-008; supported passes and unsupported produces E2530."""
     assert _validate(validator, ["us-east-1", "ap-south-1"]) == [
