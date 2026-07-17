@@ -113,6 +113,20 @@ class Properties(CfnLintJsonSchema):
             region_validator = self.extend_validator(
                 region_validator, schema.schema, region_validator.context.evolve()
             )
+            # IAMMP-008 architecture boundary:
+            # - the provider schema owns which property constraints apply;
+            # - StringLength/E3033 owns only the managed-policy maxLength
+            #   diagnostic and has no dependency on unrelated lint rules;
+            # - this all-matches Properties validator owns complete schema-keyword
+            #   traversal plus preservation of each error's rule, message, and
+            #   relative path while integrating the resource Properties prefix;
+            # - the rule runner remains the outer aggregation boundary for
+            #   independently registered rules such as IAM IdentityPolicy/E3510.
+            # The dependency direction is provider schema + enabled child rules ->
+            # Properties traversal -> path integration -> runner result stream,
+            # alongside independent rule -> runner result stream branches. Neither
+            # an E3033 result nor its absence may become a dependency of a sibling
+            # keyword validator or an independently registered rule.
             # IAMMP-008 verification:
             # test_iammp_008_oversized_managed_policy_reports_size_error_and_preserves_other_applicable_lint_rule
             # test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other_applicable_lint_rule
