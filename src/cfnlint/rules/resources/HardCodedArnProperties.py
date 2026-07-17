@@ -97,6 +97,26 @@ class HardCodedArnProperties(CloudFormationLintRule):
             path = ["Resources"] + parameter_string_path[:-1]
             candidate = parameter_string_path[-1]
 
+            # PSEUDOCODE [I3042-OAI-001, I3042-OAI-002, I3042-OAI-008]
+            # INPUT: the locally parsed ARN segments, source path, and I3042 config.
+            # DERIVE canonical_oai as true only when all of these fields match:
+            #   partition = ${AWS::Partition}; service = iam; region = empty;
+            #   account = cloudfront; resource type = user; and resource value =
+            #   "CloudFront Origin Access Identity <nonempty identity-id>".
+            # I3042-OAI-002: when partition checking is enabled, route
+            # ${AWS::Partition} through the existing accepted-partition path;
+            # otherwise preserve the existing partition finding.
+            # I3042-OAI-001: when accountId checking is enabled and canonical_oai
+            # is true, accept the literal cloudfront account without a finding.
+            # When canonical_oai is false, route cloudfront and every other account
+            # through the existing account validation so arbitrary nonnumeric,
+            # hardcoded, or misplaced values retain their findings.
+            # Preserve region validation independently; the exception must neither
+            # accept a nonempty region nor alter any existing region outcome.
+            # I3042-OAI-008: compute every decision solely from template content and
+            # rule configuration; perform no credential, network, or OS-dependent
+            # lookup, so macOS and Ubuntu transition to the same matches output.
+
             # ruff: noqa: E501
             # !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
             # is valid even with aws as the account #.  This handles empty string
