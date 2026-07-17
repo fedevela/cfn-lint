@@ -124,7 +124,7 @@ class StringLength(CloudFormationLintRule):
         # its E3001 envelope remains owned by Configuration, with no reverse
         # dependency from this property rule. Do not introduce an IAM-rule
         # dependency, reproduction-specific adapter, or new public API.
-        # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004
+        # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004, MPOL-005
         # INPUT: the current validation locus, PolicyDocument value, and maxLength.
         # IF the locus is AWS::IAM::ManagedPolicy.Properties.PolicyDocument:
         #   NORMALIZE the document through the existing intrinsic-function and
@@ -143,6 +143,15 @@ class StringLength(CloudFormationLintRule):
         #     YIELD the existing maxLength ValidationError for E3033 and RETURN.[MPOL-003]
         # ELSE:
         #   CONTINUE through the existing generic string/function/object branches.
+        # AFTER this size callback completes:
+        #   LEAVE the instance, validation context, and accumulated results
+        #   unchanged for every validation rule unrelated to document size.
+        #   FOR EACH unrelated result produced by the enclosing validation flow:
+        #     PRESERVE its rule identity, message, path, and observability exactly
+        #     as if the managed-policy size correction were absent.             [MPOL-005]
+        #   IF a document-size condition and a separate invalid condition coexist:
+        #     DECIDE only the size-related E3033 in this callback; HAND OFF the
+        #     separate condition so its owning rule still yields its result.    [MPOL-005]
         if tuple(validator.context.path.cfn_path) == _MANAGED_POLICY_DOCUMENT_PATH:
             if self._managed_policy_document_length(instance) > mL:
                 yield ValidationError("Item is too long")
