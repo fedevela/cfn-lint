@@ -9,7 +9,9 @@ import pytest
 
 from cfnlint.jsonschema import ValidationError
 from cfnlint.rules import CfnLintKeyword
+from cfnlint.rules.functions.FindInMap import FindInMap
 from cfnlint.rules.functions.GetAtt import GetAtt
+from cfnlint.rules.functions.Sub import Sub
 
 
 @pytest.fixture(scope="module")
@@ -112,6 +114,15 @@ def _gev_006_getatt_case():
             "Arn",
         ]
     }
+
+
+def _validator_with_nested_sub_rules(validator):
+    return validator.extend(
+        validators={
+            "fn_findinmap": FindInMap().fn_findinmap,
+            "fn_sub": Sub().fn_sub,
+        }
+    )(context=validator.context, cfn=validator.cfn)
 
 
 class _Pass(CfnLintKeyword):
@@ -534,36 +545,163 @@ def test_gev_006_only_language_extensions_template_accepts_complete_two_argument
         assert errors[0].path == deque(["Fn::GetAtt", 0])
 
 
-def test_gev_007_language_extensions_missing_getatt_operand_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_007_language_extensions_missing_getatt_operand_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-007: preserve validation of a missing Fn::GetAtt operand."""
-    assert True
+    instance = {"Fn::GetAtt": ["MyBucket"]}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "['MyBucket'] is too short (2)",
+            path=deque(["Fn::GetAtt"]),
+            schema_path=deque(["minItems"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_007_language_extensions_empty_getatt_operand_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_007_language_extensions_empty_getatt_operand_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-007: preserve validation of an empty Fn::GetAtt operand."""
-    assert True
+    instance = {"Fn::GetAtt": []}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "[] is too short (2)",
+            path=deque(["Fn::GetAtt"]),
+            schema_path=deque(["minItems"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_007_language_extensions_extra_getatt_operand_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_007_language_extensions_extra_getatt_operand_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-007: preserve validation of an extra Fn::GetAtt operand."""
-    assert True
+    instance = {"Fn::GetAtt": ["MyBucket", "Arn", "extra"]}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "['MyBucket', 'Arn', 'extra'] is too long (2)",
+            path=deque(["Fn::GetAtt"]),
+            schema_path=deque(["maxItems"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_007_language_extensions_otherwise_malformed_getatt_operand_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_007_language_extensions_otherwise_malformed_getatt_operand_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-007: preserve validation of another malformed Fn::GetAtt operand."""
-    assert True
+    instance = {"Fn::GetAtt": ["MyBucket", []]}
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "[] is not of type 'string'",
+            path=deque(["Fn::GetAtt", 1]),
+            schema_path=deque(["fn_items", "type"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_008_language_extensions_malformed_nested_two_argument_sub_getatt_resource_operand_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_008_language_extensions_malformed_nested_two_argument_sub_getatt_resource_operand_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-008: preserve validation of malformed nested Fn::Sub structure."""
-    assert True
+    instance = {"Fn::GetAtt": [{"Fn::Sub": ["${ResourceName}"]}, "Arn"]}
+    validator = _validator_with_nested_sub_rules(validator)
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "['${ResourceName}'] is too short (2)",
+            path=deque(["Fn::GetAtt", 0, "Fn::Sub"]),
+            schema_path=deque(["fn_items", "fn_sub", "minItems"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_008_language_extensions_malformed_nested_sub_variable_map_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_008_language_extensions_malformed_nested_sub_variable_map_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-008: preserve validation of a malformed nested Fn::Sub variable map."""
-    assert True
+    instance = {"Fn::GetAtt": [{"Fn::Sub": ["${ResourceName}", []]}, "Arn"]}
+    validator = _validator_with_nested_sub_rules(validator)
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "[] is not of type 'object'",
+            path=deque(["Fn::GetAtt", 0, "Fn::Sub", 1]),
+            schema_path=deque(["fn_items", "fn_sub", "fn_items", "type"]),
+            validator="fn_getatt",
+        )
+    ]
 
 
-def test_gev_008_language_extensions_malformed_intrinsic_in_nested_sub_variable_map_emits_applicable_validation_finding():
+@pytest.mark.parametrize("template", [_template_with_transform], indirect=True)
+def test_gev_008_language_extensions_malformed_intrinsic_in_nested_sub_variable_map_emits_applicable_validation_finding(
+    validator, rule
+):
     """GEV-008: preserve validation of malformed intrinsic map values."""
-    assert True
+    instance = {
+        "Fn::GetAtt": [
+            {
+                "Fn::Sub": [
+                    "${ResourceName}",
+                    {
+                        "ResourceName": {
+                            "Fn::FindInMap": ["ResourceNames", "a-1"]
+                        }
+                    },
+                ]
+            },
+            "Arn",
+        ]
+    }
+    validator = _validator_with_nested_sub_rules(validator)
+    rule.child_rules = {}
+
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == [
+        ValidationError(
+            "['ResourceNames', 'a-1'] is too short (3)",
+            path=deque(
+                [
+                    "Fn::GetAtt",
+                    0,
+                    "Fn::Sub",
+                    1,
+                    "ResourceName",
+                    "Fn::FindInMap",
+                ]
+            ),
+            schema_path=deque(
+                [
+                    "fn_items",
+                    "fn_sub",
+                    "fn_items",
+                    "patternProperties",
+                    "[a-zA-Z0-9]+",
+                    "fn_findinmap",
+                    "minItems",
+                ]
+            ),
+            validator="fn_getatt",
+        )
+    ]
