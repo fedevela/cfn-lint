@@ -152,6 +152,12 @@ class HardCodedArnProperties(CloudFormationLintRule):
                 )
                 matches.append(RuleMatch(path, message.format(path[1])))
 
+            # ARCHITECTURE [I3042-OAI-007]
+            # Region-result preservation is owned by this existing I3042 branch.
+            # Its input contract ends at config["region"] and candidate[1]; the
+            # canonical-OAI context in candidate[3] flows only to the later account
+            # boundary.  Keep those dependencies one-way so the account exception
+            # cannot bypass, duplicate, or otherwise alter region reporting.
             # PSEUDOCODE [I3042-OAI-007]
             # INPUT: region configuration, candidate[1] as the parsed region
             # segment, source path, and matches accumulated before region checking.
