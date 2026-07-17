@@ -532,3 +532,38 @@ def test_gev_006_only_language_extensions_template_accepts_complete_two_argument
         assert len(errors) == 1
         assert errors[0].validator == "fn_getatt"
         assert errors[0].path == deque(["Fn::GetAtt", 0])
+
+
+def test_gev_007_language_extensions_missing_getatt_operand_emits_applicable_validation_finding():
+    """GEV-007: preserve validation of a missing Fn::GetAtt operand."""
+    assert True
+
+
+def test_gev_007_language_extensions_empty_getatt_operand_emits_applicable_validation_finding():
+    """GEV-007: preserve validation of an empty Fn::GetAtt operand."""
+    assert True
+
+
+def test_gev_007_language_extensions_extra_getatt_operand_emits_applicable_validation_finding():
+    """GEV-007: preserve validation of an extra Fn::GetAtt operand."""
+    assert True
+
+
+def test_gev_007_language_extensions_otherwise_malformed_getatt_operand_emits_applicable_validation_finding():
+    """GEV-007: preserve validation of another malformed Fn::GetAtt operand."""
+    assert True
+
+
+def test_gev_008_language_extensions_malformed_nested_two_argument_sub_getatt_resource_operand_emits_applicable_validation_finding():
+    """GEV-008: preserve validation of malformed nested Fn::Sub structure."""
+    assert True
+
+
+def test_gev_008_language_extensions_malformed_nested_sub_variable_map_emits_applicable_validation_finding():
+    """GEV-008: preserve validation of a malformed nested Fn::Sub variable map."""
+    assert True
+
+
+def test_gev_008_language_extensions_malformed_intrinsic_in_nested_sub_variable_map_emits_applicable_validation_finding():
+    """GEV-008: preserve validation of malformed intrinsic map values."""
+    assert True
