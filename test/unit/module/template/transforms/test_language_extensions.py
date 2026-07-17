@@ -980,6 +980,31 @@ class TestInvalidOrUnresolvableForEachCollectionContract(TestCase):
 
 
 class TestForEachEmptyAndMappingSelectionRegressionContract(TestCase):
+    # FOREACH-010/FOREACH-011 architecture ownership:
+    # This contract suite owns one shared mapping fixture shape. Its tests pass the
+    # selected collection through Template/language_extension and TemplateRunner;
+    # the production transform remains the sole owner of collection resolution.
+    _DIRECT_EMPTY_COLLECTION = []
+    _MAPPING_NAME = "Collections"
+    _MAPPING_ATTRIBUTE = "Values"
+    _MAPPING_SELECTIONS = {
+        "Empty": {_MAPPING_ATTRIBUTE: []},
+        "NonEmpty": {_MAPPING_ATTRIBUTE: ["selected"]},
+    }
+
+    # FOREACH-011 output contract consumed by the expansion, substitution, and
+    # validation placeholders below. This stays test-local and creates no API.
+    _EXPECTED_NON_EMPTY_IDENTIFIER = "selected"
+    _EXPECTED_NON_EMPTY_RESOURCE = {
+        "LoopBucketselected": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": "foreach-selected",
+                "Tags": [{"Key": "Identifier", "Value": "selected"}],
+            },
+        }
+    }
+
     def test_foreach_010_direct_empty_collection_transforms_lints_and_produces_zero_loop_resources(
         self,
     ):
