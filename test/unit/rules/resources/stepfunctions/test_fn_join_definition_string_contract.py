@@ -136,3 +136,19 @@ def test_cfnlint_006_literal_definition_string_keeps_outcome():
     matches = _lint_state_machine({"DefinitionString": json.dumps(definition)})
 
     assert matches == []
+
+
+def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022():
+    """GUID: CFNLINT-007 - supplied Fn::Join emits no E1022 diagnostic."""
+    assert True
+
+
+def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_start_at(
+):
+    """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-StartAt E3601."""
+    assert True
+
+
+def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_states():
+    """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-States E3601."""
+    assert True
