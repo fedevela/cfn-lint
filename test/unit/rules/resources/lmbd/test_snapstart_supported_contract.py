@@ -129,19 +129,36 @@ def test_snapstart_004_only_python312_supported_region_exits_negative_matrix(
     assert (_validate(validator, [region], runtime) == []) is is_supported
 
 
-def test_snapstart_005_existing_valid_java_runtime_region_remains_accepted():
+def test_snapstart_005_existing_valid_java_runtime_region_remains_accepted(validator):
     """GUID: SNAPSTART-005."""
-    assert True
+    assert _validate(validator, ["us-east-1"], "java17") == []
 
 
-def test_snapstart_005_java_result_uses_java_boundary_when_python312_differs():
+def test_snapstart_005_java_result_uses_java_boundary_when_python312_differs(
+    validator,
+):
     """GUID: SNAPSTART-005."""
-    assert True
+    region = "us-west-1"
+    rule = SnapStartSupported()
+
+    assert region in rule.regions
+    assert region not in rule._runtime_region_support["python3.12"]
+    assert _validate(validator, [region], "java17") == []
 
 
-def test_snapstart_005_existing_java_acceptance_cases_remain_valid():
+@pytest.mark.parametrize(
+    "runtime,region",
+    [
+        ("java11", "us-east-1"),
+        ("java17", "eu-west-1"),
+        ("java21", "ap-south-1"),
+    ],
+)
+def test_snapstart_005_existing_java_acceptance_cases_remain_valid(
+    validator, runtime, region
+):
     """GUID: SNAPSTART-005."""
-    assert True
+    assert _validate(validator, [region], runtime) == []
 
 
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
