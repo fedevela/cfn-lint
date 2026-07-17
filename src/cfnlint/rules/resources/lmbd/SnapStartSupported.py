@@ -15,12 +15,14 @@ from cfnlint.rules.jsonschema.CfnLintKeyword import CfnLintKeyword
 class SnapStartSupported(CfnLintKeyword):
     """Check if Lambda function using SnapStart has the correct runtimes"""
 
-    # SNAPSTART-001, SNAPSTART-002, SNAPSTART-003, SNAPSTART-004, SNAPSTART-008:
+    # SNAPSTART-001, SNAPSTART-002, SNAPSTART-003, SNAPSTART-004, SNAPSTART-005,
+    # SNAPSTART-008:
     # E2530 owns the private runtime/region capability boundary. Exact runtime keys
     # are the opt-in contract; adding one key must not widen neighboring runtimes.
     # Implementations populate this contract from AWS regional-availability data;
     # callers must not supply capability data. Runtimes absent from this mapping
-    # remain owned by the legacy rejection boundary below.
+    # remain owned by the legacy rejection boundary below. Java support is not a
+    # capability-map concern and must not acquire a dependency on this mapping.
     _runtime_region_support: Mapping[str, AbstractSet[str]] = {
         "python3.12": frozenset(
             {
@@ -48,7 +50,10 @@ class SnapStartSupported(CfnLintKeyword):
     def __init__(self):
         super().__init__(["Resources/AWS::Lambda::Function/Properties"])
         self.child_rules = {"I2530": None}
-        self.regions = [
+        # SNAPSTART-005 ownership boundary: this typed legacy region contract is
+        # the regional authority for Java SnapStart. Runtime-specific capability
+        # data may neither replace nor narrow it.
+        self.regions: list[str] = [
             "us-east-2",
             "us-east-1",
             "us-west-1",
@@ -164,6 +169,11 @@ class SnapStartSupported(CfnLintKeyword):
             # when Python 3.12 availability for the same region differs.
             # FAILURE/HANDOFF: only the Java boundary may reject a Java configuration;
             # non-Java and unresolved runtimes continue to their existing checks.
+
+            # SNAPSTART-005 architecture seam: exact capability-map dispatch may
+            # hand unmatched runtimes to this legacy boundary, but the dependency
+            # ends at that handoff. The Java region and runtime contracts below do
+            # not read from the runtime-specific capability mapping.
 
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
