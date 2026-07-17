@@ -233,7 +233,7 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                 continue
 
             # Architecture boundary: CFNLINT-001, CFNLINT-002, CFNLINT-004,
-            # CFNLINT-005.
+            # CFNLINT-005, CFNLINT-006.
             # Ownership: find_in_map owns whether the canonical third-argument
             # intrinsic is eligible for a definitive mapping-key comparison.
             # Input boundary: YAML decoding has already normalized !Sub and Fn::Sub;

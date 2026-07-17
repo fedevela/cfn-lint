@@ -36,6 +36,8 @@ LONG_FORM_TEMPLATE = SHORT_FORM_TEMPLATE.replace(
 
 
 def _e1011_matches(template):
+    # Architecture seam (CFNLINT-006): this helper owns the supplied lint
+    # configuration and exposes only E1011 findings to the regression contract.
     rules = RulesCollection(
         include_rules=["E1011", "I3042"],
         configure_rules={"I3042": {"accountId": True}},
@@ -53,6 +55,8 @@ def _e1011_matches(template):
 
 
 def _validator_and_expression(template):
+    # Architecture seam (CFNLINT-006): this helper owns access to both the isolated
+    # third-key resolution and the complete FindInMap resolution in one context.
     decoded, decode_errors = decode_str(template)
     assert decode_errors == []
     assert decoded is not None
@@ -96,6 +100,7 @@ def test_cfnlint_005_unchanged_template_keeps_e1011_enabled_no_suppression():
 
 def test_cfnlint_006_supplied_template_and_lint_config_complete_without_e1011():
     """CFNLINT-006: supplied regression case transitions to no E1011 finding."""
+    # Ownership boundary: consume _e1011_matches; do not duplicate rule assembly.
     # Pseudocode contract: CFNLINT-006 / no-E1011 regression obligation.
     # GIVEN SHORT_FORM_TEMPLATE unchanged, including AWS::LanguageExtensions,
     # FindInMap, Fn::Sub, AWS::AccountId, the supplied mapping, and resource.
@@ -111,6 +116,8 @@ def test_cfnlint_006_supplied_template_and_lint_config_complete_without_e1011():
 
 def test_cfnlint_006_validation_context_account_id_is_not_a_definitive_map_key():
     """CFNLINT-006: substituted mapping key remains deployment-dependent."""
+    # Integration boundary: observe both resolutions through
+    # _validator_and_expression; production policy remains in find_in_map.
     # Pseudocode contract: CFNLINT-006 / non-definitive-key obligation.
     # GIVEN a validator and the supplied FindInMap expression from
     # SHORT_FORM_TEMPLATE.
