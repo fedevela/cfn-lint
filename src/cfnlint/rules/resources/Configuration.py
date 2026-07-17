@@ -59,6 +59,13 @@ class Configuration(CfnLintJsonSchema):
     def validate(
         self, validator: Validator, keywords: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # ARCHITECTURE: GUID MPOL-004
+        # This E3001 rule owns only the resource-envelope boundary. Properties
+        # is the downstream integration seam for PolicyDocument validation and
+        # dispatches maxLength to E3033; Configuration must neither inspect the
+        # policy payload nor depend on StringLength. Both rules communicate only
+        # through the existing validator/error pipeline, preserving independent
+        # ownership and the current dependency direction.
         # PSEUDOCODE: GUID MPOL-004
         # INPUT: the parsed Resources map containing the supplied
         # AWS::IAM::ManagedPolicy reproduction.
