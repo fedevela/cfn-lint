@@ -9,6 +9,7 @@ import pytest
 
 from cfnlint.jsonschema import ValidationError
 from cfnlint.rules.resources.lmbd.SnapStartSupported import SnapStartSupported
+from cfnlint.template.transforms._sam import Transform
 
 
 PYTHON_312_SNAPSTART = {
@@ -31,6 +32,34 @@ def _unsupported_regions_error(regions):
         f"'SnapStart' enabled functions are not supported in {regions!r}",
         path=deque(["SnapStart", "ApplyOn"]),
     )
+
+
+def _transformed_sam_function_properties(region, *, inherit_runtime=False):
+    function_properties = {
+        "CodeUri": ".",
+        "Handler": "index.handler",
+        "SnapStart": {"ApplyOn": "PublishedVersions"},
+    }
+    template = {
+        "Transform": "AWS::Serverless-2016-10-31",
+        "Resources": {
+            "Function": {
+                "Type": "AWS::Serverless::Function",
+                "Properties": function_properties,
+            }
+        },
+    }
+    if inherit_runtime:
+        template["Globals"] = {"Function": {"Runtime": "python3.12"}}
+    else:
+        function_properties["Runtime"] = "python3.12"
+
+    transform = Transform("", template, region)
+    assert transform.transform_template() == []
+
+    function = transform.template()["Resources"]["Function"]
+    assert function["Type"] == "AWS::Lambda::Function"
+    return function["Properties"]
 
 
 @pytest.mark.parametrize(
@@ -162,25 +191,57 @@ def test_snapstart_005_existing_java_acceptance_cases_remain_valid(
 
 
 def test_snapstart_006_sam_function_python312_property_in_supported_region_has_no_e2530(
+    validator,
 ):
     """GUID: SNAPSTART-006; direct SAM runtime survives transformation."""
-    assert True
+    properties = _transformed_sam_function_properties("us-east-1")
+
+    assert properties["Runtime"] == "python3.12"
+    assert list(SnapStartSupported().validate(validator, "", properties, {})) == []
 
 
 def test_snapstart_006_sam_function_python312_globals_in_supported_region_has_no_e2530(
+    validator,
 ):
     """GUID: SNAPSTART-006; inherited SAM runtime survives transformation."""
-    assert True
+    properties = _transformed_sam_function_properties(
+        "us-east-1", inherit_runtime=True
+    )
+
+    assert properties["Runtime"] == "python3.12"
+    assert list(SnapStartSupported().validate(validator, "", properties, {})) == []
 
 
-def test_snapstart_007_direct_and_sam_lint_supported_region_both_have_no_e2530():
+def test_snapstart_007_direct_and_sam_lint_supported_region_both_have_no_e2530(
+    validator,
+):
     """GUID: SNAPSTART-007; equivalent supported configurations have parity."""
-    assert True
+    sam_properties = _transformed_sam_function_properties("us-east-1")
+    sam_results = list(
+        SnapStartSupported().validate(validator, "", sam_properties, {})
+    )
+
+    assert _validate(validator, ["us-east-1"]) == sam_results == []
 
 
-def test_snapstart_007_direct_and_sam_lint_unsupported_region_match_e2530_rejection():
+def test_snapstart_007_direct_and_sam_lint_unsupported_region_match_e2530_rejection(
+    validator,
+):
     """GUID: SNAPSTART-007; equivalent unsupported configurations have parity."""
-    assert True
+    region = "us-west-1"
+    unsupported_validator = validator.evolve(
+        context=validator.context.evolve(regions=[region])
+    )
+    sam_properties = _transformed_sam_function_properties(region)
+    sam_results = list(
+        SnapStartSupported().validate(
+            unsupported_validator, "", sam_properties, {}
+        )
+    )
+
+    assert _validate(validator, [region]) == sam_results == [
+        _unsupported_regions_error([region])
+    ]
 
 
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
