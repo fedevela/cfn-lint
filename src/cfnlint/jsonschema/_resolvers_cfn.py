@@ -235,6 +235,22 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                         )
                     continue
 
+                # Existing-entry resolution pseudocode (FIM-001, FIM-002, FIM-007):
+                # INPUT: resolved map_name, top_level_key, second_level_key, and
+                # an optional declared DefaultValue from a four-argument lookup.
+                # WHEN all three keys select an existing mapping entry:
+                #   1. Mark the existing-entry branch as the applicable result.
+                #   2. Read each selected value from that entry and hand it to the
+                #      receiving property's validator with its mapping value path.
+                #   3. If the selected value is compatible, emit no property error
+                #      (FIM-001); otherwise preserve the receiving property's
+                #      applicable validation error for that value (FIM-002).
+                #   4. Do not resolve, yield, or validate DefaultValue, because the
+                #      fallback branch was not taken (FIM-007).
+                # OUTPUT: results depend only on the selected mapping value, so
+                # changing an unused DefaultValue cannot change them (FIM-007).
+                # FAILURE/HANDOFF: absent or statically unresolved entries leave
+                # this branch and are handled by their separate resolver paths.
                 found_valid_combination = True
 
                 for value in validator.context.mappings.maps[map_name].find_in_map(
