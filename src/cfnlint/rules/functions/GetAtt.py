@@ -109,6 +109,23 @@ class GetAtt(BaseFn):
         paths: Sequence[Any],
     ) -> ValidationResult:
 
+        # GEV-005 / GEV-010 -- semantic validation after dynamic-name resolution:
+        # INPUT: a structurally admitted Fn::GetAtt whose resource-name operand may
+        # be a two-argument Fn::Sub, plus the requested attribute operand.
+        # FOR EACH resource-name candidate produced by the shared value resolver:
+        #   IF resolution cannot determine a candidate, preserve the resolver's
+        #   existing validation/error handoff; do not invent a resource identity.
+        #   IF the candidate is absent from the declared Resources set (GEV-010):
+        #     emit the existing invalid-resource-reference finding at operand 0;
+        #     stop processing that candidate before any attribute lookup.
+        #   ELSE transition the declared resource and its type to attribute checking.
+        #   FOR EACH resolved attribute candidate (GEV-005):
+        #     compare it with the declared resource's supported attributes;
+        #     IF no supported attribute matches, emit the existing attribute finding
+        #     at operand 1 and skip type validation for that attribute candidate;
+        #     ELSE continue through the existing GetAtt result-type validation.
+        # OUTPUT: when both candidates identify a declared resource and a supported
+        # attribute, emit neither an operand-0 nor an operand-1 semantic finding.
         for resource_name, resource_name_validator, _ in validator.resolve_value(
             value[0]
         ):
