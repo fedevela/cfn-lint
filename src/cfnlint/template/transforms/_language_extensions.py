@@ -261,6 +261,10 @@ class _ForEachValue:
         return self._hash
 
 
+# Architecture boundary — GUID: CFNLINT-007
+# This private adapter owns DefaultValue normalization and resolution. Its consumer
+# is _ForEachValueFnFindInMap; non-nested transform callers receive only the
+# resolved _ForEachValue.value() result and do not depend on loop orchestration.
 class _FnFindInMapDefaultValue(_ForEachValue):
     def __init__(self, _hash: str, value: Any = None) -> None:
         super().__init__(_hash, value)
@@ -296,7 +300,7 @@ class _FnFindInMapDefaultValue(_ForEachValue):
 
 
 # Architecture ownership — GUID: CFNLINT-001, CFNLINT-002, CFNLINT-005,
-# CFNLINT-006, CFNLINT-009
+# CFNLINT-006, CFNLINT-007, CFNLINT-009
 # This private value adapter owns Fn::FindInMap selection and is the sole boundary
 # that may choose between an explicit mapping value and _FnFindInMapDefaultValue.
 # Enclosing lookups and loop orchestration depend only on the resolved
