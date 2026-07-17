@@ -72,8 +72,23 @@ class StringLength(CloudFormationLintRule):
         if len(json.dumps(j, separators=(",", ":"), default=self._serialize_date)) < mL:
             yield ValidationError("Item is too short")
 
+    # IAMMP-001 verification:
+    # test_iammp_001_static_managed_policy_compact_over_6144_reports_policy_doc_error
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
+        # IAMMP-001 logic obligation
+        # INPUT: the current AWS::IAM::ManagedPolicy PolicyDocument, with the
+        # schema-provided maximum of 6,144 characters.
+        # WHEN the complete PolicyDocument is statically determinable:
+        #   1. Serialize its content in compact form, excluding JSON whitespace
+        #      that IAM does not count toward the managed-policy quota.
+        #   2. Count the characters in that compact representation.
+        #   3. IF the count is greater than 6,144, emit one size-limit validation
+        #      error at the current PolicyDocument validation locus.
+        #   4. ELSE complete without emitting an IAMMP-001 error.
+        # HANDOFF: preserve the validator's current path so the caller associates
+        # the emitted error with PolicyDocument.
+        # OUT OF SCOPE: no flow is prescribed here for unresolved content.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
