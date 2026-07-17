@@ -38,6 +38,10 @@ class HardCodedArnProperties(CloudFormationLintRule):
     regex = re.compile(
         r"arn:(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*):[^:\s]+:(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*):(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*)"
     )
+    canonical_oai_regex = re.compile(
+        r"arn:\$\{AWS::Partition}:iam::cloudfront:"
+        r"user/CloudFront Origin Access Identity [^\s/]+"
+    )
 
     def __init__(self):
         """Init"""
@@ -75,9 +79,10 @@ class HardCodedArnProperties(CloudFormationLintRule):
         else:
             # Leaf node
             if isinstance(cfnelem, str):  # and re.match(searchRegex, cfnelem):
+                canonical_oai = bool(self.canonical_oai_regex.fullmatch(cfnelem))
                 for variable in re.findall(self.regex, cfnelem):
                     if "Fn::Sub" in path:
-                        values.append(path + [variable])
+                        values.append(path + [variable + (canonical_oai,)])
 
         return values
 
@@ -151,9 +156,12 @@ class HardCodedArnProperties(CloudFormationLintRule):
 
             # Lambda is added for authorizer's Uniform Resource Identifier (URI)
             # https://github.com/aws-cloudformation/cfn-lint/issues/3716
-            if self.config["accountId"] and not re.match(
-                r"^\$\{\w+}|\$\{AWS::AccountId}|aws|lambda|$", candidate[2]
-            ):
+            valid_account = bool(
+                re.match(
+                    r"^\$\{\w+}|\$\{AWS::AccountId}|aws|lambda|$", candidate[2]
+                )
+            )
+            if self.config["accountId"] and not (valid_account or candidate[3]):
                 message = (
                     "ARN in Resource {0} contains hardcoded AccountId in ARN or"
                     " incorrectly placed Pseudo Parameters"
