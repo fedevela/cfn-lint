@@ -789,6 +789,13 @@ class ConfigMixIn(TemplateArgs, CliArgs, ConfigFileArgs):
         return self._glob_filenames(filenames)
 
     def _glob_filenames(self, filenames: Sequence[str]) -> list[str]:
+        # Architecture contract [CFNLINT-001, CFNLINT-002, CFNLINT-003]:
+        # This selection boundary owns distinguishing explicit path candidates from
+        # glob expressions. It hands candidates downstream; it does not own file
+        # decoding, diagnostics, or CLI exit policy. A missing explicit candidate
+        # must therefore remain in the returned sequence so Runner._validate_filenames
+        # can pass it to decode(), whose existing Match contract feeds formatter and
+        # exit-code handling. Unmatched glob expressions remain local to selection.
         # handle different shells and Config files
         # some shells don't expand * and configparser won't expand wildcards
         all_filenames = []
