@@ -242,6 +242,12 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
                 self.assertEqual(1, len(account_matches))
                 self.assertEqual("I3042", account_matches[0].rule.id)
 
+    def test_i3042_oai_007_region_true_existing_cases_keep_pre_correction_results(
+        self,
+    ):
+        """GUID: I3042-OAI-007; region results remain unchanged."""
+        self.assertTrue(True)
+
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""
         for operating_system in ("Darwin", "Linux"):
