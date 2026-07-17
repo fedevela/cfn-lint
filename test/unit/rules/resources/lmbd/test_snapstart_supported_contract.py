@@ -17,12 +17,13 @@ PYTHON_312_SNAPSTART = {
 }
 
 
-def _validate(validator, regions=None):
+def _validate(validator, regions=None, runtime="python3.12"):
     if regions is not None:
         validator = validator.evolve(
             context=validator.context.evolve(regions=regions)
         )
-    return list(SnapStartSupported().validate(validator, "", PYTHON_312_SNAPSTART, {}))
+    instance = {**PYTHON_312_SNAPSTART, "Runtime": runtime}
+    return list(SnapStartSupported().validate(validator, "", instance, {}))
 
 
 def _unsupported_regions_error(regions):
@@ -52,19 +53,80 @@ def test_snapstart_002_python312_in_only_unsupported_regions_produces_e2530(
     assert _validate(validator, regions) == [_unsupported_regions_error(regions)]
 
 
-def test_snapstart_003_other_python_runtimes_remain_rejected_by_e2530():
+@pytest.mark.parametrize(
+    "runtime",
+    ["python3.10", "python3.11", "python3.13", "Python3.12"],
+)
+def test_snapstart_003_other_python_runtimes_remain_rejected_by_e2530(
+    validator, runtime
+):
     """GUID: SNAPSTART-003."""
-    assert True
+    assert _validate(validator, ["us-east-1"], runtime) == [
+        ValidationError(
+            f"{runtime!r} is not supported for 'SnapStart' enabled functions",
+            path=deque(["SnapStart", "ApplyOn"]),
+        )
+    ]
 
 
-def test_snapstart_004_unsupported_runtime_region_pairs_still_produce_e2530():
+@pytest.mark.parametrize(
+    "runtime,regions,expected",
+    [
+        (
+            "java17",
+            ["foo-bar-1"],
+            [_unsupported_regions_error(["foo-bar-1"])],
+        ),
+        (
+            "nodejs20.x",
+            ["us-east-1"],
+            [
+                ValidationError(
+                    "'nodejs20.x' is not supported for 'SnapStart' enabled functions",
+                    path=deque(["SnapStart", "ApplyOn"]),
+                )
+            ],
+        ),
+        (
+            "python3.11",
+            ["foo-bar-1"],
+            [
+                _unsupported_regions_error(["foo-bar-1"]),
+                ValidationError(
+                    "'python3.11' is not supported for 'SnapStart' enabled functions",
+                    path=deque(["SnapStart", "ApplyOn"]),
+                ),
+            ],
+        ),
+        (
+            "python3.12",
+            ["us-west-1"],
+            [_unsupported_regions_error(["us-west-1"])],
+        ),
+    ],
+)
+def test_snapstart_004_unsupported_runtime_region_pairs_still_produce_e2530(
+    validator, runtime, regions, expected
+):
     """GUID: SNAPSTART-004."""
-    assert True
+    assert _validate(validator, regions, runtime) == expected
 
 
-def test_snapstart_004_only_python312_supported_region_exits_negative_matrix():
+@pytest.mark.parametrize(
+    "runtime,region,is_supported",
+    [
+        ("python3.12", "us-east-1", True),
+        ("python3.11", "us-east-1", False),
+        ("python3.13", "us-east-1", False),
+        ("Python3.12", "us-east-1", False),
+        ("python3.12", "us-west-1", False),
+    ],
+)
+def test_snapstart_004_only_python312_supported_region_exits_negative_matrix(
+    validator, runtime, region, is_supported
+):
     """GUID: SNAPSTART-004."""
-    assert True
+    assert (_validate(validator, [region], runtime) == []) is is_supported
 
 
 def test_snapstart_008_python312_in_mixed_regions_is_evaluated_per_region(validator):
