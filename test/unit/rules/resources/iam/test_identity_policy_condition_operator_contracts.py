@@ -40,19 +40,18 @@ BASE_OPERATORS = (
 )
 
 
-def _errors_for(resource_type, operator):
+def _errors_for_conditions(resource_type, conditions):
     rule = IdentityPolicy()
     resource_path = f"Resources/{resource_type}/Properties/PolicyDocument"
     assert resource_path in rule.keywords
 
-    condition_value = ["value"] if operator.startswith("For") else "value"
     policy = {
         "Version": "2012-10-17",
         "Statement": {
             "Effect": "Allow",
             "Action": "*",
             "Resource": "*",
-            "Condition": {operator: {"aws:TagKeys": condition_value}},
+            "Condition": conditions,
         },
     }
     return list(
@@ -62,6 +61,13 @@ def _errors_for(resource_type, operator):
             schema={},
             policy_type=None,
         )
+    )
+
+
+def _errors_for(resource_type, operator):
+    condition_value = ["value"] if operator.startswith("For") else "value"
+    return _errors_for_conditions(
+        resource_type, {operator: {"aws:TagKeys": condition_value}}
     )
 
 
@@ -124,14 +130,35 @@ def test_iamop_007_rejects_malformed_or_undocumented_forms(operator):
 
 def test_iamop_005_genuinely_invalid_operator_emits_applicable_finding():
     """GUID: IAMOP-005; an invalid operator name remains rejected."""
-    assert True
+    errors = _errors_for("AWS::IAM::ManagedPolicy", "StringResembles")
+
+    assert len(errors) == 1
+    assert errors[0].rule.id == "E3510"
+    assert errors[0].validator == "additionalProperties"
+    assert list(errors[0].path) == ["Statement", "Condition", "StringResembles"]
 
 
 def test_iamop_006_case_changed_aws_operator_emits_applicable_finding():
     """GUID: IAMOP-006; a case-only spelling change remains rejected."""
-    assert True
+    errors = _errors_for("AWS::IAM::ManagedPolicy", "stringEquals")
+
+    assert len(errors) == 1
+    assert errors[0].rule.id == "E3510"
+    assert errors[0].validator == "additionalProperties"
+    assert list(errors[0].path) == ["Statement", "Condition", "stringEquals"]
 
 
 def test_iamop_005_mixed_valid_and_invalid_operators_only_invalid_emits_finding():
     """GUID: IAMOP-005; mixed input rejects only the invalid operator name."""
-    assert True
+    errors = _errors_for_conditions(
+        "AWS::IAM::ManagedPolicy",
+        {
+            "StringEquals": {"aws:RequestTag/environment": "production"},
+            "StringResembles": {"aws:RequestTag/team": "platform"},
+        },
+    )
+
+    assert len(errors) == 1
+    assert errors[0].rule.id == "E3510"
+    assert errors[0].validator == "additionalProperties"
+    assert list(errors[0].path) == ["Statement", "Condition", "StringResembles"]
