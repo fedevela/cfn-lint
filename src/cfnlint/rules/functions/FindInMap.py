@@ -47,6 +47,11 @@ class FindInMap(BaseFn):
             ],
         }
 
+        # Architecture boundary — GUID: E1011-001, E1011-002
+        # This schema owns the accepted FindInMap shape.  Condition-specific
+        # diagnostics for that shape belong to fn_findinmap at the delegation
+        # seam with BaseFn, rather than to the shared maxItems validator.
+
         if validator.context.transforms.has_language_extensions_transform():
             scalar_schema["functions"] = [
                 "Fn::FindInMap",
@@ -59,6 +64,8 @@ class FindInMap(BaseFn):
                 "Ref",
             ]
             schema["maxItems"] = 4
+            # The fourth item is owned by the Language Extensions option
+            # contract; it is not an additional FindInMap lookup level.
             schema["fn_items"] = [
                 scalar_schema,
                 scalar_schema,
@@ -99,6 +106,10 @@ class FindInMap(BaseFn):
     def fn_findinmap(
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+
+        # Integration seam — GUID: E1011-001, E1011-002
+        # FindInMap owns its over-depth diagnostic here; BaseFn remains the
+        # downstream dependency for all shared function-shape validation.
 
         # Pseudocode — GUID: E1011-001, E1011-002
         # INPUT: the value supplied to Fn::FindInMap and the active transforms.
