@@ -128,6 +128,7 @@ AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE = (
     "      PolicyDocument: |\n"
     f"{indent(AWS_LOAD_BALANCER_CONTROLLER_POLICY, '        ')}\n"
 )
+INVALID_DESCRIPTION = "      Description: []\n"
 
 
 @pytest.fixture
@@ -155,6 +156,22 @@ def _errors(managed_policy_validator, policy_document):
 def _object_document_with_size(size):
     # Compact JSON for {"x":"..."} contributes eight structural characters.
     return {"x": "a" * (size - 8)}
+
+
+def _with_invalid_description(template):
+    return template.replace(
+        "      PolicyDocument:",
+        f"{INVALID_DESCRIPTION}      PolicyDocument:",
+        1,
+    )
+
+
+def _rule_signatures(matches, rule_id):
+    return [
+        (match.rule.id, match.message, tuple(match.path))
+        for match in matches
+        if match.rule.id == rule_id
+    ]
 
 
 @pytest.fixture(scope="module")
@@ -254,9 +271,31 @@ def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_associated_e3
 
 def test_mpol_005_unrelated_result_unchanged_after_policy_size_correction():
     """GUID: MPOL-005 - Preserve an unrelated result after size correction."""
-    assert True
+    compact_policy = json.dumps(json.loads(AWS_LOAD_BALANCER_CONTROLLER_POLICY))
+    compact_template = AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE.replace(
+        indent(AWS_LOAD_BALANCER_CONTROLLER_POLICY, "        "),
+        indent(compact_policy, "        "),
+    )
+    compact_matches = lint(_with_invalid_description(compact_template))
+    corrected_matches = lint(
+        _with_invalid_description(AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE)
+    )
+
+    assert _rule_signatures(corrected_matches, "E3012") == _rule_signatures(
+        compact_matches, "E3012"
+    )
 
 
 def test_mpol_005_size_and_separate_invalid_condition_preserves_unrelated_result():
     """GUID: MPOL-005 - Size correction does not suppress a separate result."""
-    assert True
+    matches = lint(_with_invalid_description(AWS_LOAD_BALANCER_CONTROLLER_TEMPLATE))
+
+    assert len(AWS_LOAD_BALANCER_CONTROLLER_POLICY) > MAX_MANAGED_POLICY_SIZE
+    assert _rule_signatures(matches, "E3033") == []
+    assert _rule_signatures(matches, "E3012") == [
+        (
+            "E3012",
+            "[] is not of type 'string'",
+            ("Resources", "LoadBalancerControllerPolicy", "Properties", "Description"),
+        )
+    ]
