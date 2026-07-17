@@ -47,6 +47,11 @@ class GetAtt(BaseFn):
         # ELSE preserve the existing resource-name function restrictions.
         # OUT OF SCOPE: nested intrinsic map values, malformed Fn::Sub, and Fn::ForEach;
         # defer those inputs to their existing validation failure paths.
+        # GEV-001 / GEV-002 architecture boundary: this schema owns admission of
+        # resource-name functions. Resolution remains owned by
+        # jsonschema._resolvers_cfn.sub, and declared-resource checking remains owned
+        # by _resolve_getatt. The implementation seam is therefore the transform-gated
+        # resource_functions contract; no GetAtt-local substitution adapter is needed.
         resource_functions = []
         if validator.context.transforms.has_language_extensions_transform():
             resource_functions = ["Ref"]

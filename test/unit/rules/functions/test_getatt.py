@@ -34,6 +34,31 @@ _template_with_transform = _template.copy()
 _template_with_transform["Transform"] = "AWS::LanguageExtensions"
 
 
+@pytest.fixture(scope="module")
+def gev_literal_map_getatt_case():
+    """GEV-001/GEV-002 integration seam for GetAtt -> Sub -> resource lookup."""
+    return {
+        "template": {
+            "Transform": "AWS::LanguageExtensions",
+            "Resources": {
+                "InputQueuea1": {"Type": "AWS::SQS::Queue"},
+            },
+        },
+        "instance": {
+            "Fn::GetAtt": [
+                {
+                    "Fn::Sub": [
+                        "InputQueue${EscapedInput}",
+                        {"EscapedInput": "a1"},
+                    ]
+                },
+                "Arn",
+            ]
+        },
+        "schema": {"type": "string"},
+    }
+
+
 class _Pass(CfnLintKeyword):
     id = "AAAAA"
 
@@ -268,11 +293,15 @@ def test_validate(name, instance, schema, child_rules, expected, validator, rule
     assert errs == expected, f"Test {name!r} got {errs!r}"
 
 
-def test_gev_001_language_extensions_accepts_complete_literal_map_sub_as_getatt_resource_name():
+def test_gev_001_language_extensions_accepts_complete_literal_map_sub_as_getatt_resource_name(
+    gev_literal_map_getatt_case,
+):
     """GEV-001: a complete literal-map Fn::Sub resource name emits no E1010."""
     assert True
 
 
-def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_declared_resource():
+def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_declared_resource(
+    gev_literal_map_getatt_case,
+):
     """GEV-002: literal a1 resolves to the declared InputQueuea1 resource."""
     assert True
