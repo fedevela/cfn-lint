@@ -6,20 +6,22 @@ SPDX-License-Identifier: MIT-0
 import pytest
 
 from cfnlint import ConfigMixIn, Rules
+from cfnlint.context import create_context_for_template
 from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.conditions.Equals import Equals
 from cfnlint.rules.conditions.EqualsIsUseful import EqualsIsUseful
 from cfnlint.rules.jsonschema.JsonSchema import JsonSchema
 from cfnlint.runner import TemplateRunner
+from cfnlint.template import Template
 
 
 # Architecture seam (GUID: W8003-008, W8003-009, W8003-010): this test module
 # owns W8003 condition fixtures and depends inward on the existing rule runner.
-# `_lint_conditions` is the sole test adapter across that boundary: callers
-# supply only the Conditions fragment and receive only W8003 Match objects.
+# `_run_conditions` is the test adapter across that boundary: callers supply
+# only the Conditions fragment and receive the selected rules' Match objects.
 # Rule selection, condition traversal, and output construction remain owned by
 # ConfigMixIn, TemplateRunner, and the registered rules respectively.
-def _lint_conditions(conditions):
+def _run_conditions(conditions, include_checks):
     rules = Rules(
         {
             "E1001": JsonSchema(),
@@ -27,11 +29,15 @@ def _lint_conditions(conditions):
             "W8003": EqualsIsUseful(),
         }
     )
-    config = ConfigMixIn(include_checks=["W8003"])
+    config = ConfigMixIn(include_checks=include_checks)
     template = {"Conditions": conditions, "Resources": {}}
+    return list(TemplateRunner(None, template, config, rules).run())
+
+
+def _lint_conditions(conditions):
     return [
         match
-        for match in TemplateRunner(None, template, config, rules).run()
+        for match in _run_conditions(conditions, ["W8003"])
         if match.rule.id == "W8003"
     ]
 
@@ -126,9 +132,9 @@ def test_W8003_007_independent_constant_equals_each_reports_own_location():
 
 
 # Verification placement (GUID: W8003-008, W8003-009): literal-outcome and
-# dynamic-operand cases live beside the W8003 adapter above. Later behavioral
-# implementation consumes that adapter; it must not bypass TemplateRunner or
-# reach into EqualsIsUseful internals.
+# dynamic-operand cases live beside the W8003 adapter above. Behavioral tests
+# consume that adapter without bypassing TemplateRunner or reaching into
+# EqualsIsUseful internals.
 def test_W8003_008_identical_literal_fn_equals_when_tests_run_verifies_W8003_finding():
     """GUID: W8003-008."""
     # Logic obligation: prove that an Fn::Equals with identical literal operands
@@ -139,7 +145,11 @@ def test_W8003_008_identical_literal_fn_equals_when_tests_run_verifies_W8003_fin
     # IF exactly one W8003 finding identifies the condition's location
     # THEN complete this verification successfully
     # ELSE fail with the observed finding count, rule identifiers, and locations
-    assert True
+    matches = _lint_conditions({"AlwaysTrue": {"Fn::Equals": ["same", "same"]}})
+
+    assert len(matches) == 1
+    assert matches[0].rule.id == "W8003"
+    assert matches[0].path == ["Conditions", "AlwaysTrue"]
 
 
 def test_W8003_008_unequal_literal_fn_equals_when_tests_run_verifies_W8003_finding():
@@ -152,7 +162,11 @@ def test_W8003_008_unequal_literal_fn_equals_when_tests_run_verifies_W8003_findi
     # IF exactly one W8003 finding identifies the condition's location
     # THEN complete this verification successfully
     # ELSE fail with the observed finding count, rule identifiers, and locations
-    assert True
+    matches = _lint_conditions({"AlwaysFalse": {"Fn::Equals": ["left", "right"]}})
+
+    assert len(matches) == 1
+    assert matches[0].rule.id == "W8003"
+    assert matches[0].path == ["Conditions", "AlwaysFalse"]
 
 
 def test_W8003_009_non_constant_fn_equals_when_tests_run_verifies_no_false_positive_W8003_finding():
@@ -165,7 +179,11 @@ def test_W8003_009_non_constant_fn_equals_when_tests_run_verifies_no_false_posit
     # IF the retained finding collection is empty
     # THEN complete this verification successfully
     # ELSE fail with every unexpected finding's message and location
-    assert True
+    matches = _lint_conditions(
+        {"IsProduction": {"Fn::Equals": [{"Ref": "Environment"}, "prod"]}}
+    )
+
+    assert matches == []
 
 
 # Regression ownership (GUID: W8003-010): these are traceability anchors for
@@ -182,7 +200,11 @@ def test_W8003_010_relevant_lint_suite_when_run_preserves_unrelated_rules():
     # THEN compare each unrelated rule's observed findings with its expectation
     # IF every comparison is unchanged, complete this regression gate successfully
     # ELSE fail and identify each unrelated rule case whose outcome changed
-    assert True
+    matches = _run_conditions([], ["E1001"])
+
+    assert len(matches) == 1
+    assert matches[0].rule.id == "E1001"
+    assert matches[0].path == ["Conditions"]
 
 
 def test_W8003_010_relevant_lint_suite_when_run_preserves_condition_semantics():
@@ -194,7 +216,29 @@ def test_W8003_010_relevant_lint_suite_when_run_preserves_condition_semantics():
     # THEN compare every observed condition outcome with its established expectation
     # IF every comparison is unchanged, complete this regression gate successfully
     # ELSE fail and identify the condition case and semantic outcome that changed
-    assert True
+    template = Template(
+        None,
+        {
+            "Parameters": {
+                "Environment": {
+                    "Type": "String",
+                    "AllowedValues": ["dev", "prod"],
+                }
+            },
+            "Conditions": {
+                "StaticTrue": {"Fn::Equals": [1, "1"]},
+                "StaticFalse": {"Fn::Equals": [1, "2"]},
+                "Dynamic": {"Fn::Equals": [{"Ref": "Environment"}, "prod"]},
+            },
+            "Resources": {},
+        },
+        regions=["us-east-1"],
+    )
+    conditions = create_context_for_template(template).conditions.conditions
+
+    assert conditions["StaticTrue"].fn_equals.is_static is True
+    assert conditions["StaticFalse"].fn_equals.is_static is False
+    assert conditions["Dynamic"].fn_equals.is_static is None
 
 
 def test_W8003_010_relevant_lint_suite_when_run_preserves_output_integration():
@@ -207,7 +251,20 @@ def test_W8003_010_relevant_lint_suite_when_run_preserves_output_integration():
     # with the established expectations for each integration case
     # IF every comparison is unchanged, complete this regression gate successfully
     # ELSE fail and identify each diagnostic field and integration case that changed
-    assert True
+    matches = _lint_conditions({"AlwaysFalse": {"Fn::Equals": ["a", "b"]}})
+
+    assert len(matches) == 1
+    assert (
+        matches[0].rule.id,
+        matches[0].message,
+        matches[0].rule.severity,
+        matches[0].path,
+    ) == (
+        "W8003",
+        "['a', 'b'] will always return false",
+        "warning",
+        ["Conditions", "AlwaysFalse"],
+    )
 
 
 def test_W8003_011_non_equals_condition_function_after_correction_receives_no_new_handling():
