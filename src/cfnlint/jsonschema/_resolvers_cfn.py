@@ -59,6 +59,18 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
 #   machinery. This seam must not coerce it to a concrete property type (FIM-005).
 # Dependency direction: mapping lookup -> applicability -> default-result adapter ->
 # conditional removal / receiving-property validation.
+# Lookup-isolation architecture (FIM-006, FIM-008):
+# - find_in_map owns the candidate-applicability boundary: lookup-component
+#   resolution may authorize only the exact requested map/top/second-level tuple.
+# - Map.find_in_map is the narrow retrieval port for that tuple. Callers must not
+#   substitute enumeration of sibling second-level values for an unresolved key.
+# - ResolutionResult is the integration seam to receiving-property validation;
+#   it carries selected applicable values and their source paths, not mapping rows.
+# - Unresolved lookup components remain owned by resolver control flow and must not
+#   widen the retrieval port or make unrelated values property-validation inputs
+#   (FIM-008). Exact resolved selection provides the same isolation for FIM-006.
+# Dependency direction: component resolution -> exact-tuple applicability ->
+# Map.find_in_map -> ResolutionResult -> receiving-property validation.
 def _find_in_map_default(validator: Validator, default_value: Any) -> ResolutionResult:
     fn_k, fn_v = is_function(default_value)
     if fn_k == "Ref" and fn_v == "AWS::NoValue":
