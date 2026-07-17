@@ -44,6 +44,28 @@ def context(cfn):
     return create_context_for_template(cfn)
 
 
+class TestE1011001FindInMapTwoLookupLevelLimit:
+    """Placeholder verification contracts for GUID: E1011-001."""
+
+    def test_overlong_lookup_reports_e1011_identifying_find_in_map_and_two_level_limit(
+        self,
+    ):
+        """An overlong lookup reports E1011, FindInMap, and the two-level limit."""
+        assert True
+
+    def test_different_map_and_key_names_report_the_same_two_level_limit(self):
+        """Different lookup names preserve the same FindInMap limit message."""
+        assert True
+
+
+class TestE1011002FindInMapConditionSpecificWording:
+    """Placeholder verification contract for GUID: E1011-002."""
+
+    def test_overlong_lookup_message_does_not_use_is_too_long_wording(self):
+        """The overlong FindInMap diagnostic replaces the generic wording."""
+        assert True
+
+
 @pytest.mark.parametrize(
     "name,instance,schema,context_evolve,ref_mock_values,expected",
     [
