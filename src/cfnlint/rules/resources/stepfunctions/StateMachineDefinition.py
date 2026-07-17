@@ -92,6 +92,26 @@ class StateMachineDefinition(CfnLintJsonSchema):
             #   diagnostics for inspectable definitions and other properties are preserved.
             # OUTPUT: if no independent diagnostic exists, the reproduction completes
             #   validation successfully (CFNLINT-003).
+            # PSEUDOCODE COMPATIBILITY CONTRACT: CFNLINT-004, CFNLINT-005,
+            #   CFNLINT-006
+            # LOGIC OBLIGATION (CFNLINT-004):
+            #   IF the selected definition is directly inspectable:
+            #     ENTER the established ASL schema-validation path below.
+            #     FOR EACH structural error, preserve its path/rule attribution and
+            #       EMIT the established diagnostic.
+            # LOGIC OBLIGATION (CFNLINT-005):
+            #   IF DefinitionString is intrinsic-generated and therefore opaque:
+            #     SKIP only this rule's ASL inspection for that generated value.
+            #     RETURN control to the enclosing validation flow so independent
+            #       resource-property validators can emit sibling diagnostics.
+            # LOGIC OBLIGATION (CFNLINT-006):
+            #   IF the exact opaque DefinitionString branch does not apply:
+            #     FOLLOW the pre-existing literal-string or object path unchanged.
+            #     PRESERVE parsing, substitutions, error cleanup, and diagnostic output.
+            # FAILURE PATHS:
+            #   A structural failure in an inspectable definition remains reportable.
+            #   A sibling-property failure remains reportable after opaque-value bypass.
+            #   No branch changes outcomes outside the opaque DefinitionString case.
             function, _ = cfnlint.helpers.is_function(value)
             if k == "DefinitionString" and function == "Fn::Join":
                 continue
