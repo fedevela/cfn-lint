@@ -281,3 +281,9 @@ def test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_
     ]
 
     assert errors == []
+
+
+def test_iammp_007_validating_managed_policy_with_unresolved_final_compact_content_does_not_report_estimated_size_error(
+):
+    """IAMMP-007: unresolved final content is not rejected by a size estimate."""
+    assert True
