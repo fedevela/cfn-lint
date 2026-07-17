@@ -49,6 +49,22 @@ class Sub(BaseFn):
         ]
 
     def schema(self, validator: Validator, instance: Any) -> dict[str, Any]:
+        # GEV-008 -- preserve nested Fn::Sub validation inside Fn::GetAtt:
+        # INPUT: an Fn::Sub admitted as GetAtt operand 0 by LanguageExtensions.
+        # VALIDATE the Fn::Sub value as either a string or a two-element array.
+        # IF it is an array:
+        #   require exactly [template_string, variable_map];
+        #   validate template_string as a string;
+        #   validate variable_map as an object whose keys match the existing
+        #   parameter-name pattern and whose values are strings or admitted intrinsics;
+        #   FOR EACH intrinsic-valued entry, invoke that intrinsic's own validator
+        #   against the map-value string contract and preserve its finding and path.
+        # IF the outer Sub shape, variable map, or nested intrinsic is malformed:
+        #   collect the applicable existing finding without treating admission by
+        #   GetAtt or LanguageExtensions as structural acceptance.
+        # ELSE return the valid structure to normal substitution-reference validation.
+        # OUTPUT: validation covers the complete nested expression, including every
+        # variable-map value, before GetAtt can resolve a resource-name candidate.
         return {
             "type": ["array", "string"],
             "minItems": 2,
@@ -122,6 +138,8 @@ class Sub(BaseFn):
         )
         errs = list(super().validate(validator, s, instance, schema))
         if errs:
+            # GEV-008 failure transition: emit structural/nested findings and stop
+            # before copying or iterating a map whose shape was not validated.
             yield from iter(errs)
             return
 

@@ -32,6 +32,24 @@ class GetAtt(BaseFn):
         super().__init__("Fn::GetAtt", all_types)
 
     def schema(self, validator, instance) -> dict[str, Any]:
+        # GEV-007 -- preserve malformed Fn::GetAtt operand validation:
+        # INPUT: the raw Fn::GetAtt value and the declared transform set.
+        # VALIDATE the raw value as a string or array before semantic resolution.
+        # IF the value is an array:
+        #   require exactly two operands; therefore report the applicable existing
+        #   finding for an empty array, a missing operand, or any extra operand;
+        #   validate operand 0 as a string or an explicitly admitted function;
+        #   validate operand 1 as a string or Ref;
+        #   preserve any type/function finding for every otherwise malformed operand.
+        # IF AWS::LanguageExtensions is declared:
+        #   add Fn::Sub only to operand 0's admitted-function set;
+        #   do not relax the outer type, cardinality, or per-operand schemas.
+        # COLLECT all structural findings through BaseFn.validate.
+        # IF any structural finding exists, emit it and stop before key extraction,
+        # resource-name resolution, declared-resource checks, or attribute checks.
+        # ELSE hand the structurally valid pair to the existing semantic flow.
+        # OUTPUT: declaring the transform never converts malformed GetAtt structure
+        # into an accepted or partially resolved expression.
         # GEV-006 -- complete two-argument Fn::Sub transform boundary:
         # INPUT: the Fn::GetAtt resource-name operand and the template transforms.
         # IF the operand is Fn::Sub [template_string, variable_map]:
