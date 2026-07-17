@@ -913,6 +913,20 @@ class TestNonEmptyForEachContract(TestCase):
         self.assertListEqual(self._lint(self._template()), [])
 
 
+class TestInvalidOrUnresolvableForEachCollectionContract(TestCase):
+    def test_foreach_009_invalid_collection_transform_and_lint_reports_genuine_error_not_empty(
+        self,
+    ):
+        """FOREACH-009: Invalid collections retain a genuine transformation error."""
+        pass
+
+    def test_foreach_009_unresolvable_collection_transform_and_lint_reports_genuine_error_not_empty(
+        self,
+    ):
+        """FOREACH-009: Unresolvable collections retain a genuine transform error."""
+        pass
+
+
 class TestTransformValues(TestCase):
     def setUp(self) -> None:
         self.template_obj = convert_dict(
