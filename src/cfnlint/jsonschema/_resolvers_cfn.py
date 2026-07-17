@@ -103,6 +103,17 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             path=deque([0]),
         )
 
+    # Pseudocode contract: CFNLINT-003 / static mapping-name validation.
+    # INPUT the FindInMap mapping-name expression and the template's mappings.
+    # RESOLVE every statically determinable mapping-name candidate.
+    # FOR EACH string candidate:
+    #   IF it does not equal an available mapping name AND no default applies:
+    #     ACCUMULATE a mismatch at FindInMap argument path [0].
+    #   ELSE CONTINUE validation against the selected mapping.
+    # AFTER all candidates, IF no complete valid combination was found:
+    #   EMIT the accumulated mismatch through the calling E1011 rule.
+    # ON a deployment-dependent or otherwise non-string candidate:
+    #   DEFER a definitive mapping-name finding.
     mappings = list(validator.context.mappings.maps.keys())
     results = []
     found_valid_combination = False
@@ -199,6 +210,19 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                     )
             continue
 
+        # Pseudocode contract: CFNLINT-003 / static selected-level key validation.
+        # INPUT the valid selected mapping and its first- and second-level keys.
+        # RESOLVE each statically determinable key candidate in argument order.
+        # NORMALIZE an integer candidate to its string key representation.
+        # FOR EACH string candidate at the currently selected mapping level:
+        #   IF it is absent AND no default applies:
+        #     ACCUMULATE a mismatch at argument path [1] or [2], respectively.
+        #     STOP traversing that invalid candidate's mapping branch.
+        #   ELSE TRANSITION to the selected child level or resolved mapping value.
+        # IF any complete mapping branch resolves, DISCARD competing mismatches.
+        # OTHERWISE EMIT accumulated mismatches through the calling E1011 rule.
+        # ON a deployment-dependent, transformed, or non-string candidate:
+        #   DEFER only the comparison that cannot be determined statically.
         for top_level_key, top_v, _ in validator.resolve_value(instance[1]):
             if validator.is_type(top_level_key, "integer"):
                 top_level_key = str(top_level_key)
