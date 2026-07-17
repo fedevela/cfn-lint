@@ -113,6 +113,31 @@ class Properties(CfnLintJsonSchema):
             region_validator = self.extend_validator(
                 region_validator, schema.schema, region_validator.context.evolve()
             )
+            # IAMMP-008 verification:
+            # test_iammp_008_oversized_managed_policy_reports_size_error_and_preserves_other_applicable_lint_rule
+            # test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other_applicable_lint_rule
+            # IAMMP-008 logic obligation
+            # INPUT: an AWS::IAM::ManagedPolicy and the complete set of schema
+            # keywords and lint rules applicable to its properties.
+            # TRANSITION:
+            #   1. Traverse every applicable validation obligation independently;
+            #      do not use the managed-policy size result as a traversal gate.
+            #   2. Hand PolicyDocument maxLength validation to the E3033 size
+            #      rule and retain its zero-or-one size-error result.
+            #   3. Continue traversal after that handoff so every other applicable
+            #      rule evaluates the same input and retains its own result.
+            # DECISION:
+            #   - IF E3033 reports an oversized managed policy, yield that size
+            #     error and also yield every independently produced lint error.
+            #   - ELSE yield no managed-policy size error and still yield every
+            #     independently produced lint error.
+            # HANDOFF: prepend the resource Properties path to each error without
+            # changing its originating rule, message, or relative property path.
+            # FAILURE PATH: an individual size pass or failure must neither stop
+            # traversal nor suppress, replace, duplicate, or mutate another
+            # applicable rule's diagnostic or behavior.
+            # OUTPUT: the result stream differs between the two size branches only
+            # by presence or absence of the managed-policy size error.
             for err in self._validate(region_validator, properties):
                 err.path.appendleft("Properties")
                 yield err
