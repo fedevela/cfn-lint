@@ -16,6 +16,17 @@ BATCH_TYPE_PATH = deque(
 )
 BATCH_TYPE_ENUM = ["MANAGED", "UNMANAGED"]
 
+# Architecture contract for GUIDs BATCHTYPE-006 through BATCHTYPE-008:
+# - This module owns Batch ComputeEnvironment Type regression inputs and outcomes;
+#   the generic Enum rule suite remains the owner of unrelated enum behavior.
+# - BATCHTYPE-006 and BATCHTYPE-007 enter E3030 through batch_type_validator and
+#   rule.enum, preserving the production rule as the sole validation dependency.
+# - Accepted case-form cases and the unsupported case belong at the existing test
+#   loci below; no template adapter or second validation path is required.
+# - BATCHTYPE-008 is a suite-composition boundary: this contract module and
+#   test_enum.py are the relevant unit loci, while pytest owns their execution and
+#   aggregate outcome. It introduces no runtime wiring into the rule.
+
 
 @pytest.fixture
 def rule():
