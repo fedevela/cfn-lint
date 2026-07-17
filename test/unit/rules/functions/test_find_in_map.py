@@ -45,25 +45,80 @@ def context(cfn):
 
 
 class TestE1011001FindInMapTwoLookupLevelLimit:
-    """Placeholder verification contracts for GUID: E1011-001."""
+    """Verification contracts for GUID: E1011-001."""
 
     def test_overlong_lookup_reports_e1011_identifying_find_in_map_and_two_level_limit(
         self,
+        rule,
+        context,
+        cfn,
     ):
         """An overlong lookup reports E1011, FindInMap, and the two-level limit."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
 
-    def test_different_map_and_key_names_report_the_same_two_level_limit(self):
+        errors = list(
+            rule.fn_findinmap(
+                validator,
+                {"type": "string"},
+                {"Fn::FindInMap": ["MyCustomMap", "Level1", "Level2", "Key"]},
+                {},
+            )
+        )
+
+        assert rule.id == "E1011"
+        assert len(errors) == 1
+        assert "FindInMap" in errors[0].message
+        assert "no more than two lookup levels" in errors[0].message
+
+    def test_different_map_and_key_names_report_the_same_two_level_limit(
+        self, rule, context, cfn
+    ):
         """Different lookup names preserve the same FindInMap limit message."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+        lookups = [
+            ["FirstMap", "FirstLevel", "SecondLevel", "FirstKey"],
+            ["OtherMap", "Alpha", "Omega", "OtherKey"],
+        ]
+
+        messages = []
+        for lookup in lookups:
+            errors = list(
+                rule.fn_findinmap(
+                    validator,
+                    {"type": "string"},
+                    {"Fn::FindInMap": lookup},
+                    {},
+                )
+            )
+            assert len(errors) == 1
+            messages.append(errors[0].message)
+
+        assert messages == [
+            "FindInMap supports no more than two lookup levels",
+            "FindInMap supports no more than two lookup levels",
+        ]
 
 
 class TestE1011002FindInMapConditionSpecificWording:
-    """Placeholder verification contract for GUID: E1011-002."""
+    """Verification contract for GUID: E1011-002."""
 
-    def test_overlong_lookup_message_does_not_use_is_too_long_wording(self):
+    def test_overlong_lookup_message_does_not_use_is_too_long_wording(
+        self, rule, context, cfn
+    ):
         """The overlong FindInMap diagnostic replaces the generic wording."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+
+        errors = list(
+            rule.fn_findinmap(
+                validator,
+                {"type": "string"},
+                {"Fn::FindInMap": ["Map", "One", "Two", "Three"]},
+                {},
+            )
+        )
+
+        assert len(errors) == 1
+        assert "is too long" not in errors[0].message
 
 
 @pytest.mark.parametrize(
@@ -85,7 +140,7 @@ class TestE1011002FindInMapConditionSpecificWording:
             None,
             [
                 ValidationError(
-                    "['foo', 'bar', 'key', 'key2'] is too long (3)",
+                    "FindInMap supports no more than two lookup levels",
                     path=deque(["Fn::FindInMap"]),
                     schema_path=deque(["maxItems"]),
                     validator="fn_findinmap",
@@ -129,6 +184,21 @@ class TestE1011002FindInMapConditionSpecificWording:
             {"transforms": Transforms(["AWS::LanguageExtensions"])},
             None,
             [],
+        ),
+        (
+            "Invalid nested Fn::FindInMap with Language Extensions",
+            {"Fn::FindInMap": ["A", "B", "C", "D"]},
+            {"type": "string"},
+            {"transforms": Transforms(["AWS::LanguageExtensions"])},
+            None,
+            [
+                ValidationError(
+                    "FindInMap supports no more than two lookup levels",
+                    path=deque(["Fn::FindInMap"]),
+                    schema_path=deque(["maxItems"]),
+                    validator="fn_findinmap",
+                ),
+            ],
         ),
         (
             "Invalid Fn::FindInMap options not of type object",

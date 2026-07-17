@@ -5,9 +5,10 @@ SPDX-License-Identifier: MIT-0
 
 from __future__ import annotations
 
+from collections import deque
 from typing import Any
 
-from cfnlint.jsonschema import ValidationResult, Validator
+from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.functions._BaseFn import BaseFn, singular_types
 
 
@@ -106,27 +107,29 @@ class FindInMap(BaseFn):
     def fn_findinmap(
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # GUID: E1011-001, E1011-002
+        key, value = self.key_value(instance)
+        has_language_extensions = (
+            validator.context.transforms.has_language_extensions_transform()
+        )
+        is_overlong = isinstance(value, list) and (
+            len(value) > (4 if has_language_extensions else 3)
+            or (
+                has_language_extensions
+                and len(value) == 4
+                and isinstance(value[3], str)
+            )
+        )
+        if is_overlong:
+            yield ValidationError(
+                "FindInMap supports no more than two lookup levels",
+                path=deque([key]),
+                schema_path=deque(["maxItems"]),
+                validator=self.fn.py,
+            )
+            return
 
-        # Integration seam — GUID: E1011-001, E1011-002
-        # FindInMap owns its over-depth diagnostic here; BaseFn remains the
-        # downstream dependency for all shared function-shape validation.
-
-        # Pseudocode — GUID: E1011-001, E1011-002
-        # INPUT: the value supplied to Fn::FindInMap and the active transforms.
-        # IF the value is an array that exceeds the permitted FindInMap shape:
-        #   - distinguish the optional Language Extensions DefaultValue position
-        #     from lookup levels; it does not increase the two-level lookup limit.
-        #   - create one E1011 validation error whose stable, name-independent
-        #     message identifies FindInMap and says it supports no more than two
-        #     lookup levels.  Do not include the generic phrase "is too long".
-        #   - hand the error to the existing E1011 finding pipeline, preserving
-        #     the Fn::FindInMap path, then stop this invalid branch so the generic
-        #     maxItems error is not also emitted.
-        # ELSE:
-        #   - continue through the existing transform-specific or ordinary
-        #     FindInMap validation path without changing its behavior.
-
-        if validator.context.transforms.has_language_extensions_transform():
+        if has_language_extensions:
             # we have to use a special validator for this
             # as we don't want DefaultValue: !Ref AWS::NoValue
             # is valid
