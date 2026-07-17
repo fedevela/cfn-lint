@@ -214,6 +214,8 @@ class _Transform:
         # a generated resource's `Condition` remains present in the final template.
         # IF a token cannot be resolved, preserve it as unresolved; do not invent a
         # condition reference or special-case known reproduction values.
+        elif isinstance(obj, str) and params:
+            _, obj = self._replace_string_params(obj, params)
         return obj
 
     def _replace_string_params(
