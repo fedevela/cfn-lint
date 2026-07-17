@@ -364,6 +364,16 @@ class _ForEachValueFnFindInMap(_ForEachValue):
         except _ResolveError:
             pass
 
+        # Pseudocode contract — GUID: CFNLINT-001, CFNLINT-002, CFNLINT-009
+        # INPUT: the resolved mapping name, requested keys, and optional DefaultValue.
+        # IF the requested mapping path exists:
+        #   RETURN its resolved value.
+        # ELSE IF DefaultValue is declared:
+        #   RESOLVE DefaultValue through the same intrinsic-value abstraction.
+        #   RETURN that result unchanged so an enclosing Fn::FindInMap can consume it
+        #   as its key, independent of mapping names, loop identifiers, or resource type.
+        # ELSE:
+        #   RAISE the existing unresolved-Fn::FindInMap failure.
         if mapping:
             try:
                 t_map[1].value(cfn, params, only_params)
@@ -538,6 +548,15 @@ class _ForEachCollection:
                     yield v
             return
         if self._fn:
+            # Pseudocode contract — GUID: CFNLINT-003, CFNLINT-004, CFNLINT-009
+            # RESOLVE the collection expression after all nested intrinsic inputs resolve.
+            # IF the result is a list:
+            #   VALIDATE each member as an allowed Fn::ForEach collection value.
+            #   YIELD every member to the nested loop and COMPLETE without transform errors.
+            #   EMIT neither E0001 nor "Fn::ForEach could not be resolved".
+            # ELSE IF resolution fails:
+            #   FOLLOW the existing unresolved-collection cache/failure path.
+            # APPLY this flow by intrinsic shape, not by template-specific identifiers.
             try:
                 values = self._fn.value(cfn, params, False)
                 if values is not None:
