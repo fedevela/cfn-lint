@@ -14,6 +14,15 @@ from cfnlint.jsonschema import ValidationError
 from cfnlint.rules import CloudFormationLintRule
 
 
+_MANAGED_POLICY_DOCUMENT_PATH = (
+    "Resources",
+    "AWS::IAM::ManagedPolicy",
+    "Properties",
+    "PolicyDocument",
+)
+_MANAGED_POLICY_WHITESPACE = str.maketrans("", "", " \t\r\n")
+
+
 class StringLength(CloudFormationLintRule):
     """Check if a String has a length within the limit"""
 
@@ -72,6 +81,35 @@ class StringLength(CloudFormationLintRule):
         if len(json.dumps(j, separators=(",", ":"), default=self._serialize_date)) < mL:
             yield ValidationError("Item is too short")
 
+    def _serialize_managed_policy_document(self, instance: Any) -> str:
+        """Compactly serialize while excluding IAM quota whitespace."""
+        if isinstance(instance, str):
+            return json.dumps(instance.translate(_MANAGED_POLICY_WHITESPACE))
+        if isinstance(instance, dict):
+            items = (
+                f"{self._serialize_managed_policy_document(key)}:"
+                f"{self._serialize_managed_policy_document(value)}"
+                for key, value in instance.items()
+            )
+            return f"{{{','.join(items)}}}"
+        if isinstance(instance, list):
+            values = (
+                self._serialize_managed_policy_document(value)
+                for value in instance
+            )
+            return f"[{','.join(values)}]"
+        return json.dumps(
+            instance,
+            separators=(",", ":"),
+            default=self._serialize_date,
+        )
+
+    def _managed_policy_document_length(self, instance: Any) -> int:
+        instance = self._remove_functions(instance)
+        if isinstance(instance, str):
+            return len(instance.translate(_MANAGED_POLICY_WHITESPACE))
+        return len(self._serialize_managed_policy_document(instance))
+
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
         # ARCHITECTURE: GUID MPOL-001, MPOL-002, MPOL-003
@@ -98,6 +136,11 @@ class StringLength(CloudFormationLintRule):
         #     YIELD the existing maxLength ValidationError for E3033 and RETURN.[MPOL-003]
         # ELSE:
         #   CONTINUE through the existing generic string/function/object branches.
+        if tuple(validator.context.path.cfn_path) == _MANAGED_POLICY_DOCUMENT_PATH:
+            if self._managed_policy_document_length(instance) > mL:
+                yield ValidationError("Item is too long")
+            return
+
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
