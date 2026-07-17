@@ -23,6 +23,13 @@ class Used(CloudFormationLintRule):
 
         conditions = cfn.template.get("Conditions", {})
         if conditions:
+            # ARCHITECTURE [CFNLINT-005, CFNLINT-008]: `Used.match()` remains the
+            # compatibility owner for all condition-use classifications. Its
+            # stable inbound boundary is the `Template` API: direct references
+            # arrive through the existing template searches/raw sections, while
+            # resource references arrive through `get_resources()`. Both paths
+            # converge here without making this rule depend on language-extension
+            # internals or introducing a separate `Fn::ForEach` classifier.
             # PSEUDOCODE [CFNLINT-005, CFNLINT-008] — compatibility input:
             # INPUT the declared conditions and every condition reference found
             # through the existing non-dynamic paths: `Fn::If`, condition-to-
@@ -85,11 +92,14 @@ class Used(CloudFormationLintRule):
                 if "Condition" in output_values:
                     ref_conditions.append(output_values["Condition"])
 
-            # ARCHITECTURE [CFNLINT-003, CFNLINT-004]: `ref_conditions` is the
-            # private input contract for per-declaration classification below.
-            # The contract carries resolved names without declaration identity;
-            # this W8001 boundary owns exact-name association and preserves each
-            # nonmatching declaration as an independently reportable result.
+            # ARCHITECTURE [CFNLINT-003, CFNLINT-004, CFNLINT-005,
+            # CFNLINT-008]: `ref_conditions` is the private integration contract
+            # between every reference-producing path above and the single
+            # per-declaration classifier below. The contract carries names only;
+            # this W8001 boundary owns exact-name association, so direct and
+            # transformed inputs share classification without coupling to each
+            # other, and every nonmatching declaration remains independently
+            # reportable through the existing `RuleMatch` output boundary.
             # Check if the confitions are used
             # PSEUDOCODE [CFNLINT-005, CFNLINT-008] — compatibility result:
             # FOR EACH declaration, compare its complete name with the preserved
