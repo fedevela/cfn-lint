@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT-0
 from __future__ import annotations
 
 import json
+import re
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 import cfnlint.data.schemas.other.resources
@@ -17,7 +19,6 @@ from cfnlint.schema.resolver import RefResolver
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
     from typing import TypedDict
 
     class _TaskResourceSubstitutionScope(TypedDict):
@@ -38,6 +39,8 @@ class StateMachineDefinition(CfnLintJsonSchema):
     )
     source_url = "https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-state-machine-structure.html"
     tags = ["resources", "statemachine"]
+
+    _DEFINITION_SUBSTITUTION = re.compile(r"\$\{([^{}]+)\}")
 
     def __init__(self):
         super().__init__(
@@ -65,6 +68,58 @@ class StateMachineDefinition(CfnLintJsonSchema):
             err.context[i] = self._fix_message(c_err)
         return err
 
+    def _get_definition_substitutions(self, validator: Validator) -> Mapping[str, Any]:
+        """Return substitutions owned by the state machine being validated."""
+        path = validator.context.path.path
+        if (
+            len(path) < 4
+            or path[0] != "Resources"
+            or path[2] != "Properties"
+            or path[-1] != "Definition"
+        ):
+            return {}
+
+        resources = validator.cfn.template.get("Resources", {})
+        if not isinstance(resources, Mapping):
+            return {}
+
+        resource = resources.get(path[1], {})
+        if not isinstance(resource, Mapping):
+            return {}
+
+        properties = resource.get("Properties", {})
+        if not isinstance(properties, Mapping):
+            return {}
+
+        substitutions = properties.get("DefinitionSubstitutions", {})
+        if not isinstance(substitutions, Mapping):
+            return {}
+
+        return substitutions
+
+    def _is_declared_task_resource(
+        self,
+        err: ValidationError,
+        definition: Any,
+        substitutions: Mapping[str, Any],
+    ) -> bool:
+        """Whether an ARN pattern error is for a locally declared placeholder."""
+        if err.validator != "pattern" or not err.path or err.path[-1] != "Resource":
+            return False
+
+        value = definition
+        try:
+            for part in err.path:
+                value = value[part]
+        except (KeyError, IndexError, TypeError):
+            return False
+
+        if not isinstance(value, str):
+            return False
+
+        match = self._DEFINITION_SUBSTITUTION.fullmatch(value)
+        return match is not None and match.group(1) in substitutions
+
     def validate(
         self, validator: Validator, keywords: Any, instance: Any, schema: dict[str, Any]
     ) -> ValidationResult:
@@ -90,7 +145,7 @@ class StateMachineDefinition(CfnLintJsonSchema):
                 schema=self.schema,
             )
 
-        # GEV-001, GEV-002, GEV-003, GEV-004 pseudocode -- declared Task
+        # GEV-001, GEV-002, GEV-003, GEV-004 contract -- declared Task
         # Resource substitution gate:
         #
         # OWNERSHIP / DEPENDENCY:
@@ -122,7 +177,10 @@ class StateMachineDefinition(CfnLintJsonSchema):
         #   never accept a different, partial, or case-variant placeholder name
         #   never extend this exemption beyond inline Task.Resource occurrences
         #   missing/malformed local substitutions fail closed to normal validation
+        substitutions = self._get_definition_substitutions(validator)
         for err in step_validator.iter_errors(instance):
+            if self._is_declared_task_resource(err, instance, substitutions):
+                continue
             if add_path_to_message:
                 err = self._fix_message(err)
             if not err.validator.startswith("fn_") and err.validator not in ["cfnLint"]:
