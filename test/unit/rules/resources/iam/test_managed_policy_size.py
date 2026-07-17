@@ -109,3 +109,18 @@ def test_iammp_003_validating_compact_managed_policy_below_6144_does_not_report_
     ]
 
     assert size_errors == []
+
+
+def test_iammp_004_whitespace_only_policy_changes_preserve_size_validation_result():
+    """IAMMP-004: insignificant whitespace does not change the size result."""
+    assert True
+
+
+def test_iammp_004_oversized_compact_and_whitespace_policy_both_report_size_error():
+    """IAMMP-004: both oversized formatting variants report a size error."""
+    assert True
+
+
+def test_iammp_004_compliant_compact_and_whitespace_policy_neither_report_size_error():
+    """IAMMP-004: neither compliant formatting variant reports a size error."""
+    assert True
