@@ -40,6 +40,14 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
             return
 
 
+# Existing-entry architecture (FIM-001, FIM-002, FIM-007):
+# - This resolver owns result applicability: an existing mapping entry excludes the
+#   four-argument fallback from the ResolutionResult stream.
+# - Mapping.find_in_map owns selected-value retrieval; the evolved Validator context
+#   below is the integration seam to receiving-property validation.
+# - The receiving-property validator owns compatibility errors. It must receive only
+#   the selected value and its mapping path, never the unused DefaultValue.
+# Dependency direction: mapping lookup -> resolver applicability -> property validator.
 def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     if not validator.is_type(instance, "array"):
         return
