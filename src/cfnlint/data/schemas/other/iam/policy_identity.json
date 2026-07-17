@@ -28,6 +28,7 @@
      "$ref": "policy#/definitions/Action"
     },
     "Condition": {
+     "$comment": "GUID: IAMOP-001, IAMOP-002, IAMOP-003, IAMOP-007. IdentityPolicy resource routing enters the shared, closed condition-operator contract here. policy#/definitions/Condition owns the canonical exact-name vocabulary and the ConditionValue/ConditionSetValue boundary; modifier forms must be represented there as documented names, never accepted by an open fallback.",
      "$ref": "policy#/definitions/Condition"
     },
     "Effect": {
