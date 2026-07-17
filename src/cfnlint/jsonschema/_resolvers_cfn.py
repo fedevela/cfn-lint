@@ -48,6 +48,17 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
 # - The receiving-property validator owns compatibility errors. It must receive only
 #   the selected value and its mapping path, never the unused DefaultValue.
 # Dependency direction: mapping lookup -> resolver applicability -> property validator.
+# Absent-entry architecture (FIM-003, FIM-004, FIM-005):
+# - find_in_map owns the statically resolved no-entry decision and is the only locus
+#   that may promote DefaultValue from fallback candidate to applicable result.
+# - _find_in_map_default is the adapter into the ResolutionResult contract; its
+#   evolved value_path preserves the default's source identity for downstream errors.
+# - BaseFn receiving-property validation owns concrete compatibility: compatible
+#   defaults pass there (FIM-003), while incompatible defaults fail there (FIM-004).
+# - AWS::NoValue remains owned by the existing intrinsic/conditional-removal
+#   machinery. This seam must not coerce it to a concrete property type (FIM-005).
+# Dependency direction: mapping lookup -> applicability -> default-result adapter ->
+# conditional removal / receiving-property validation.
 def _find_in_map_default(validator: Validator, default_value: Any) -> ResolutionResult:
     for value, v, _ in validator.resolve_value(default_value):
         yield value, v.evolve(
