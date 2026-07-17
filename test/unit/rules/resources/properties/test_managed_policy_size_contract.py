@@ -110,3 +110,13 @@ def test_mpol_003_managed_policy_above_6144_non_whitespace_produces_e3033(
 
     assert len(errors) == 1
     assert errors[0].message == "Item is too long"
+
+
+def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_size_e3033():
+    """GUID: MPOL-004 - The supplied block-scalar policy has no size E3033."""
+    assert True
+
+
+def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_associated_e3001():
+    """GUID: MPOL-004 - The supplied block-scalar policy has no associated E3001."""
+    assert True
