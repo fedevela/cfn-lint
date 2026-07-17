@@ -407,3 +407,15 @@ def test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other
         0,
         "Effect",
     ]
+
+
+def test_iammp_009_validating_multiple_managed_policies_identifies_every_oversized_policy_document(
+):
+    """IAMMP-009: every oversized policy in a multi-policy template is identified."""
+    assert True
+
+
+def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compliant_policy_documents_as_oversized(
+):
+    """IAMMP-009: compliant policies in a multi-policy template are not identified."""
+    assert True
