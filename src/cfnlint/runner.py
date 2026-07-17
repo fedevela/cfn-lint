@@ -136,6 +136,16 @@ class TemplateRunner:
             )
 
         matches = self.cfn.transform()
+        # Pseudocode contract — GUID: CFNLINT-008
+        # INPUT: transform matches representing an unresolvable intrinsic and the
+        # configuration that determines whether TransformError is reportable.
+        # IF transform matches exist:
+        #   IF TransformError is enabled, YIELD the failure diagnostics.
+        #   ELSE, suppress only their presentation.
+        #   IN EITHER CASE, STOP before graph construction and lint-rule execution;
+        #   never transition the failed transform into an accepted template result.
+        # ELSE:
+        #   CONTINUE with graph construction and ordinary lint-rule execution.
         if matches:
             if self.rules.is_rule_enabled(TransformError(), self.config):
                 yield from iter(matches)

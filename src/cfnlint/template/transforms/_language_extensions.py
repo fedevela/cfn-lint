@@ -157,6 +157,18 @@ class _Transform:
                         if len(v) == 2:
                             obj[k][1] = self._walk(v[1], params, cfn)
                 elif k == "Fn::FindInMap":
+                    # Pseudocode contract — GUID: CFNLINT-008
+                    # INPUT: a candidate Fn::FindInMap encountered during traversal.
+                    # VALIDATE its shape, optional DefaultValue, and referenced mapping
+                    # path while attempting to resolve the expression.
+                    # IF resolution produces a supported concrete value:
+                    #   RETURN that value to the enclosing traversal.
+                    # ELSE IF the mapping is malformed, DefaultValue is invalid, or
+                    # another intrinsic needed for resolution cannot be resolved:
+                    #   PRESERVE the resolution failure; do not classify the unchanged
+                    #   intrinsic as a successfully transformed value.
+                    #   HAND the failure to the transform boundary, which emits a
+                    #   TransformError result and no transformed template.
                     try:
                         mapping = _ForEachValueFnFindInMap(get_hash(v), v)
                         map_value = mapping.value(cfn, params, True, False)
