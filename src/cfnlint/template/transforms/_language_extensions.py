@@ -136,6 +136,19 @@ class _Transform:
                     #   original Fn::ForEach declaration from this object.
                     # - Continue walking all sibling content so independent template
                     #   entries remain in the transformed template for validation.
+                    # PSEUDOCODE [FOREACH-006, FOREACH-007, FOREACH-008]:
+                    # - REQUIRE the resolved collection to contain one or more values.
+                    # - FOR EACH value, bind the loop identifier to that value, then
+                    #   recursively walk one fresh copy of the declared loop output.
+                    # - While walking that copy, substitute the binding into output
+                    #   keys to produce the value-specific logical resource IDs.
+                    # - Within resource properties, resolve a Ref to the identifier
+                    #   as the bound value, substitute the binding in Fn::Sub, and
+                    #   recursively preserve all other property structure.
+                    # - Merge every generated resource exactly once; IF a substituted
+                    #   logical ID already exists, fail through the duplicate-key path.
+                    # - After all values are expanded, remove the loop declaration and
+                    #   return the generated resources to normal template validation.
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach
