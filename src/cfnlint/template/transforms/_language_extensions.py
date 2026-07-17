@@ -175,9 +175,11 @@ class _Transform:
                         # if we can resolve it we will return it
                         if isinstance(map_value, tuple([list]) + _SCALAR_TYPES):
                             return map_value
-                    except Exception as e:  # pylint: disable=broad-exception-caught
-                        # We couldn't resolve the FindInMap so we are going to
-                        # leave it as it is
+                    except _ResolveError as e:
+                        # A valid FindInMap can depend on a value that CloudFormation
+                        # resolves later, so leave only that deferred expression intact.
+                        # Malformed or unsupported expressions must cross the transform
+                        # boundary as errors (GUID: CFNLINT-008).
                         LOGGER.debug("Transform and Fn::FindInMap error: %s", {str(e)})
                     for i, el in enumerate(v):
                         v[i] = self._walk(el, params, cfn)
