@@ -5,8 +5,11 @@ SPDX-License-Identifier: MIT-0
 
 import json
 
+from cfnlint import ConfigMixIn, Rules
+from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 from cfnlint.rules.resources.properties.Properties import Properties
 from cfnlint.rules.resources.properties.StringLength import StringLength
+from cfnlint.runner import TemplateRunner
 
 
 def _policy_document_json_variants(compact_length):
@@ -81,6 +84,46 @@ def _iammp_005_supplied_reproduction_errors(validator):
             template["Resources"]["OversizedManagedPolicy"],
             {},
         )
+    )
+
+
+def _iammp_008_errors(compact_length):
+    policy_document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Invalid",
+                "Action": "service:Action",
+                "Resource": "",
+            }
+        ],
+    }
+    empty_resource_length = len(json.dumps(policy_document, separators=(",", ":")))
+    policy_document["Statement"][0]["Resource"] = "a" * (
+        compact_length - empty_resource_length
+    )
+    template = {
+        "Resources": {
+            "ManagedPolicy": {
+                "Type": "AWS::IAM::ManagedPolicy",
+                "Properties": {"PolicyDocument": policy_document},
+            }
+        }
+    }
+    rules = Rules()
+    rules.register(Properties())
+    rules.register(StringLength())
+    rules.register(IdentityPolicy())
+
+    assert len(json.dumps(policy_document, separators=(",", ":"))) == compact_length
+
+    return list(
+        TemplateRunner(
+            filename=None,
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        ).run()
     )
 
 
@@ -326,10 +369,41 @@ def test_iammp_007_validating_managed_policy_with_unresolved_final_compact_conte
 def test_iammp_008_oversized_managed_policy_reports_size_error_and_preserves_other_applicable_lint_rule(
 ):
     """IAMMP-008: size failure preserves every other applicable lint rule."""
-    assert True
+    errors = _iammp_008_errors(6145)
+
+    assert [error.rule.id for error in errors] == ["E3033", "E3510"]
+    assert errors[0].message == "Item is too long"
+    assert errors[0].path == [
+        "Resources",
+        "ManagedPolicy",
+        "Properties",
+        "PolicyDocument",
+    ]
+    assert errors[1].message == "'Invalid' is not one of ['Allow', 'Deny']"
+    assert errors[1].path == [
+        "Resources",
+        "ManagedPolicy",
+        "Properties",
+        "PolicyDocument",
+        "Statement",
+        0,
+        "Effect",
+    ]
 
 
 def test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other_applicable_lint_rule(
 ):
     """IAMMP-008: size success preserves every other applicable lint rule."""
-    assert True
+    errors = _iammp_008_errors(6144)
+
+    assert [error.rule.id for error in errors] == ["E3510"]
+    assert errors[0].message == "'Invalid' is not one of ['Allow', 'Deny']"
+    assert errors[0].path == [
+        "Resources",
+        "ManagedPolicy",
+        "Properties",
+        "PolicyDocument",
+        "Statement",
+        0,
+        "Effect",
+    ]
