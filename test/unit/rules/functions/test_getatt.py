@@ -100,6 +100,20 @@ def _gev_mapped_getatt_case(loop_input):
     }
 
 
+def _gev_006_getatt_case():
+    return {
+        "Fn::GetAtt": [
+            {
+                "Fn::Sub": [
+                    "${ResourceName}",
+                    {"ResourceName": "MyBucket"},
+                ]
+            },
+            "Arn",
+        ]
+    }
+
+
 class _Pass(CfnLintKeyword):
     id = "AAAAA"
 
@@ -477,13 +491,44 @@ def test_gev_005_gev_010_dynamic_sub_declared_resource_valid_attribute_no_findin
     ) == []
 
 
+@pytest.mark.parametrize("template", [_template], indirect=True)
 def test_gev_006_without_language_extensions_complete_two_argument_sub_getatt_resource_name_is_rejected(
+    validator, rule
 ):
     """GEV-006: reject nested two-argument Sub without LanguageExtensions."""
-    assert True
+    instance = _gev_006_getatt_case()
+    rule.child_rules = {}
+
+    errors = list(rule.fn_getatt(validator, {"type": "string"}, instance, {}))
+
+    assert len(errors) == 1
+    assert errors[0].validator == "fn_getatt"
+    assert errors[0].path == deque(["Fn::GetAtt", 0])
+    assert errors[0].message == (
+        "{'Fn::Sub': ['${ResourceName}', {'ResourceName': 'MyBucket'}]} "
+        "is not of type 'string'"
+    )
 
 
+@pytest.mark.parametrize(
+    "template,accepted",
+    [
+        (_template, False),
+        (_template_with_transform, True),
+    ],
+    indirect=["template"],
+)
 def test_gev_006_only_language_extensions_template_accepts_complete_two_argument_sub_getatt_resource_name(
+    accepted, validator, rule
 ):
     """GEV-006: acceptance transitions only at the LanguageExtensions boundary."""
-    assert True
+    instance = _gev_006_getatt_case()
+    rule.child_rules = {}
+
+    errors = list(rule.fn_getatt(validator, {"type": "string"}, instance, {}))
+
+    assert (errors == []) is accepted
+    if not accepted:
+        assert len(errors) == 1
+        assert errors[0].validator == "fn_getatt"
+        assert errors[0].path == deque(["Fn::GetAtt", 0])
