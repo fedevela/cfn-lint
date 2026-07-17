@@ -274,6 +274,12 @@ class Runner:
         Raises:
             None: This function does not raise any exceptions.
         """
+        # Architecture contract [CFNLINT-004]:
+        # This private routing boundary owns the established existing-file path:
+        # decode() supplies either parse matches or a template, and only the latter
+        # crosses into validate_template(). Both branches expose the same Match
+        # stream to run(); filename selection and result presentation remain owned
+        # by ConfigMixIn and _cli_output(), respectively.
         ignore_bad_template: bool = False
         if self.config.ignore_bad_template:
             ignore_bad_template = True
@@ -332,6 +338,11 @@ class Runner:
         yield from runner.run()
 
     def _cli_output(self, matches: list[Match]) -> None:
+        # Architecture contract [CFNLINT-004]:
+        # This terminal boundary alone owns ordering, formatting, emission, and
+        # exit-policy delegation for the Match stream. Existing-file routing must
+        # depend on this boundary without introducing a parallel diagnostic or
+        # status path, preserving clean and findings-bearing results alike.
         # Pseudocode: existing explicit template observables [CFNLINT-004]
         # RECEIVE the established findings for the existing explicit template.
         # ORDER and FORMAT them through the established diagnostic path.
