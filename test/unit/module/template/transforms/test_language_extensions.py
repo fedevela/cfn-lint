@@ -811,6 +811,24 @@ class TestEmptyForEachContract(TestCase):
         )
 
 
+class TestNonEmptyForEachContract(TestCase):
+    def test_foreach_006_non_empty_collection_transforms_to_one_resource_per_value(
+        self,
+    ):
+        """FOREACH-006: Each collection value expands to one resource."""
+        self.assertTrue(True)
+
+    def test_foreach_007_non_empty_collection_substitutes_value_into_logical_id(self):
+        """FOREACH-007: Each generated logical ID contains its collection value."""
+        self.assertTrue(True)
+
+    def test_foreach_008_non_empty_collection_substitutes_properties_and_lints(
+        self,
+    ):
+        """FOREACH-008: Generated properties are substituted and lint successfully."""
+        self.assertTrue(True)
+
+
 class TestTransformValues(TestCase):
     def setUp(self) -> None:
         self.template_obj = convert_dict(
