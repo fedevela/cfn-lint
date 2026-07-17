@@ -407,6 +407,18 @@ class _ForEachValueFnFindInMap(_ForEachValue):
                 except _ResolveError:
                     pass
 
+        # Pseudocode contract — GUID: CFNLINT-007
+        # INPUT: a resolved mapping, a missing requested key, and a declared
+        # DefaultValue whose result is not a nested Fn::ForEach collection.
+        # RESOLVE the requested top-level and second-level keys.
+        # IF the requested mapping path is absent and resolver fallback is enabled:
+        #   RESOLVE DefaultValue through its intrinsic-value abstraction.
+        #   RETURN the resolved default to the ordinary transform consumer.
+        #   CONTINUE transformation and linting without an unresolved-lookup error,
+        #   preserving the successful lint outcome represented by exit code 0.
+        # ELSE:
+        #   FOLLOW the existing explicit-value or unresolved-lookup branch.
+
         # Pseudocode contract — GUID: CFNLINT-005, CFNLINT-006
         # INPUT: a resolved mapping, requested keys, and an optional DefaultValue.
         # RESOLVE the requested top-level and second-level keys.
