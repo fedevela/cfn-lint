@@ -5,11 +5,16 @@ SPDX-License-Identifier: MIT-0
 
 from collections import deque
 
+from cfnlint import ConfigMixIn
 from cfnlint.context import Path, create_context_for_template
 from cfnlint.jsonschema import CfnTemplateValidator
+from cfnlint.rules import Rules
+from cfnlint.rules.resources.ResourceType import ResourceType
+from cfnlint.rules.resources.properties.Properties import Properties
 from cfnlint.rules.resources.stepfunctions.StateMachineDefinition import (
     StateMachineDefinition,
 )
+from cfnlint.runner import TemplateRunner
 from cfnlint.template import Template
 
 
@@ -52,6 +57,19 @@ def _errors(template, logical_id="StateMachine"):
 
 def _error_signatures(template, logical_id="StateMachine"):
     return [(error.rule.id, error.validator) for error in _errors(template, logical_id)]
+
+
+def _lint_signatures(template, *rules):
+    matches = TemplateRunner(
+        filename=None,
+        template=template,
+        config=ConfigMixIn(regions=["us-east-1"]),
+        rules=Rules({rule.id: rule for rule in rules}),
+    ).run()
+    return [
+        (match.rule.id, match.message, tuple(match.path))
+        for match in matches
+    ]
 
 
 def test_gev_001_declared_inline_task_resource_placeholder_does_not_produce_e3601():
@@ -163,14 +181,56 @@ def test_gev_005_unrelated_substitutions_do_not_exempt_malformed_concrete_resour
 
 def test_gev_006_declared_placeholder_suppresses_e3601_preserves_independent_error():
     """Contract: GEV-006, independent definition error remains observable."""
-    assert True
+    state_machine = _state_machine(
+        "${UploadUsageActivityArn}",
+        {"UploadUsageActivityArn": {"Ref": "UploadUsageActivity"}},
+    )
+    state_machine["Properties"]["Definition"]["States"]["MissingType"] = {}
+    template = {"Resources": {"StateMachine": state_machine}}
+
+    assert _error_signatures(template) == [("E3601", "required")]
 
 
 def test_gev_007_declared_placeholder_preserves_unrelated_resource_property_error():
     """Contract: GEV-007, mixed-template unrelated lint error remains unchanged."""
-    assert True
+    unrelated_resource = {
+        "Type": "AWS::S3::Bucket",
+        "Properties": {"DefinitelyNotAProperty": True},
+    }
+    baseline = {"Resources": {"Bucket": unrelated_resource}}
+    mixed = {
+        "Resources": {
+            "Bucket": unrelated_resource,
+            "StateMachine": _state_machine(
+                "${UploadUsageActivityArn}",
+                {"UploadUsageActivityArn": {"Ref": "UploadUsageActivity"}},
+            ),
+        }
+    }
+
+    expected = _lint_signatures(baseline, Properties())
+    assert len(expected) == 1
+    assert expected[0][0] == "E3002"
+    assert (
+        _lint_signatures(mixed, StateMachineDefinition(), Properties()) == expected
+    )
 
 
 def test_gev_007_declared_placeholder_preserves_existing_unrelated_rule_outcomes():
     """Contract: GEV-007, existing unrelated lint cases remain unchanged."""
-    assert True
+    unrelated_resource = {"Type": "AWS::Example::Unknown"}
+    baseline = {"Resources": {"UnrelatedResource": unrelated_resource}}
+    mixed = {
+        "Resources": {
+            "UnrelatedResource": unrelated_resource,
+            "StateMachine": _state_machine(
+                "${UploadUsageActivityArn}",
+                {"UploadUsageActivityArn": {"Ref": "UploadUsageActivity"}},
+            ),
+        }
+    }
+
+    expected = _lint_signatures(baseline, ResourceType())
+    assert len(expected) == 1
+    assert expected[0][0] == "E3006"
+    assert _lint_signatures(mixed, StateMachineDefinition(), ResourceType()) == expected
