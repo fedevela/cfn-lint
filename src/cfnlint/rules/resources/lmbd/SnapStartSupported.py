@@ -99,6 +99,15 @@ class SnapStartSupported(CfnLintKeyword):
             # region selection. Runtime capability checks consume context.regions at
             # this existing seam and must not introduce a second defaulting path.
 
+            # SNAPSTART-003 logic obligation: preserve an exact runtime boundary.
+            # INPUT: the resolved runtime and every region selected by the context.
+            # DECISION: enter a Python capability path only when the canonical runtime
+            # exactly matches a key in _runtime_region_support; never infer support
+            # from a "python" prefix, runtime family, or neighboring version.
+            # TRANSITION: an unmatched Python runtime falls through to the existing
+            # generic runtime checks, where an enabled SnapStart configuration emits
+            # E2530 through the unsupported-runtime failure path.
+
             # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008, SNAPSTART-009
             if (
                 isinstance(runtime, str)
@@ -119,6 +128,18 @@ class SnapStartSupported(CfnLintKeyword):
                         path=deque(["SnapStart", "ApplyOn"]),
                     )
                 continue
+
+            # SNAPSTART-004 logic obligation: preserve the negative-case matrix.
+            # DECISION/FLOW:
+            # 1. A capability-mapped runtime is handled above per selected region;
+            #    any region outside its allowlist emits the regional E2530.
+            # 2. Every unmapped runtime is handed to the legacy checks below without
+            #    changing their region boundary or supported Java-runtime behavior.
+            # 3. Emit the regional E2530 for each unsupported selected-region set,
+            #    then emit the runtime E2530 when the resolved string is neither a
+            #    supported Java runtime nor an exact capability-map match.
+            # FAILURE/HANDOFF: unresolved non-string runtimes stop before string-only
+            # checks; all existing diagnostic messages and paths remain unchanged.
 
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
