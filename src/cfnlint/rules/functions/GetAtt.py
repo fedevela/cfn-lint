@@ -293,6 +293,15 @@ class GetAtt(BaseFn):
         # either conventional form, and all previously valid conventional cases
         # continue through the unchanged success path after transformed-expression
         # support is added.
+        # GEV-009 architecture boundary: schema owns admission of the conventional
+        # string and two-item list contracts; fn_getatt owns their normalization into
+        # the shared operand-pair seam, without expanding either accepted contract.
+        # _resolve_getatt remains the sole downstream owner of declared-resource,
+        # supported-attribute, and result-type checks for both representations.
+        # Keep dependency direction from BaseFn structural validation, through this
+        # normalization seam, to _resolve_getatt and then existing child rules. The
+        # GEV-009 test placeholders in test_getatt.py are the regression contract;
+        # no representation-specific semantic adapter or public API is required.
         errs = list(super().validate(validator, s, instance, schema))
         if errs:
             yield from iter(errs)
