@@ -48,7 +48,7 @@ class FindInMap(BaseFn):
             ],
         }
 
-        # Architecture boundary — GUID: E1011-001, E1011-002
+        # Architecture boundary — GUID: E1011-001, E1011-002, E1011-003, E1011-004
         # This schema owns the accepted FindInMap shape.  Condition-specific
         # diagnostics for that shape belong to fn_findinmap at the delegation
         # seam with BaseFn, rather than to the shared maxItems validator.
@@ -107,6 +107,11 @@ class FindInMap(BaseFn):
     def fn_findinmap(
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # Integration seam — GUID: E1011-003, E1011-004
+        # FindInMap owns both sides of the transform-aware depth classification
+        # at this boundary.  Only values within that boundary flow downstream
+        # to BaseFn.validate for shared shape and item validation.
+
         # Pseudocode — GUID: E1011-003, E1011-004
         # INPUT: the Fn::FindInMap value and whether Language Extensions is active.
         # DERIVE the unchanged supported boundary:
