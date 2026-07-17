@@ -142,7 +142,9 @@ def test_cfnlint_006_literal_definition_string_keeps_outcome():
 
 # ARCHITECTURE: CFNLINT-007 verification consumes reproduction_matches through
 # three diagnostic-filter owners; implementation activates fixture injection.
-def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022():
+def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022(
+    reproduction_matches,
+):
     """GUID: CFNLINT-007 - supplied Fn::Join emits no E1022 diagnostic."""
     # PSEUDOCODE CONTRACT: CFNLINT-007 / no intrinsic-value E1022
     # INPUT: reproduction_matches from the module-scoped Fn::Join fixture.
@@ -151,10 +153,15 @@ def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022():
     #     FAIL and report that match as an unexpected intrinsic-value diagnostic.
     #   ELSE continue until every match has been examined.
     # OUTPUT: PASS only when no E1022 match was observed.
-    assert True
+    unexpected_matches = [
+        match for match in reproduction_matches if match.rule.id == "E1022"
+    ]
+
+    assert unexpected_matches == []
 
 
 def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_start_at(
+    reproduction_matches,
 ):
     """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-StartAt E3601."""
     # PSEUDOCODE CONTRACT: CFNLINT-007 / no missing-StartAt E3601
@@ -164,10 +171,19 @@ def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_s
     #     FAIL and report it as a consequential missing-property diagnostic.
     #   ELSE continue without suppressing unrelated diagnostics.
     # OUTPUT: PASS only when no missing-StartAt E3601 match was observed.
-    assert True
+    unexpected_matches = [
+        match
+        for match in reproduction_matches
+        if match.rule.id == "E3601"
+        and "'StartAt' is a required property" in match.message
+    ]
+
+    assert unexpected_matches == []
 
 
-def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_states():
+def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_states(
+    reproduction_matches,
+):
     """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-States E3601."""
     # PSEUDOCODE CONTRACT: CFNLINT-007 / no missing-States E3601
     # INPUT: reproduction_matches from the module-scoped Fn::Join fixture.
@@ -176,4 +192,11 @@ def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_s
     #     FAIL and report it as a consequential missing-property diagnostic.
     #   ELSE continue without suppressing unrelated diagnostics.
     # OUTPUT: PASS only when no missing-States E3601 match was observed.
-    assert True
+    unexpected_matches = [
+        match
+        for match in reproduction_matches
+        if match.rule.id == "E3601"
+        and "'States' is a required property" in match.message
+    ]
+
+    assert unexpected_matches == []
