@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT-0
 from __future__ import annotations
 
 from collections import deque
-from typing import Any
+from typing import AbstractSet, Any, Mapping
 
 from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.jsonschema.CfnLintKeyword import CfnLintKeyword
@@ -14,6 +14,11 @@ from cfnlint.rules.jsonschema.CfnLintKeyword import CfnLintKeyword
 
 class SnapStartSupported(CfnLintKeyword):
     """Check if Lambda function using SnapStart has the correct runtimes"""
+
+    # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008: E2530 owns the private
+    # runtime/region capability boundary. Implementations populate this contract
+    # from AWS regional-availability data; callers must not supply capability data.
+    _runtime_region_support: Mapping[str, AbstractSet[str]]
 
     id = "E2530"
     shortdesc = "SnapStart supports the configured runtime"
@@ -75,6 +80,10 @@ class SnapStartSupported(CfnLintKeyword):
 
             if snap_start.get("ApplyOn") != "PublishedVersions":
                 continue
+
+            # SNAPSTART-009 integration boundary: Context owns explicit and implicit
+            # region selection. Runtime capability checks consume context.regions at
+            # this existing seam and must not introduce a second defaulting path.
 
             # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008, SNAPSTART-009:
             # IF runtime is "python3.12":
