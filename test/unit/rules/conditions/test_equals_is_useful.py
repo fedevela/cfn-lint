@@ -13,6 +13,12 @@ from cfnlint.rules.jsonschema.JsonSchema import JsonSchema
 from cfnlint.runner import TemplateRunner
 
 
+# Architecture seam (GUID: W8003-008, W8003-009, W8003-010): this test module
+# owns W8003 condition fixtures and depends inward on the existing rule runner.
+# `_lint_conditions` is the sole test adapter across that boundary: callers
+# supply only the Conditions fragment and receive only W8003 Match objects.
+# Rule selection, condition traversal, and output construction remain owned by
+# ConfigMixIn, TemplateRunner, and the registered rules respectively.
 def _lint_conditions(conditions):
     rules = Rules(
         {
@@ -119,6 +125,10 @@ def test_W8003_007_independent_constant_equals_each_reports_own_location():
     ]
 
 
+# Verification placement (GUID: W8003-008, W8003-009): literal-outcome and
+# dynamic-operand cases live beside the W8003 adapter above. Later behavioral
+# implementation consumes that adapter; it must not bypass TemplateRunner or
+# reach into EqualsIsUseful internals.
 def test_W8003_008_identical_literal_fn_equals_when_tests_run_verifies_W8003_finding():
     """GUID: W8003-008."""
     # Logic obligation: prove that an Fn::Equals with identical literal operands
@@ -158,6 +168,11 @@ def test_W8003_009_non_constant_fn_equals_when_tests_run_verifies_no_false_posit
     assert True
 
 
+# Regression ownership (GUID: W8003-010): these are traceability anchors for
+# three existing suite boundaries, not new owners of those subsystems. General
+# rule isolation remains under test/unit/rules; condition semantics remain under
+# test/unit/module/conditions and test/unit/module/context/conditions; runner,
+# API, and formatter tests retain ownership of diagnostic output integration.
 def test_W8003_010_relevant_lint_suite_when_run_preserves_unrelated_rules():
     """GUID: W8003-010."""
     # Logic obligation: the corrected W8003 behavior must not change outcomes
