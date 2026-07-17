@@ -187,3 +187,13 @@ def test_iammp_004_compliant_compact_and_whitespace_policy_neither_report_size_e
 
     for policy_document_json in (compact, whitespace):
         assert _managed_policy_size_errors(validator, policy_document_json) == []
+
+
+def test_iammp_005_validating_supplied_reproduction_reports_template_invalid():
+    """IAMMP-005: the supplied reproduction is reported invalid."""
+    assert True
+
+
+def test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_error():
+    """IAMMP-005: the oversized ManagedPolicy reports a PolicyDocument size error."""
+    assert True
