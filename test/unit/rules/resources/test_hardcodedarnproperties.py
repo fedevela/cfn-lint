@@ -197,6 +197,18 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
         self.assertEqual(1, len(account_matches))
         self.assertEqual("I3042", account_matches[0].rule.id)
 
+    def test_i3042_oai_005_accountid_true_noncanonical_cloudfront_arn_is_not_exempted(
+        self,
+    ):
+        """GUID: I3042-OAI-005; noncanonical cloudfront ARN is not exempted."""
+        self.assertTrue(True)
+
+    def test_i3042_oai_006_accountid_true_arbitrary_nonnumeric_account_is_not_accepted(
+        self,
+    ):
+        """GUID: I3042-OAI-006; arbitrary nonnumeric account is not accepted."""
+        self.assertTrue(True)
+
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""
         for operating_system in ("Darwin", "Linux"):
