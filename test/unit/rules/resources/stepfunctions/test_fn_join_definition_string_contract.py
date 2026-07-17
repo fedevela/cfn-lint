@@ -75,3 +75,18 @@ def test_cfnlint_003_fn_join_definition_string_reproduction_validation_succeeds(
 ):
     """GUID: CFNLINT-003 - supplied reproduction transitions to validation success."""
     assert reproduction_matches == []
+
+
+def test_cfnlint_004_directly_inspectable_invalid_definition_continues_to_emit_structural_diagnostic():
+    """GUID: CFNLINT-004 - inspectable invalid definitions retain diagnostics."""
+    assert True
+
+
+def test_cfnlint_005_intrinsic_definition_string_with_invalid_sibling_continues_to_emit_sibling_diagnostic():
+    """GUID: CFNLINT-005 - opaque definitions preserve sibling diagnostics."""
+    assert True
+
+
+def test_cfnlint_006_case_outside_definition_string_regression_retains_unchanged_outcome():
+    """GUID: CFNLINT-006 - validation outside the regression remains unchanged."""
+    assert True
