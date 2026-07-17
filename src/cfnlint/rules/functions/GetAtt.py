@@ -126,6 +126,12 @@ class GetAtt(BaseFn):
         #     ELSE continue through the existing GetAtt result-type validation.
         # OUTPUT: when both candidates identify a declared resource and a supported
         # attribute, emit neither an operand-0 nor an operand-1 semantic finding.
+        # GEV-005 / GEV-010 architecture boundary: Validator.resolve_value remains
+        # the upstream producer of resource-name and attribute candidates;
+        # _resolve_getatt owns their semantic interpretation. Its declared-resource
+        # port is validator.context.resources, and its attribute-contract port is
+        # PROVIDER_SCHEMA_MANAGER plus Resource.get_atts. Keep both checks in this
+        # seam so dynamic and literal operands share the same finding paths.
         for resource_name, resource_name_validator, _ in validator.resolve_value(
             value[0]
         ):
