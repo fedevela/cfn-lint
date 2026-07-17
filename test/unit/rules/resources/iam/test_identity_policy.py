@@ -22,13 +22,79 @@ class TestIdentityPolicies(TestCase):
         self,
     ):
         """IAMSID-001, IAMSID-002: two duplicate Sids report at a statement."""
-        self.assertTrue(True)
+        validator = CfnTemplateValidator()
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "RepeatedSid",
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "*",
+                },
+                {
+                    "Sid": "RepeatedSid",
+                    "Effect": "Deny",
+                    "Action": "s3:DeleteObject",
+                    "Resource": "*",
+                },
+            ],
+        }
+
+        errors = list(
+            self.rule.validate(
+                validator=validator,
+                policy=policy,
+                schema={},
+                policy_type=self.rule._ROLE_INLINE_POLICY_KEYWORD,
+            )
+        )
+
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn("RepeatedSid", errors[0].message)
+        self.assertListEqual(list(errors[0].path), ["Statement", 1, "Sid"])
 
     def test_iamsid_001_iamsid_002_threeplus_concrete_duplicate_sids_error_at_statement(
         self,
     ):
         """IAMSID-001, IAMSID-002: 3+ duplicate Sids report at a statement."""
-        self.assertTrue(True)
+        validator = CfnTemplateValidator()
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "RepeatedSid",
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "*",
+                },
+                {
+                    "Sid": "RepeatedSid",
+                    "Effect": "Allow",
+                    "Action": "s3:PutObject",
+                    "Resource": "*",
+                },
+                {
+                    "Sid": "RepeatedSid",
+                    "Effect": "Deny",
+                    "Action": "s3:DeleteObject",
+                    "Resource": "*",
+                },
+            ],
+        }
+
+        errors = list(
+            self.rule.validate(
+                validator=validator,
+                policy=policy,
+                schema={},
+                policy_type=self.rule._ROLE_INLINE_POLICY_KEYWORD,
+            )
+        )
+
+        self.assertEqual(len(errors), 1, errors)
+        self.assertIn("RepeatedSid", errors[0].message)
+        self.assertListEqual(list(errors[0].path), ["Statement", 1, "Sid"])
 
     def test_object_basic(self):
         """Test Positive"""

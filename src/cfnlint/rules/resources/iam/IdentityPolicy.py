@@ -3,11 +3,18 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+from typing import Any
+
+from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.resources.iam.Policy import Policy
 
 
 class IdentityPolicy(Policy):
     """Check IAM identity Policies"""
+
+    _ROLE_INLINE_POLICY_KEYWORD = (
+        "Resources/AWS::IAM::Role/Properties/Policies/*/PolicyDocument"
+    )
 
     # IAMSID-001, IAMSID-002 architecture contract:
     # - This rule owns the check because its keyword registry selects each identity
@@ -36,7 +43,7 @@ class IdentityPolicy(Policy):
                 "Resources/AWS::IAM::Group/Properties/Policies/*/PolicyDocument",
                 "Resources/AWS::IAM::ManagedPolicy/Properties/PolicyDocument",
                 "Resources/AWS::IAM::Policy/Properties/PolicyDocument",
-                "Resources/AWS::IAM::Role/Properties/Policies/*/PolicyDocument",
+                self._ROLE_INLINE_POLICY_KEYWORD,
                 "Resources/AWS::IAM::User/Properties/Policies/*/PolicyDocument",
                 "Resources/AWS::SSO::PermissionSet/Properties/InlinePolicy",
             ],
@@ -70,3 +77,52 @@ class IdentityPolicy(Policy):
     #       CONTINUE scanning so three-or-more equal Sids remain detected as a group;
     #           any additional diagnostics are outside IAMSID-001 and IAMSID-002
     #   OUTPUT: zero or more requirement-mandated errors at relevant statements
+
+    def validate(
+        self,
+        validator: Validator,
+        policy_type: Any,
+        policy: Any,
+        schema: dict[str, Any],
+    ) -> ValidationResult:
+        """Validate the policy schema and duplicate Role inline-policy Sids."""
+        yield from super().validate(validator, policy_type, policy, schema)
+
+        if policy_type != self._ROLE_INLINE_POLICY_KEYWORD:
+            return
+
+        yield from self._iter_duplicate_concrete_sid_errors(policy)
+
+    def _iter_duplicate_concrete_sid_errors(self, policy: Any) -> ValidationResult:
+        """IAMSID-001, IAMSID-002: report repeated concrete statement Sids."""
+        if not isinstance(policy, dict):
+            return
+
+        statements = policy.get("Statement")
+        if not isinstance(statements, list):
+            return
+
+        first_statement_index_by_sid: dict[str, int] = {}
+        reported_sids: set[str] = set()
+
+        for statement_index, statement in enumerate(statements):
+            if not isinstance(statement, dict):
+                continue
+
+            sid = statement.get("Sid")
+            if not isinstance(sid, str):
+                continue
+
+            if sid not in first_statement_index_by_sid:
+                first_statement_index_by_sid[sid] = statement_index
+                continue
+
+            if sid in reported_sids:
+                continue
+
+            yield ValidationError(
+                f"Statement Sid {sid!r} is duplicated",
+                path=("Statement", statement_index, "Sid"),
+                rule=self,
+            )
+            reported_sids.add(sid)
