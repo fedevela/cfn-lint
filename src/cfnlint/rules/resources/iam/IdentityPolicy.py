@@ -9,6 +9,23 @@ from cfnlint.rules.resources.iam.Policy import Policy
 class IdentityPolicy(Policy):
     """Check IAM identity Policies"""
 
+    # ARCHITECTURE (IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005):
+    # This rule owns the managed-policy condition check because it already owns
+    # the AWS::IAM::ManagedPolicy PolicyDocument integration path.  The Policy
+    # base remains the shared schema-validation boundary; policy.json remains a
+    # shared contract for every identity-policy resource and must not acquire
+    # this managed-policy-only behavior.
+    #
+    # The implementation seam is a private validator owned by IdentityPolicy.
+    # It receives the policy instance and Validator context, uses the context's
+    # CloudFormation path to enforce the managed-policy boundary, and returns
+    # ValidationResult entries with paths relative to PolicyDocument.  Condition
+    # operator recognition stays behind that seam so namespace-bearing condition
+    # keys cannot become dependencies or extensions of the shared policy schema.
+    # IdentityPolicy.validate is the sole integration point: shared Policy
+    # validation remains upstream, and the private managed-policy check contributes
+    # findings through the same ValidationResult stream without a public API.
+
     id = "E3510"
     shortdesc = "Validate identity based IAM polices"
     description = (
