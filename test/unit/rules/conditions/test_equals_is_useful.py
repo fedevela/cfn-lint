@@ -62,7 +62,11 @@ def test_W8003_003_unequal_literal_equals_diagnostic_identifies_static_result_fa
 
 def test_W8003_004_non_constant_fn_equals_when_linted_produces_no_W8003_finding():
     """GUID: W8003-004."""
-    assert True
+    matches = _lint_conditions(
+        {"EnvironmentIsProduction": {"Fn::Equals": [{"Ref": "Environment"}, "prod"]}}
+    )
+
+    assert matches == []
 
 
 def test_W8003_005_identical_literal_equals_finding_retains_rule_identifier_W8003():
@@ -117,7 +121,9 @@ def test_W8003_007_independent_constant_equals_each_reports_own_location():
 
 def test_W8003_011_non_equals_condition_function_after_correction_receives_no_new_handling():
     """GUID: W8003-011."""
-    assert True
+    matches = _lint_conditions({"BothEnabled": {"Fn::And": [True, False]}})
+
+    assert matches == []
 
 
 @pytest.mark.parametrize(
