@@ -112,6 +112,13 @@ class FindInMap(BaseFn):
         # at this boundary.  Only values within that boundary flow downstream
         # to BaseFn.validate for shared shape and item validation.
 
+        # Ownership boundary — GUID: E1011-005, E1011-006
+        # FindInMap owns the targeted excessive-depth E1011 finding and its
+        # diagnostic envelope.  BaseFn.validate remains the downstream shared
+        # validation dependency for every non-targeted condition; dependency
+        # direction stays FindInMap -> BaseFn, and depth-specific wording must
+        # not enter that shared boundary.
+
         # Pseudocode — GUID: E1011-003, E1011-004
         # INPUT: the Fn::FindInMap value and whether Language Extensions is active.
         # DERIVE the unchanged supported boundary:

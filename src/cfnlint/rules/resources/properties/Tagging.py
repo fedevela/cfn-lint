@@ -26,6 +26,11 @@ class Tagging(CloudFormationLintRule):
         self._schema = load_resource(resources, "tagging.json")
 
     def tagging(self, validator: Validator, t: Any, instance: Any, schema: Any):
+        # Isolation boundary — GUID: E1011-007
+        # Tagging and its tagging schema remain the sole owners of E3024 finding
+        # construction.  This validation seam has no dependency on FindInMap's
+        # E1011 depth classification or message-selection concerns.
+
         # Pseudocode — GUID: E1011-007
         # INPUT: the existing E3024 tagging schema, validation context, and instance.
         # IF the schema is not taggable:
