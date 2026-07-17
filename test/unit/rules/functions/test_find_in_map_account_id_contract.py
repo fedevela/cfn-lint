@@ -111,7 +111,9 @@ def test_cfnlint_006_supplied_template_and_lint_config_complete_without_e1011():
     #     FAIL and expose those matches as the regression evidence.
     #   ELSE:
     #     PASS with the empty E1011 result as the required evidence.
-    assert True
+    matches = _e1011_matches(SHORT_FORM_TEMPLATE)
+
+    assert matches == []
 
 
 def test_cfnlint_006_validation_context_account_id_is_not_a_definitive_map_key():
@@ -131,4 +133,13 @@ def test_cfnlint_006_validation_context_account_id_is_not_a_definitive_map_key()
     # ELSE:
     #   REQUIRE the complete expression to remain deployment-dependent.
     #   REQUIRE the validation results to contain no resulting E1011 mismatch.
-    assert True
+    validator, expression = _validator_and_expression(SHORT_FORM_TEMPLATE)
+    account_sub = expression["Fn::FindInMap"][2]
+    validation_context_keys = [
+        value for value, _, _ in validator.resolve_value(account_sub)
+    ]
+
+    assert account_sub == {"Fn::Sub": "${AWS::AccountId}AccountBucketName"}
+    assert validation_context_keys == ["123456789012AccountBucketName"]
+    assert list(validator.resolve_value(expression)) == []
+    assert _e1011_matches(SHORT_FORM_TEMPLATE) == []
