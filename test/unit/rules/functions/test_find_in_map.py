@@ -12,6 +12,7 @@ from cfnlint.context import create_context_for_template
 from cfnlint.context.context import Resource, Transforms
 from cfnlint.jsonschema import CfnTemplateValidator, ValidationError
 from cfnlint.rules.functions.FindInMap import FindInMap
+from cfnlint.rules.functions._BaseFn import BaseFn
 from cfnlint.template import Template
 
 
@@ -122,33 +123,104 @@ class TestE1011002FindInMapConditionSpecificWording:
 
 
 class TestE1011003FindInMapExcessiveDepthPreservation:
-    """Placeholder verification contracts for GUID: E1011-003."""
+    """Verification contracts for GUID: E1011-003."""
 
     def test_excessive_depth_after_message_enhancement_remains_invalid_with_e1011(
         self,
+        rule,
+        context,
+        cfn,
     ):
         """An excessive-depth lookup remains invalid and detectable as E1011."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+
+        errors = list(
+            rule.fn_findinmap(
+                validator,
+                {"type": "string"},
+                {"Fn::FindInMap": ["A", "B", "C", "D"]},
+                {},
+            )
+        )
+
+        assert rule.id == "E1011"
+        assert errors == [
+            ValidationError(
+                "FindInMap supports no more than two lookup levels",
+                path=deque(["Fn::FindInMap"]),
+                schema_path=deque(["maxItems"]),
+                validator="fn_findinmap",
+            )
+        ]
 
 
 class TestE1011004FindInMapSupportedDepthPreservation:
-    """Placeholder verification contracts for GUID: E1011-004."""
+    """Verification contracts for GUID: E1011-004."""
 
     def test_supported_depth_after_message_enhancement_remains_valid_without_e1011(
         self,
+        rule,
+        context,
+        cfn,
     ):
         """A supported-depth lookup remains accepted without a new E1011 finding."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+
+        errors = list(
+            rule.fn_findinmap(
+                validator,
+                {"type": "string"},
+                {"Fn::FindInMap": ["A", "B", "C"]},
+                {},
+            )
+        )
+
+        assert errors == []
 
 
 class TestE1011003E1011004FindInMapBoundaryClassificationPreservation:
-    """Placeholder verification contract for GUIDs: E1011-003, E1011-004."""
+    """Verification contract for GUIDs: E1011-003, E1011-004."""
 
     def test_boundary_fixtures_before_and_after_enhancement_only_change_e1011_text(
         self,
+        rule,
+        context,
+        cfn,
     ):
         """Boundary classifications remain unchanged when E1011 text changes."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+        schema = {"type": "string"}
+        excessive = {"Fn::FindInMap": ["A", "B", "C", "D"]}
+        supported = {"Fn::FindInMap": ["A", "B", "C"]}
+
+        before_validator = validator.evolve(
+            context=validator.context.evolve(resources={})
+        )
+        before_excessive = list(
+            BaseFn.validate(rule, before_validator, schema, excessive, {})
+        )
+        after_excessive = list(
+            rule.fn_findinmap(validator, schema, excessive, {})
+        )
+        before_supported = list(
+            BaseFn.validate(rule, before_validator, schema, supported, {})
+        )
+        after_supported = list(rule.fn_findinmap(validator, schema, supported, {}))
+
+        assert len(before_excessive) == len(after_excessive) == 1
+        assert before_supported == after_supported == []
+        assert before_excessive[0].message == (
+            "['A', 'B', 'C', 'D'] is too long (3)"
+        )
+        assert after_excessive[0].message == (
+            "FindInMap supports no more than two lookup levels"
+        )
+        assert before_excessive[0].path == after_excessive[0].path
+        assert before_excessive[0].schema_path == after_excessive[0].schema_path
+        assert before_excessive[0].validator == after_excessive[0].validator
+        assert before_excessive[0].context == after_excessive[0].context
+        assert before_excessive[0].cause == after_excessive[0].cause
+        assert before_excessive[0].path_override == after_excessive[0].path_override
 
 
 @pytest.mark.parametrize(

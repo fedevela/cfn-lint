@@ -128,7 +128,7 @@ class FindInMap(BaseFn):
         # INVARIANT: a message-only enhancement may change the excessive-depth text,
         # but must not change either side's valid/invalid classification.
 
-        # GUID: E1011-001, E1011-002
+        # GUID: E1011-001, E1011-002, E1011-003, E1011-004
         key, value = self.key_value(instance)
         has_language_extensions = (
             validator.context.transforms.has_language_extensions_transform()
