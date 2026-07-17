@@ -9,7 +9,12 @@ from typing import Any
 
 import regex as re
 
-from cfnlint.helpers import FUNCTIONS
+from cfnlint.helpers import (
+    FUNCTION_FOR_EACH,
+    FUNCTIONS,
+    REGEX_DYN_REF,
+    REGEX_SUB_PARAMETERS,
+)
 from cfnlint.jsonschema import ValidationError
 from cfnlint.rules import CloudFormationLintRule
 
@@ -30,6 +35,37 @@ class StringLength(CloudFormationLintRule):
 
     def _fix_sub_string(self, instance):
         return re.sub(r"\${[a-zA-Z0-9._-]{1,255}}", "", instance)
+
+    def _is_max_length_determinable(self, obj: Any) -> bool:
+        """Return whether object content can be measured without estimation."""
+        if isinstance(obj, dict):
+            if len(obj) == 1:
+                key = next(iter(obj))
+                value = obj[key]
+                if key in FUNCTIONS or (
+                    isinstance(key, str) and FUNCTION_FOR_EACH.fullmatch(key)
+                ):
+                    if key == "Fn::Sub":
+                        if isinstance(value, str):
+                            return (
+                                REGEX_SUB_PARAMETERS.search(value) is None
+                                and self._is_max_length_determinable(value)
+                            )
+                        if isinstance(value, list) and value:
+                            return (
+                                isinstance(value[0], str)
+                                and REGEX_SUB_PARAMETERS.search(value[0]) is None
+                                and self._is_max_length_determinable(value[0])
+                            )
+                    return False
+            return all(
+                self._is_max_length_determinable(value) for value in obj.values()
+            )
+        if isinstance(obj, list):
+            return all(self._is_max_length_determinable(value) for value in obj)
+        if isinstance(obj, str):
+            return REGEX_DYN_REF.search(obj) is None
+        return True
 
     # pylint: disable=too-many-return-statements
     def _remove_functions(self, obj: Any) -> Any:
@@ -248,6 +284,8 @@ class StringLength(CloudFormationLintRule):
         # an estimated managed-policy size.
         # FAILURE PATH: this branch neither declares the policy deployable nor
         # suppresses errors produced by any obligation other than this size check.
+        if not self._is_max_length_determinable(instance):
+            return
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")

@@ -284,6 +284,40 @@ def test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_
 
 
 def test_iammp_007_validating_managed_policy_with_unresolved_final_compact_content_does_not_report_estimated_size_error(
+    validator,
 ):
     """IAMMP-007: unresolved final content is not rejected by a size estimate."""
-    assert True
+    policy_document = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "service:Action",
+                "Resource": {"Ref": "UnresolvedResource"},
+                "Sid": "a" * 6144,
+            }
+        ],
+    }
+    estimated_policy_document = {
+        **policy_document,
+        "Statement": [{**policy_document["Statement"][0], "Resource": ""}],
+    }
+    rule = Properties()
+    rule.child_rules["E3033"] = StringLength()
+    resource = {
+        "Type": "AWS::IAM::ManagedPolicy",
+        "Properties": {"PolicyDocument": policy_document},
+    }
+
+    assert (
+        len(json.dumps(estimated_policy_document, separators=(",", ":"))) > 6144
+    )
+
+    errors = [
+        error
+        for error in rule.validate(validator, {}, resource, {})
+        if error.rule.id == "E3033"
+        and list(error.path) == ["Properties", "PolicyDocument"]
+    ]
+
+    assert errors == []
