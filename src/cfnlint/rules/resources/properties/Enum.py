@@ -19,6 +19,16 @@ class Enum(CloudFormationLintRule):
         "W2030": None,
     }
 
+    # Architecture contract for GUIDs BATCHTYPE-001 through BATCHTYPE-005:
+    # - This rule owns the scoped literal-enum exception; schema generation and the
+    #   shared jsonschema enum keyword remain unchanged owners of all other enums.
+    # - validator.context.path.cfn_path_string is the property-identity input port;
+    #   the boundary key is the exact Batch ComputeEnvironment Type generic path.
+    # - The scoped branch must rejoin the existing enum(...) dependency for rejected
+    #   literals and every non-target property. Function traversal stays upstream of
+    #   this keyword, so this seam must not inspect or reinterpret intrinsic objects.
+    # - The contract-test module is the downstream verification seam; this class gains
+    #   no public helper, adapter, configuration, or cross-rule dependency.
     def enum(self, validator, enums, instance, schema):
         # Scoped Batch compute-environment Type pseudocode contract:
         #
