@@ -67,6 +67,15 @@ class StateMachineDefinition(CfnLintJsonSchema):
             if not value:
                 continue
 
+            # ARCHITECTURE CONTRACT: CFNLINT-001, CFNLINT-002, CFNLINT-003
+            # Ownership: intrinsic validators own Fn::Join shape and result typing;
+            # this rule owns ASL structure only for directly inspectable definitions.
+            # Boundary: classify DefinitionString before constructing step_validator,
+            # parsing JSON, or entering the ASL schema validation loop below.
+            # Dependency direction: this rule may consume the validator's intrinsic
+            # classification, but ASL validation must not inspect generated output.
+            # Integration seam: an opaque generated string exits at this point with
+            # intrinsic diagnostics preserved and no structural diagnostics added.
             # PSEUDOCODE CONTRACT: CFNLINT-001, CFNLINT-002, CFNLINT-003
             # INPUT: the selected definition key/value and its template context.
             # IF key is DefinitionString AND value is an Fn::Join expression:
