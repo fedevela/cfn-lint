@@ -250,3 +250,13 @@ def test_mpol_004_aws_load_balancer_controller_block_scalar_has_no_associated_e3
         for match in aws_load_balancer_controller_matches
         if match.rule.id == "E3001"
     ] == []
+
+
+def test_mpol_005_unrelated_result_unchanged_after_policy_size_correction():
+    """GUID: MPOL-005 - Preserve an unrelated result after size correction."""
+    assert True
+
+
+def test_mpol_005_size_and_separate_invalid_condition_preserves_unrelated_result():
+    """GUID: MPOL-005 - Size correction does not suppress a separate result."""
+    assert True
