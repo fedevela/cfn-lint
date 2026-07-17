@@ -62,7 +62,7 @@ class StringLength(CloudFormationLintRule):
 
         return obj
 
-    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004/IAMMP-005/IAMMP-006
+    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004/IAMMP-005/IAMMP-006/IAMMP-007
     # architecture boundary:
     # - the managed-policy schema owns applicability and the 6,144 limit;
     # - template parsing owns removal of source-format whitespace by producing
@@ -74,12 +74,21 @@ class StringLength(CloudFormationLintRule):
     #   exact-limit values produce no error; only greater values do;
     # - maxLength owns keyword dispatch and yields into validator traversal, which
     #   retains the current PolicyDocument path when an error exists;
+    # - for IAMMP-007, this rule owns a private determinability seam between
+    #   keyword dispatch and compact serialization. Its closed internal contract
+    #   distinguishes exact normalized content from unresolved content without
+    #   exposing a ManagedPolicy-specific API;
+    # - _non_string_max_length is the exact-content consumer and must receive no
+    #   estimated representation. The unresolved outcome exits only this E3033
+    #   size branch, leaving validator traversal and other rules intact;
     # - for IAMMP-005, Properties owns the integration seam from that yielded
     #   E3033 error into the template-level validation result, whose non-empty
     #   error set reports the supplied reproduction invalid without mutating it.
-    # Dependency direction is parsed object + schema -> maxLength -> this helper
-    # -> ValidationError -> Properties/template result; the generic rule has no
-    # dependency on ManagedPolicy or on the supplied reproduction fixture.
+    # Dependency direction is parsed object + schema -> maxLength -> private
+    # determinability seam -> exact-content helper -> ValidationError ->
+    # Properties/template result. An unresolved outcome returns directly from the
+    # size branch; the generic rule has no dependency on ManagedPolicy or on the
+    # supplied reproduction fixture.
     def _non_string_max_length(self, instance, mL):
         # IAMMP-004 verification:
         # test_iammp_004_whitespace_only_policy_changes_preserve_size_validation_result
