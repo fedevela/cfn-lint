@@ -15,9 +15,12 @@ from cfnlint.rules.jsonschema.CfnLintKeyword import CfnLintKeyword
 class SnapStartSupported(CfnLintKeyword):
     """Check if Lambda function using SnapStart has the correct runtimes"""
 
-    # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008: E2530 owns the private
-    # runtime/region capability boundary. Implementations populate this contract
-    # from AWS regional-availability data; callers must not supply capability data.
+    # SNAPSTART-001, SNAPSTART-002, SNAPSTART-003, SNAPSTART-004, SNAPSTART-008:
+    # E2530 owns the private runtime/region capability boundary. Exact runtime keys
+    # are the opt-in contract; adding one key must not widen neighboring runtimes.
+    # Implementations populate this contract from AWS regional-availability data;
+    # callers must not supply capability data. Runtimes absent from this mapping
+    # remain owned by the legacy rejection boundary below.
     _runtime_region_support: Mapping[str, AbstractSet[str]] = {
         "python3.12": frozenset(
             {
@@ -140,6 +143,11 @@ class SnapStartSupported(CfnLintKeyword):
             #    supported Java runtime nor an exact capability-map match.
             # FAILURE/HANDOFF: unresolved non-string runtimes stop before string-only
             # checks; all existing diagnostic messages and paths remain unchanged.
+
+            # SNAPSTART-003, SNAPSTART-004 architecture seam: this legacy branch
+            # owns unmapped runtime and region rejection. The capability mapping
+            # may depend on this fallback; this fallback must not depend on or infer
+            # membership from capability-map keys.
 
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
