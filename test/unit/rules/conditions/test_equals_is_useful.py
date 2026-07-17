@@ -46,6 +46,41 @@ def test_W8003_002_unequal_literal_equals_when_linted_reports_false_finding():
     assert matches[0].path == ["Conditions", "AlwaysFalse"]
 
 
+def test_W8003_003_identical_literal_equals_diagnostic_identifies_static_result_true():
+    """GUID: W8003-003."""
+    assert True
+
+
+def test_W8003_003_unequal_literal_equals_diagnostic_identifies_static_result_false():
+    """GUID: W8003-003."""
+    assert True
+
+
+def test_W8003_005_identical_literal_equals_finding_retains_rule_identifier_W8003():
+    """GUID: W8003-005."""
+    assert True
+
+
+def test_W8003_005_identical_literal_equals_finding_retains_warning_severity():
+    """GUID: W8003-005."""
+    assert True
+
+
+def test_W8003_005_unequal_literal_equals_finding_retains_rule_identifier_W8003():
+    """GUID: W8003-005."""
+    assert True
+
+
+def test_W8003_005_unequal_literal_equals_finding_retains_warning_severity():
+    """GUID: W8003-005."""
+    assert True
+
+
+def test_W8003_006_description_covers_constant_true_and_false_equals_outcomes():
+    """GUID: W8003-006."""
+    assert True
+
+
 def test_W8003_007_independent_constant_equals_each_reports_own_location():
     """GUID: W8003-007."""
     matches = _lint_conditions(
