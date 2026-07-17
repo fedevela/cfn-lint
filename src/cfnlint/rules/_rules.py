@@ -145,6 +145,23 @@ class Rules(TypedRules):
                 self.run_check(rule.matchall, filename, rule_id, config, filename, cfn),
             )
 
+        # IAMMP-009 architecture boundary:
+        # - this runner owns template-resource enumeration, establishes a fresh
+        #   logical-resource path for each item, and integrates every returned
+        #   match into one result stream without retaining per-resource state;
+        # - matchall_resource_properties is the per-resource integration port:
+        #   each rule receives only the current resource's type, Properties,
+        #   path, and template context;
+        # - Properties/provider-schema traversal owns applicability of the
+        #   ManagedPolicy PolicyDocument maxLength constraint, while E3033 owns
+        #   only the current document's size decision and relative diagnostic;
+        # - the existing IAMMP-009 tests remain the verification boundary for
+        #   complete oversized-path attribution and compliant-path exclusion.
+        # Dependency direction is template resources -> runner enumeration ->
+        # per-resource rule port -> Properties/schema -> E3033, then back through
+        # path-preserving match integration. No downstream size result may feed
+        # resource selection, initialize another resource, or introduce an
+        # aggregate-policy dependency.
         # IAMMP-009 verification:
         # test_iammp_009_validating_multiple_managed_policies_identifies_every_oversized_policy_document
         # test_iammp_009_validating_multiple_managed_policies_does_not_identify_compliant_policy_documents_as_oversized
