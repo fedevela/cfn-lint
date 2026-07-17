@@ -40,6 +40,37 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
             return
 
 
+def _is_deployment_dependent_account_id_sub(
+    validator: Validator, instance: Any
+) -> bool:
+    """Return whether a Sub depends on the deployment account ID."""
+    if not validator.context.transforms.has_language_extensions_transform():
+        return False
+
+    key, value = is_function(instance)
+    if key != "Fn::Sub" or "AWS::AccountId" in validator.context.ref_values:
+        return False
+
+    parameters: dict[str, Any] = {}
+    if validator.is_type(value, "string"):
+        string = value
+    elif (
+        validator.is_type(value, "array")
+        and len(value) == 2
+        and validator.is_type(value[0], "string")
+        and validator.is_type(value[1], "object")
+    ):
+        string = value[0]
+        parameters = value[1]
+    else:
+        return False
+
+    return "AWS::AccountId" not in parameters and any(
+        parameter.strip() == "AWS::AccountId"
+        for parameter in REGEX_SUB_PARAMETERS.findall(string)
+    )
+
+
 def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     if not validator.is_type(instance, "array"):
         return
@@ -227,6 +258,10 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             # ON malformed substitution or unrelated resolution failure:
             #   RETAIN the existing validation error flow; do not suppress E1011 and
             #   do not require any template rewrite.
+            if _is_deployment_dependent_account_id_sub(validator, instance[2]):
+                found_valid_combination = True
+                continue
+
             for second_level_key, second_v, err in validator.resolve_value(instance[2]):
                 if validator.is_type(second_level_key, "integer"):
                     second_level_key = str(second_level_key)
