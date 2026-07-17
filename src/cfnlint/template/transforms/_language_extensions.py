@@ -295,11 +295,13 @@ class _FnFindInMapDefaultValue(_ForEachValue):
         return self._value.value(cfn, params, only_params)
 
 
-# Architecture ownership — GUID: CFNLINT-001, CFNLINT-002, CFNLINT-009
-# This private value adapter owns Fn::FindInMap resolution, including DefaultValue,
-# and returns the resolved value through _ForEachValue. It must remain independent
-# of loop orchestration and collection consumption so equivalent intrinsic shapes
-# follow the same path regardless of template-specific names or resource types.
+# Architecture ownership — GUID: CFNLINT-001, CFNLINT-002, CFNLINT-005,
+# CFNLINT-006, CFNLINT-009
+# This private value adapter owns Fn::FindInMap selection and is the sole boundary
+# that may choose between an explicit mapping value and _FnFindInMapDefaultValue.
+# Enclosing lookups and loop orchestration depend only on the resolved
+# _ForEachValue.value() result, keeping precedence independent of template-specific
+# names, resource types, and consumers.
 class _ForEachValueFnFindInMap(_ForEachValue):
     def __init__(self, _hash: str, obj: Any) -> None:
         super().__init__(_hash)
