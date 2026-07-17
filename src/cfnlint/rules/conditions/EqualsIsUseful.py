@@ -25,6 +25,24 @@ class EqualsIsUseful(CloudFormationLintRule):
     tags = ["functions", "equals"]
 
     def equals_is_useful(self, validator, s, instance, schema):
+        # PSEUDOCODE — W8003-001 / W8003-002
+        # Verification loci:
+        # - test_W8003_001_identical_literal_equals_when_linted_reports_true_finding
+        # - test_W8003_002_unequal_literal_equals_when_linted_reports_false_finding
+        # PROCEDURE evaluate_literal_equals(instance):
+        #   INPUT the two operands of the current Fn::Equals expression.
+        #   IF instance is not a two-element operand list:
+        #     RETURN without a W8003 finding; structural validation owns that failure.
+        #   IF either operand cannot be proven to be a literal:
+        #     RETURN without a W8003 finding; the equality is not statically constant.
+        #   COMPARE the two literal operands using Fn::Equals comparison semantics.
+        #   IF the operands compare equal:
+        #     SET constant_result to true.  [W8003-001]
+        #   ELSE:
+        #     SET constant_result to false. [W8003-002]
+        #   EMIT one W8003 finding for the current expression and constant_result.
+        #   IF comparison cannot be completed safely:
+        #     RETURN without a finding rather than claiming a constant result.
         if not validator.is_type(instance, "array"):
             return
 

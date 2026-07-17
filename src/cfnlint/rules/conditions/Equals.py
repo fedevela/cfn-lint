@@ -34,6 +34,17 @@ class Equals(BaseFn):
             yield from iter(errs)
             return
 
+        # PSEUDOCODE — W8003-007
+        # Verification locus:
+        # - test_W8003_007_independent_constant_equals_each_reports_own_location
+        # FOR EACH Fn::Equals expression reached by template traversal:
+        #   PRESERVE the validator context for this expression's source location.
+        #   HAND OFF its operand list to W8003 independently of every other expression.
+        #   FOR EACH finding returned by W8003:
+        #     YIELD the finding through this invocation so its current location is retained.
+        #   DO NOT aggregate or deduplicate findings from separate expressions.
+        # IF W8003 is disabled or unavailable:
+        #   RETURN without a W8003 finding and leave structural validation complete.
         child_rule = self.child_rules.get("W8003")
         if child_rule and hasattr(child_rule, "equals_is_useful"):
             yield from child_rule.equals_is_useful(
