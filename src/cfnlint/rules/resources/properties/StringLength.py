@@ -121,7 +121,7 @@ class StringLength(CloudFormationLintRule):
         # depend only on that path contract, the existing non-string
         # normalization/serialization seam, and the existing ValidationError
         # channel. It must not introduce an IAM-rule dependency or a new API.
-        # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003
+        # PSEUDOCODE: GUID MPOL-001, MPOL-002, MPOL-003, MPOL-004
         # INPUT: the current validation locus, PolicyDocument value, and maxLength.
         # IF the locus is AWS::IAM::ManagedPolicy.Properties.PolicyDocument:
         #   NORMALIZE the document through the existing intrinsic-function and
@@ -132,6 +132,10 @@ class StringLength(CloudFormationLintRule):
         #   to the same measured_length and the same validation outcome.)       [MPOL-001]
         #   IF measured_length <= 6144 (including below and exact boundary):
         #     RETURN without a size-related E3033.                              [MPOL-002]
+        #     IF the input is the supplied AWS Load Balancer Controller JSON
+        #     policy represented by a YAML block scalar:
+        #       PRESERVE the policy value and formatting; HAND OFF no size error
+        #       to the enclosing validation flow.                              [MPOL-004]
         #   ELSE (measured_length > 6144):
         #     YIELD the existing maxLength ValidationError for E3033 and RETURN.[MPOL-003]
         # ELSE:

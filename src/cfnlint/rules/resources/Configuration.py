@@ -59,6 +59,17 @@ class Configuration(CfnLintJsonSchema):
     def validate(
         self, validator: Validator, keywords: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # PSEUDOCODE: GUID MPOL-004
+        # INPUT: the parsed Resources map containing the supplied
+        # AWS::IAM::ManagedPolicy reproduction.
+        # VALIDATE each resource envelope through the existing E3001 resource
+        # configuration schema; TREAT the value below Properties as opaque here.
+        # IF Type, Properties, and the other resource-level attributes satisfy
+        # that schema:
+        #   YIELD no E3001; in particular, do not reinterpret the block-scalar
+        #   PolicyDocument or translate an absent size-related E3033 into E3001.
+        # ELSE:
+        #   YIELD the existing E3001 for each unrelated configuration failure.
 
         cfn_validator = self.extend_validator(
             validator=validator,
