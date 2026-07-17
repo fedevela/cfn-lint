@@ -145,7 +145,7 @@ class StateMachineDefinition(CfnLintJsonSchema):
                 schema=self.schema,
             )
 
-        # GEV-001, GEV-002, GEV-003, GEV-004 contract -- declared Task
+        # GEV-001, GEV-002, GEV-003, GEV-004, GEV-005 contract -- declared Task
         # Resource substitution gate:
         #
         # OWNERSHIP / DEPENDENCY:
@@ -171,6 +171,16 @@ class StateMachineDefinition(CfnLintJsonSchema):
         #           apply the concrete ARN pattern normally and preserve E3601
         #   ELSE:
         #       apply the existing Resource validation without an exemption
+        #
+        # GEV-005 -- malformed concrete Task.Resource preservation:
+        #   concrete_resource := a Resource that is not exactly a declared
+        #       `${Name}` placeholder under the decision flow above
+        #   IF concrete_resource fails the existing ARN pattern:
+        #       preserve the pattern ValidationError for that Resource occurrence
+        #       attach this rule when required by the existing error handoff
+        #       yield the cleaned E3601 error to the caller
+        #   IF local_substitutions contains unrelated entries:
+        #       do not change concrete_resource classification or error flow
         #
         # ISOLATION / FAILURE RULES:
         #   never consult or merge substitutions from another state machine
