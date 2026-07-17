@@ -40,7 +40,7 @@ class Used(CloudFormationLintRule):
                     if isinstance(condtree[-1], (str)):
                         ref_conditions.append(condtree[-1])
 
-            # ARCHITECTURE [CFNLINT-001, CFNLINT-006, CFNLINT-007]:
+            # ARCHITECTURE [CFNLINT-001, CFNLINT-002, CFNLINT-006, CFNLINT-007]:
             # `Template.get_resources()` is the integration seam between language
             # expansion and W8001.  This rule owns condition-use classification,
             # but depends only on the transformed resource view: `Condition`
