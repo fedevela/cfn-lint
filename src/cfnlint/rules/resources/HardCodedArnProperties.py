@@ -164,7 +164,8 @@ class HardCodedArnProperties(CloudFormationLintRule):
             # RuleMatch reporting seam.  Keep this policy local to I3042 so neither
             # ARN extraction nor the canonical-OAI exception becomes a general
             # account allowlist, and keep partition/region validation independent.
-            # PSEUDOCODE [I3042-OAI-003, I3042-OAI-004]
+            # PSEUDOCODE [I3042-OAI-003, I3042-OAI-004, I3042-OAI-005,
+            # I3042-OAI-006]
             # INPUT: accountId configuration, the parsed account segment in
             # candidate[2], the canonical-OAI decision in candidate[3], source
             # path, and the accumulated matches.
@@ -180,6 +181,12 @@ class HardCodedArnProperties(CloudFormationLintRule):
             #   account form, so append the account-ID finding at the source path.
             #   I3042-OAI-004: a pseudo parameter that is not valid in the account
             #   segment is incorrectly placed, so append that same finding.
+            #   I3042-OAI-005: when the account is the literal cloudfront, consult
+            #   only the canonical-OAI decision; if false, do not exempt it and
+            #   append the account-ID finding through this rejected branch.
+            #   I3042-OAI-006: when the account is any other nonnumeric literal,
+            #   accept it only if it is an explicitly supported account form;
+            #   otherwise append the account-ID finding through this same branch.
             # OUTPUT: exactly one account-ID finding for this rejected candidate;
             # retain earlier findings and continue evaluating remaining candidates.
             # FAILURE PATH: an unrecognized account form fails closed through the
