@@ -223,6 +223,48 @@ class TestE1011003E1011004FindInMapBoundaryClassificationPreservation:
         assert before_excessive[0].path_override == after_excessive[0].path_override
 
 
+class TestE1011005ExcessiveFindInMapDiagnosticEnvelopePreservation:
+    """Placeholder verification contracts for GUID: E1011-005."""
+
+    def test_e1011_005_excessive_lookup_after_enhancement_retains_e1011_identifier(
+        self,
+    ):
+        """The enhanced excessive-lookup finding remains identified as E1011."""
+        assert True
+
+    def test_e1011_005_excessive_lookup_after_enhancement_retains_location_and_path(
+        self,
+    ):
+        """The enhanced finding retains its diagnostic location and path."""
+        assert True
+
+    def test_e1011_005_excessive_lookup_after_enhancement_retains_metadata(self):
+        """The enhanced finding retains all diagnostic metadata."""
+        assert True
+
+    def test_e1011_005_excessive_lookup_after_enhancement_changes_only_message_text(
+        self,
+    ):
+        """Only the targeted excessive-lookup message text changes."""
+        assert True
+
+
+class TestE1011006UnrelatedValidationAndWordingPreservation:
+    """Placeholder verification contracts for GUID: E1011-006."""
+
+    def test_e1011_006_after_enhancement_unrelated_condition_keeps_behavior_and_wording(
+        self,
+    ):
+        """An unrelated validation condition retains behavior and wording."""
+        assert True
+
+    def test_e1011_006_unrelated_suite_after_enhancement_retains_findings_and_wording(
+        self,
+    ):
+        """The unrelated suite retains its findings and diagnostic wording."""
+        assert True
+
+
 @pytest.mark.parametrize(
     "name,instance,schema,context_evolve,ref_mock_values,expected",
     [

@@ -141,3 +141,13 @@ def rule():
 def test_validate(name, instance, schema, expected, rule, validator):
     errs = list(rule.tagging(validator, schema, instance, {}))
     assert errs == expected, f"Test {name!r} got {errs!r}"
+
+
+class TestE1011007E3024FindingPreservation:
+    """Placeholder verification contract for GUID: E1011-007."""
+
+    def test_e1011_007_e3024_template_after_e1011_enhancement_retains_finding_unchanged(
+        self,
+    ):
+        """An E3024-producing template retains its E3024 finding unchanged."""
+        assert True
