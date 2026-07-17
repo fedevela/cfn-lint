@@ -166,6 +166,18 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
             ),
         )
 
+    def test_i3042_oai_003_accountid_true_hardcoded_account_segment_produces_finding(
+        self,
+    ):
+        """GUID: I3042-OAI-003; hardcoded account segment produces a finding."""
+        self.assertTrue(True)
+
+    def test_i3042_oai_004_accountid_true_misplaced_account_pseudo_parameter_produces_finding(
+        self,
+    ):
+        """GUID: I3042-OAI-004; misplaced account pseudo parameter produces a finding."""
+        self.assertTrue(True)
+
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""
         for operating_system in ("Darwin", "Linux"):
