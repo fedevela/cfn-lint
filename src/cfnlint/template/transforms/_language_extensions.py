@@ -123,6 +123,9 @@ class _Transform:
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
                 if re.match(FUNCTION_FOR_EACH, k):
+                    # ARCHITECTURE [FOREACH-003, FOREACH-004, FOREACH-005]:
+                    # This tree-walk boundary alone owns loop materialization and
+                    # removal; sibling traversal remains part of the general walk.
                     # PSEUDOCODE [FOREACH-003, FOREACH-004, FOREACH-005]:
                     # - Resolve the collection before expanding the loop output.
                     # - FOR EACH resolved value, recursively expand the output and
@@ -508,6 +511,9 @@ class _ForEachValueRef(_ForEachValue):
         raise _ResolveError("Can't resolve Fn::Ref", self._obj)
 
 
+# ARCHITECTURE [FOREACH-001, FOREACH-002]: This private boundary owns the
+# distinction between a declared collection (including an empty list) and an
+# intrinsic collection expression. values() is its normalized iterator contract.
 class _ForEachCollection:
     def __init__(self, obj: Any) -> None:
         self._collection: list[_ForEachValue] | None = None
@@ -590,6 +596,9 @@ class _ForEachOutput:
         return self._output
 
 
+# ARCHITECTURE [FOREACH-001, FOREACH-002, FOREACH-003, FOREACH-004]: This
+# private adapter is the only seam from collection resolution into _Transform's
+# materialization boundary; it exposes values without owning generated resources.
 class _ForEach:
     def __init__(
         self, key: str, value: Any, collection_cache: MutableMapping[str, str]
