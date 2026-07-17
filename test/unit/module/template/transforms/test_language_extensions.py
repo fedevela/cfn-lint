@@ -993,7 +993,7 @@ class TestForEachEmptyAndMappingSelectionRegressionContract(TestCase):
     }
 
     # FOREACH-011 output contract consumed by the expansion, substitution, and
-    # validation placeholders below. This stays test-local and creates no API.
+    # validation assertions below. This stays test-local and creates no API.
     _EXPECTED_NON_EMPTY_IDENTIFIER = "selected"
     _EXPECTED_NON_EMPTY_RESOURCE = {
         "LoopBucketselected": {
@@ -1005,66 +1005,145 @@ class TestForEachEmptyAndMappingSelectionRegressionContract(TestCase):
         }
     }
 
+    @classmethod
+    def _template(cls, collection):
+        return convert_dict(
+            {
+                "Transform": "AWS::LanguageExtensions",
+                "Mappings": {
+                    cls._MAPPING_NAME: deepcopy(cls._MAPPING_SELECTIONS),
+                },
+                "Resources": {
+                    "IndependentResource": {"Type": "AWS::S3::Bucket"},
+                    "Fn::ForEach::Buckets": [
+                        "Identifier",
+                        collection,
+                        {
+                            "LoopBucket${Identifier}": {
+                                "Type": "AWS::S3::Bucket",
+                                "Properties": {
+                                    "BucketName": {
+                                        "Fn::Sub": "foreach-${Identifier}"
+                                    },
+                                    "Tags": [
+                                        {
+                                            "Key": "Identifier",
+                                            "Value": {"Ref": "Identifier"},
+                                        }
+                                    ],
+                                },
+                            }
+                        },
+                    ],
+                },
+            }
+        )
+
+    @classmethod
+    def _mapping_template(cls, selection):
+        template = cls._template(
+            {
+                "Fn::FindInMap": [
+                    cls._MAPPING_NAME,
+                    {"Ref": "CollectionSelection"},
+                    cls._MAPPING_ATTRIBUTE,
+                ]
+            }
+        )
+        template["Parameters"] = {
+            "CollectionSelection": {
+                "Type": "String",
+                "AllowedValues": list(cls._MAPPING_SELECTIONS),
+                "Default": selection,
+            }
+        }
+        return template
+
+    @staticmethod
+    def _transform(template):
+        cfn = Template(filename="", template=template, regions=["us-east-1"])
+        return language_extension(cfn)
+
+    @staticmethod
+    def _lint(template):
+        rules = Rules(
+            {
+                "E0001": TransformError(),
+                "E3006": ResourceType(),
+            }
+        )
+        runner = TemplateRunner(
+            filename="",
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        )
+        return list(runner.run())
+
     def test_foreach_010_direct_empty_collection_transforms_lints_and_produces_zero_loop_resources(
         self,
     ):
         """FOREACH-010: Direct empty collections lint with zero loop resources."""
-        # PSEUDOCODE FOREACH-010 / direct-empty logic obligation:
-        # GIVEN a LanguageExtensions template whose Fn::ForEach collection is []
-        #   AND whose Resources contain one independent, non-loop resource
-        # WHEN the template is transformed and the original template is linted
-        # IF either path reports an Fn::ForEach resolution error, FAIL
-        # ELSE REQUIRE the transformed Resources to equal the independent baseline
-        #   so the number of loop-derived resources is deterministically zero
-        self.assertTrue(True)
+        template = self._template(self._DIRECT_EMPTY_COLLECTION)
+        matches, transformed = self._transform(template)
+
+        self.assertListEqual(matches, [])
+        self.assertIsNotNone(transformed)
+        self.assertDictEqual(
+            transformed["Resources"],
+            {"IndependentResource": {"Type": "AWS::S3::Bucket"}},
+        )
+        self.assertListEqual(self._lint(template), [])
 
     def test_foreach_010_findinmap_selected_empty_collection_transforms_lints_and_produces_zero_loop_resources(
         self,
     ):
         """FOREACH-010: Selected empty mappings lint with zero loop resources."""
-        # PSEUDOCODE FOREACH-010 / mapping-selected-empty logic obligation:
-        # GIVEN a mapping-based collection fixture with empty and non-empty entries
-        #   AND selection values that make Fn::FindInMap resolve the empty entry
-        # WHEN that fixture is transformed and linted with the empty selection
-        # IF collection lookup is unresolved or emits an Fn::ForEach error, FAIL
-        # ELSE REQUIRE the transform to preserve only independent Resources
-        #   and REQUIRE zero logical IDs derived from the loop body
-        self.assertTrue(True)
+        template = self._mapping_template("Empty")
+        matches, transformed = self._transform(template)
+
+        self.assertListEqual(matches, [])
+        self.assertIsNotNone(transformed)
+        self.assertDictEqual(
+            transformed["Resources"],
+            {"IndependentResource": {"Type": "AWS::S3::Bucket"}},
+        )
+        self.assertListEqual(self._lint(template), [])
 
     def test_foreach_011_non_empty_mapping_selection_expands_expected_resource(
         self,
     ):
         """FOREACH-011: A non-empty mapping selection expands its resource."""
-        # PSEUDOCODE FOREACH-011 / non-empty expansion logic obligation:
-        # GIVEN the same mapping-based fixture used by the empty-selection case
-        #   AND selection values that resolve one known collection identifier
-        # WHEN the LanguageExtensions transform consumes the resolved collection
-        # FOR EACH resolved identifier, expand exactly one copy of the loop body
-        # IF no copy or more than one copy is produced for that identifier, FAIL
-        # ELSE REQUIRE the expected loop-derived resource to be present
-        self.assertTrue(True)
+        matches, transformed = self._transform(self._mapping_template("NonEmpty"))
+
+        self.assertListEqual(matches, [])
+        self.assertIsNotNone(transformed)
+        self.assertSetEqual(
+            set(transformed["Resources"]),
+            {"IndependentResource", *self._EXPECTED_NON_EMPTY_RESOURCE},
+        )
 
     def test_foreach_011_expanded_resource_has_substituted_logical_id_and_properties(
         self,
     ):
         """FOREACH-011: Expansion substitutes the logical ID and properties."""
-        # PSEUDOCODE FOREACH-011 / substitution logic obligation:
-        # GIVEN the resource expanded from the selected non-empty identifier
-        # DERIVE its expected logical ID and property values from that identifier
-        # REQUIRE the transformed Resources key to equal the derived logical ID
-        # REQUIRE every identifier-bearing property to equal its derived value
-        # IF a placeholder remains or any derived value differs, FAIL
-        self.assertTrue(True)
+        _, transformed = self._transform(self._mapping_template("NonEmpty"))
+
+        expected_logical_id = (
+            f"LoopBucket{self._EXPECTED_NON_EMPTY_IDENTIFIER}"
+        )
+        self.assertIn(expected_logical_id, transformed["Resources"])
+        self.assertDictEqual(
+            transformed["Resources"][expected_logical_id],
+            self._EXPECTED_NON_EMPTY_RESOURCE[expected_logical_id],
+        )
 
     def test_foreach_011_expanded_resource_validates_successfully(self):
         """FOREACH-011: The resource from a non-empty selection validates."""
-        # PSEUDOCODE FOREACH-011 / validation handoff logic obligation:
-        # GIVEN the mapping fixture configured for the non-empty selection
-        # WHEN the fixture enters the normal transform-and-lint validation path
-        # PASS the expanded resource to the configured resource validators
-        # IF transform resolution or resource validation emits a match, FAIL
-        # ELSE COMPLETE with no validation matches for the expanded resource
-        self.assertTrue(True)
+        self.assertListEqual(
+            self._lint(self._mapping_template("NonEmpty")),
+            [],
+        )
 
 
 class TestTransformValues(TestCase):
