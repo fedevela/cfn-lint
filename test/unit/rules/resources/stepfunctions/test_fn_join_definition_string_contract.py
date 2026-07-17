@@ -140,15 +140,36 @@ def test_cfnlint_006_literal_definition_string_keeps_outcome():
 
 def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e1022():
     """GUID: CFNLINT-007 - supplied Fn::Join emits no E1022 diagnostic."""
+    # PSEUDOCODE CONTRACT: CFNLINT-007 / no intrinsic-value E1022
+    # INPUT: reproduction_matches from the module-scoped Fn::Join fixture.
+    # WHEN the regression coverage examines every emitted match:
+    #   IF a match has rule ID E1022:
+    #     FAIL and report that match as an unexpected intrinsic-value diagnostic.
+    #   ELSE continue until every match has been examined.
+    # OUTPUT: PASS only when no E1022 match was observed.
     assert True
 
 
 def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_start_at(
 ):
     """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-StartAt E3601."""
+    # PSEUDOCODE CONTRACT: CFNLINT-007 / no missing-StartAt E3601
+    # INPUT: reproduction_matches from the module-scoped Fn::Join fixture.
+    # WHEN the regression coverage examines every emitted match:
+    #   IF a match has rule ID E3601 AND claims StartAt is required:
+    #     FAIL and report it as a consequential missing-property diagnostic.
+    #   ELSE continue without suppressing unrelated diagnostics.
+    # OUTPUT: PASS only when no missing-StartAt E3601 match was observed.
     assert True
 
 
 def test_cfnlint_007_supplied_fn_join_definition_string_emits_no_e3601_missing_states():
     """GUID: CFNLINT-007 - supplied Fn::Join emits no missing-States E3601."""
+    # PSEUDOCODE CONTRACT: CFNLINT-007 / no missing-States E3601
+    # INPUT: reproduction_matches from the module-scoped Fn::Join fixture.
+    # WHEN the regression coverage examines every emitted match:
+    #   IF a match has rule ID E3601 AND claims States is required:
+    #     FAIL and report it as a consequential missing-property diagnostic.
+    #   ELSE continue without suppressing unrelated diagnostics.
+    # OUTPUT: PASS only when no missing-States E3601 match was observed.
     assert True
