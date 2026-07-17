@@ -160,52 +160,50 @@ class TestManagedPolicyConditionTraceability:
         self,
     ):
         """IAMCOND-006: identical lint inputs produce deterministic findings."""
-        # PSEUDOCODE (IAMCOND-006) — deterministic repeated validation:
-        # DEFINE one managed-policy template containing the reproduced malformed
-        # direct-key Condition and DEFINE one applicable check selection.
-        # EXECUTE linting with that unchanged template and check selection to
-        # CAPTURE the baseline condition-validation findings.
-        # REPEAT the same lint operation a fixed number of times without mutating
-        # either input; for each execution, CAPTURE findings in emitted order,
-        # including each finding's rule identity, message, and location.
-        # IF any repeated capture differs from the baseline, FAIL with the
-        # execution index and both finding sequences; OTHERWISE PASS after every
-        # repeated execution matches exactly.
-        # IF lint setup or execution fails, PROPAGATE that failure rather than
-        # treating an absent finding sequence as a deterministic result.
-        assert True
+        condition = {"servicecatalog:accountLevel": "account"}
+
+        def finding_details():
+            return [
+                (error.rule.id, error.message, list(error.path))
+                for error in _condition_operator_errors(_validate(condition))
+            ]
+
+        baseline = finding_details()
+
+        assert len(baseline) == 1
+        for _ in range(5):
+            assert finding_details() == baseline
 
     def test_iamcond_008_malformed_direct_key_condition_produces_missing_or_invalid_operator_finding(
         self,
     ):
         """IAMCOND-008: the reproduced malformed condition produces a finding."""
-        # PSEUDOCODE (IAMCOND-008) — malformed regression branch:
-        # ARRANGE a managed-policy template whose Condition maps the reproduced
-        # servicecatalog:accountLevel key directly to "account", and SELECT the
-        # applicable identity-policy check.
-        # EXECUTE linting and FILTER its results to the missing-or-invalid
-        # condition-operator finding owned by that check.
-        # IF exactly one matching finding identifies the malformed direct child,
-        # PASS this branch; IF none exists or the finding is ambiguous/duplicated,
-        # FAIL while retaining the complete lint result for diagnosis.
-        # PROPAGATE template-loading or lint-execution failures to the existing
-        # test runner; never reinterpret them as the expected operator finding.
-        assert True
+        errors = _condition_operator_errors(
+            _validate({"servicecatalog:accountLevel": "account"})
+        )
+
+        assert len(errors) == 1
+        assert "missing or invalid" in errors[0].message.lower()
+        assert errors[0].rule.id == "E3510"
+        assert list(errors[0].path) == [
+            "Statement",
+            0,
+            "Condition",
+            "servicecatalog:accountLevel",
+        ]
 
     def test_iamcond_008_valid_operator_key_value_condition_produces_no_missing_or_invalid_operator_finding(
         self,
     ):
         """IAMCOND-008: a valid operator-key-value condition avoids the finding."""
-        # PSEUDOCODE (IAMCOND-008) — valid control and suite-preservation branch:
-        # ARRANGE the same managed-policy template and applicable check selection
-        # as the malformed branch, but NEST the condition key/value beneath the
-        # recognized StringEquals operator.
-        # EXECUTE linting and FILTER results by the same missing-or-invalid
-        # condition-operator identity used for the malformed branch.
-        # IF any matching finding exists, FAIL with the complete lint result;
-        # OTHERWISE PASS, establishing the structural distinction from malformed.
-        # REGISTER both IAMCOND-008 branches with the repository's existing test
-        # suite and PRESERVE every pre-existing test and expectation unchanged;
-        # WHEN the suite runs, PROPAGATE any new or existing failure so suite
-        # preservation is established only when all scenarios pass together.
-        assert True
+        errors = _condition_operator_errors(
+            _validate(
+                {
+                    "StringEquals": {
+                        "servicecatalog:accountLevel": "account",
+                    }
+                }
+            )
+        )
+
+        assert errors == []
