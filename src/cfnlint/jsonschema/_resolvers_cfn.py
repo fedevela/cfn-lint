@@ -299,6 +299,25 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     if found_valid_combination:
         return
 
+    # Absent-entry default applicability pseudocode (FIM-003, FIM-004, FIM-005):
+    # INPUT: a LanguageExtensions four-argument lookup, its resolved lookup
+    # components, the no-entry outcome, and the declared DefaultValue.
+    # PRECONDITION: classify an entry as absent only after every lookup component
+    # needed for that decision resolves statically; an unresolved component must
+    # stop without making DefaultValue applicable.
+    # WHEN no existing entry was selected and DefaultValue is declared:
+    #   1. Transition DefaultValue from fallback candidate to applicable result.
+    #   2. Resolve it while preserving the DefaultValue source path, then hand each
+    #      result to the receiving property's validator.
+    #   3. If the result is AWS::NoValue, preserve its property-removal sentinel;
+    #      treat the receiving property as absent and emit no property-type error
+    #      (FIM-005), including no E3012 for the S3 BucketName reproduction.
+    #   4. Otherwise, validate the concrete result against the receiving property:
+    #      emit no error when compatible (FIM-003), or preserve the applicable
+    #      property-validation error when incompatible (FIM-004).
+    # FAILURE: if the applicable default itself cannot resolve, do not invent a
+    # concrete result; preserve the resolver's unresolved-result behavior.
+    # OUTPUT: only the applicable default branch reaches property validation.
     if default_value_found:
         yield from _find_in_map_default(validator, default_value)
         return
