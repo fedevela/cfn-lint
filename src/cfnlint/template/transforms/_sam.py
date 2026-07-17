@@ -191,6 +191,12 @@ class Transform:
                 )
             )
 
+            # SNAPSTART-006 architecture boundary: Transform owns normalization
+            # from SAM resources into the canonical Lambda resource shape stored
+            # in self._template. The SAM translator owns direct-versus-Globals
+            # precedence; downstream rules depend only on the resolved properties.
+            # E2530 must not acquire a reverse dependency on SAM source structure.
+
             # SNAPSTART-006 logic obligation: preserve the effective SAM runtime.
             # INPUT: a SnapStart-enabled AWS::Serverless::Function with python3.12
             # either in its Properties or inherited from Globals.Function.

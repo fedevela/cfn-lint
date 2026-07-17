@@ -107,6 +107,12 @@ class SnapStartSupported(CfnLintKeyword):
             # region selection. Runtime capability checks consume context.regions at
             # this existing seam and must not introduce a second defaulting path.
 
+            # SNAPSTART-007 architecture boundary: this Lambda-properties validator
+            # is the shared E2530 port for direct and SAM-transformed templates.
+            # Its contract admits resolved properties plus Context-owned regions,
+            # never template-origin metadata. E2530 alone owns the resulting
+            # supported-region acceptance or unsupported-region diagnostic.
+
             # SNAPSTART-007 logic obligation: preserve validation-path parity.
             # INPUT: resolved AWS::Lambda::Function properties and the selected
             # regions, whether linting began with CloudFormation or transformed SAM.
