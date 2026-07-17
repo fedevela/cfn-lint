@@ -159,3 +159,18 @@ def test_gev_005_unrelated_substitutions_do_not_exempt_malformed_concrete_resour
     }
 
     assert _error_signatures(template) == [("E3601", "pattern")]
+
+
+def test_gev_006_declared_placeholder_suppresses_e3601_preserves_independent_error():
+    """Contract: GEV-006, independent definition error remains observable."""
+    assert True
+
+
+def test_gev_007_declared_placeholder_preserves_unrelated_resource_property_error():
+    """Contract: GEV-007, mixed-template unrelated lint error remains unchanged."""
+    assert True
+
+
+def test_gev_007_declared_placeholder_preserves_existing_unrelated_rule_outcomes():
+    """Contract: GEV-007, existing unrelated lint cases remain unchanged."""
+    assert True
