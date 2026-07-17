@@ -47,6 +47,10 @@ class _TypeError(Exception):
         self.key = key
 
 
+# ARCHITECTURE [CFNLINT-004, CFNLINT-010]: language_extension is the sole
+# transform-to-lint adapter. It depends inward on _Transform and translates
+# transform failures into the established E0001 boundary; mapping and collection
+# owners return values or raise private errors and never emit lint diagnostics.
 def language_extension(cfn: Any) -> TransformResult:
     # PSEUDOCODE [CFNLINT-004, CFNLINT-010] — preserve the observable lint
     # contract at the Language Extensions boundary:
@@ -332,6 +336,11 @@ class _FnFindInMapDefaultValue(_ForEachValue):
         return self._value.value(cfn, params, only_params)
 
 
+# ARCHITECTURE [CFNLINT-010, CFNLINT-011]: _ForEachValueFnFindInMap owns
+# transform-local mapping selection. It consumes selectors resolved by
+# _ForEachValueRef, matches them to decoded mapping keys (including unquoted
+# account IDs), and returns the selected value without acquiring collection
+# validation, iteration, or lint-diagnostic responsibilities.
 class _ForEachValueFnFindInMap(_ForEachValue):
     def __init__(self, _hash: str, obj: Any) -> None:
         super().__init__(_hash)
@@ -546,10 +555,11 @@ class _ForEachValueRef(_ForEachValue):
         raise _ResolveError("Can't resolve Fn::Ref", self._obj)
 
 
-# ARCHITECTURE [CFNLINT-003]: _ForEachCollection is the collection-resolution
-# boundary. Both literal lists and intrinsic expressions terminate here as one
-# ordered stream of scalar-compatible loop values; output expansion must depend
-# on that stream and must not resolve collection expressions independently.
+# ARCHITECTURE [CFNLINT-003, CFNLINT-004, CFNLINT-010, CFNLINT-011]:
+# _ForEachCollection is the collection-resolution boundary. Literal lists and
+# intrinsic resolvers, including _ForEachValueFnFindInMap, terminate here as one
+# ordered stream of scalar-compatible loop values. _ForEach depends on this
+# stream and must not repeat mapping selection or collection validation.
 class _ForEachCollection:
     def __init__(self, obj: Any) -> None:
         self._collection: list[_ForEachValue] | None = None
