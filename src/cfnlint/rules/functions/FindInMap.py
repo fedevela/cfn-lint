@@ -100,6 +100,21 @@ class FindInMap(BaseFn):
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
 
+        # Pseudocode — GUID: E1011-001, E1011-002
+        # INPUT: the value supplied to Fn::FindInMap and the active transforms.
+        # IF the value is an array that exceeds the permitted FindInMap shape:
+        #   - distinguish the optional Language Extensions DefaultValue position
+        #     from lookup levels; it does not increase the two-level lookup limit.
+        #   - create one E1011 validation error whose stable, name-independent
+        #     message identifies FindInMap and says it supports no more than two
+        #     lookup levels.  Do not include the generic phrase "is too long".
+        #   - hand the error to the existing E1011 finding pipeline, preserving
+        #     the Fn::FindInMap path, then stop this invalid branch so the generic
+        #     maxItems error is not also emitted.
+        # ELSE:
+        #   - continue through the existing transform-specific or ordinary
+        #     FindInMap validation path without changing its behavior.
+
         if validator.context.transforms.has_language_extensions_transform():
             # we have to use a special validator for this
             # as we don't want DefaultValue: !Ref AWS::NoValue
