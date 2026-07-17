@@ -59,6 +59,13 @@ class Used(CloudFormationLintRule):
             # `ShouldCreateBucket3` produce no W8001 for those declarations.
             # IF a declaration has no exact collected match, keep it eligible for
             # the existing W8001 result; do not suppress unrelated conditions.
+            # PSEUDOCODE [CFNLINT-003, CFNLINT-004] — generated reference input:
+            # FOR EACH transformed resource, inspect its resolved `Condition`.
+            # IF the field exists, append that single resolved value to the
+            # referenced-condition collection without widening, prefix matching,
+            # or propagating use to any other declared condition.
+            # IF the field is absent or its generated name was not resolvable,
+            # add no generated reference; preserve the declarations' prior state.
             for _, resource_values in cfn.get_resources().items():
                 if "Condition" in resource_values:
                     ref_conditions.append(resource_values["Condition"])
@@ -69,6 +76,13 @@ class Used(CloudFormationLintRule):
                     ref_conditions.append(output_values["Condition"])
 
             # Check if the confitions are used
+            # PSEUDOCODE [CFNLINT-003, CFNLINT-004] — exact classification:
+            # FOR EACH declared condition, compare its complete name for equality
+            # against every collected direct or resolved generated reference.
+            # IF an exact match exists, transition only that declaration to used
+            # and emit no W8001 result for it.
+            # ELSE keep that declaration unused and emit its existing W8001
+            # result; a reference matching another declaration changes nothing.
             for condname, _ in conditions.items():
                 if condname not in ref_conditions:
                     message = "Condition {0} not used"
