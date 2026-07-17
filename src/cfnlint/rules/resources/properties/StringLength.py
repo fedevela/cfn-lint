@@ -62,11 +62,12 @@ class StringLength(CloudFormationLintRule):
 
         return obj
 
-    # IAMMP-001 architecture boundary:
+    # IAMMP-001/IAMMP-002 architecture boundary:
     # - the managed-policy schema owns applicability and the 6,144 limit;
-    # - this private helper owns generic object serialization and comparison;
+    # - this private helper owns compact object serialization and the inclusive
+    #   maximum contract: equality produces no error; only greater values do;
     # - maxLength owns keyword dispatch and yields into validator traversal, which
-    #   retains the current PolicyDocument path on the resulting error.
+    #   retains the current PolicyDocument path when an error exists.
     # Dependency direction is schema -> maxLength -> this helper -> ValidationError.
     def _non_string_max_length(self, instance, mL):
         j = self._remove_functions(instance)
