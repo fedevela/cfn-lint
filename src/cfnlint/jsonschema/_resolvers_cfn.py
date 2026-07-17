@@ -201,6 +201,21 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             ):
                 continue
 
+            # Pseudocode contract: CFNLINT-001, CFNLINT-002, CFNLINT-004,
+            # CFNLINT-005.
+            # INPUT: the parsed third FindInMap argument and validation context.
+            # TREAT short-form !Sub and long-form Fn::Sub as the same semantic node.
+            # IF that node substitutes AWS::AccountId AND no authoritative deployment
+            # account ID was supplied:
+            #   PRESERVE the token as deployment-dependent; do not replace it with a
+            #   validation-context account ID.
+            #   DEFER the definitive second-level mapping-key comparison.
+            #   HAND OFF no key-mismatch result to enabled rule E1011.
+            # ELSE:
+            #   RESOLVE the third argument and perform the existing key comparison.
+            # ON malformed substitution or unrelated resolution failure:
+            #   RETAIN the existing validation error flow; do not suppress E1011 and
+            #   do not require any template rewrite.
             for second_level_key, second_v, err in validator.resolve_value(instance[2]):
                 if validator.is_type(second_level_key, "integer"):
                     second_level_key = str(second_level_key)
