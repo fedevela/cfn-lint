@@ -272,6 +272,27 @@ class GetAtt(BaseFn):
     def fn_getatt(
         self, validator: Validator, s: Any, instance: Any, schema: Any
     ) -> ValidationResult:
+        # GEV-009 -- preserve conventional valid Fn::GetAtt forms:
+        # INPUT: a conventional Fn::GetAtt whose declared resource supports the
+        # requested attribute, expressed as either [resource, attribute] or the
+        # dotted string "resource.attribute".
+        # VALIDATE the expression through the existing structural contract.
+        # IF structural validation emits a finding, preserve that finding and stop;
+        # this requirement does not admit a malformed conventional operand.
+        # ELSE extract the Fn::GetAtt value.
+        # IF the value is the conventional dotted-string form:
+        #   split once at the first dot into resource and attribute operands;
+        #   mark both operand paths as belonging to the unsplit value.
+        # ELSE retain the conventional two-element list and its operand paths.
+        # HAND OFF both forms to the same declared-resource, supported-attribute,
+        # and result-type validation flow.
+        # IF that shared flow emits a finding, preserve it and stop before child
+        # rule validation.
+        # ELSE run the existing applicable child rules and emit only their findings.
+        # OUTPUT: a declared resource with a valid attribute gains no new finding in
+        # either conventional form, and all previously valid conventional cases
+        # continue through the unchanged success path after transformed-expression
+        # support is added.
         errs = list(super().validate(validator, s, instance, schema))
         if errs:
             yield from iter(errs)
