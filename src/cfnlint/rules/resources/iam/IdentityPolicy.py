@@ -3,11 +3,55 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+from __future__ import annotations
+
+import json
+from collections import deque
+from typing import Any
+
+from cfnlint.helpers import FUNCTIONS
+from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.resources.iam.Policy import Policy
 
 
 class IdentityPolicy(Policy):
     """Check IAM identity Policies"""
+
+    _CONDITION_OPERATORS = frozenset(
+        {
+            "ArnEquals",
+            "ArnLike",
+            "ArnNotEquals",
+            "ArnNotLike",
+            "BinaryEquals",
+            "Bool",
+            "DateEquals",
+            "DateGreaterThan",
+            "DateGreaterThanEquals",
+            "DateLessThan",
+            "DateLessThanEquals",
+            "DateNotEquals",
+            "IpAddress",
+            "NotIpAddress",
+            "Null",
+            "NumericEquals",
+            "NumericGreaterThan",
+            "NumericGreaterThanEquals",
+            "NumericLessThan",
+            "NumericLessThanEquals",
+            "NumericNotEquals",
+            "StringEquals",
+            "StringEqualsIgnoreCase",
+            "StringLike",
+            "StringNotEquals",
+            "StringNotEqualsIgnoreCase",
+            "StringNotLike",
+        }
+    )
+    _SET_QUALIFIERS = frozenset({"ForAllValues", "ForAnyValue"})
+    _MANAGED_POLICY_PATH = (
+        "Resources/AWS::IAM::ManagedPolicy/Properties/PolicyDocument"
+    )
 
     # ARCHITECTURE (IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005):
     # This rule owns the managed-policy condition check because it already owns
@@ -49,29 +93,78 @@ class IdentityPolicy(Policy):
             "policy_identity.json",
         )
 
-        # IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005 — logic obligation:
-        # detect a condition key placed where a condition operator is required in
-        # an AWS::IAM::ManagedPolicy, and locate the resulting finding precisely.
-        #
-        # PSEUDOCODE validate_managed_policy_condition(policy_document, policy_path):
-        #   IF policy_path is not an AWS::IAM::ManagedPolicy PolicyDocument:
-        #     RETURN without applying this managed-policy-specific check
-        #   FOR EACH statement in the policy document, preserving its source path:
-        #     IF statement.Condition is absent:
-        #       CONTINUE
-        #     IF statement.Condition cannot be traversed as an object:
-        #       HAND OFF to the existing policy-schema type-validation path
-        #       CONTINUE
-        #     FOR EACH direct_child_name in statement.Condition:
-        #       IF direct_child_name matches the recognized IAM condition-operator
-        #       grammar or catalog:
-        #         HAND OFF its value for normal operator/value validation
-        #         CONTINUE
-        #       CLASSIFY direct_child_name as a condition key, not an operator;
-        #       namespace separation (for example, "servicecatalog:accountLevel")
-        #       does not make the name an operator
-        #       EMIT one missing-or-invalid-condition-operator finding
-        #       SET finding.path to statement.Condition/direct_child_name;
-        #       statement.Condition itself is the permitted fallback locus
-        #   RETURN all findings through the active lint pass (including when
-        #   informational checks are enabled)
+    @classmethod
+    def _is_condition_operator(cls, name: Any) -> bool:
+        if not isinstance(name, str):
+            return False
+
+        qualifier, separator, operator = name.partition(":")
+        if separator:
+            if qualifier not in cls._SET_QUALIFIERS or ":" in operator:
+                return False
+        else:
+            operator = qualifier
+
+        if operator.endswith("IfExists"):
+            operator = operator[: -len("IfExists")]
+            if operator == "Null":
+                return False
+
+        return operator in cls._CONDITION_OPERATORS
+
+    def _validate_managed_policy_conditions(
+        self, policy: Any
+    ) -> ValidationResult:
+        if not isinstance(policy, dict):
+            return
+
+        statements = policy.get("Statement", [])
+        if isinstance(statements, dict):
+            statements = [statements]
+        if not isinstance(statements, list):
+            return
+
+        for statement_index, statement in enumerate(statements):
+            if not isinstance(statement, dict):
+                continue
+            condition = statement.get("Condition")
+            if not isinstance(condition, dict):
+                continue
+
+            statement_path: list[str | int] = ["Statement"]
+            if isinstance(policy.get("Statement"), list):
+                statement_path.append(statement_index)
+            statement_path.append("Condition")
+
+            for child_name in condition:
+                if child_name in FUNCTIONS or self._is_condition_operator(child_name):
+                    continue
+                yield ValidationError(
+                    (
+                        f"Missing or invalid condition operator for {child_name!r}; "
+                        "condition keys must be nested beneath an operator"
+                    ),
+                    path=deque([*statement_path, child_name]),
+                    rule=self,
+                )
+
+    def validate(
+        self,
+        validator: Validator,
+        policy_type: Any,
+        policy: Any,
+        schema: dict[str, Any],
+    ) -> ValidationResult:
+        yield from super().validate(validator, policy_type, policy, schema)
+
+        if validator.context.path.cfn_path_string != self._MANAGED_POLICY_PATH:
+            return
+
+        if validator.is_type(policy, "string"):
+            try:
+                policy = json.loads(policy)
+            except json.JSONDecodeError:
+                return
+
+        # IAMCOND-001, IAMCOND-002, IAMCOND-004, IAMCOND-005
+        yield from self._validate_managed_policy_conditions(policy)
