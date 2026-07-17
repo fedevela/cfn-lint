@@ -108,6 +108,8 @@ class Map:
         for k, v in instance.items():
             if k == "Fn::Transform":
                 is_transform = True
-            elif isinstance(k, str):
-                keys[k] = _MappingSecondaryKey.create_from_dict(v)
+            elif isinstance(k, str) or (
+                isinstance(k, int) and not isinstance(k, bool)
+            ):
+                keys[str(k)] = _MappingSecondaryKey.create_from_dict(v)
         return cls(keys, is_transform)

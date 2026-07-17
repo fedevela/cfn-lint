@@ -127,6 +127,86 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
         # Repeating this flow with the same template and expression traverses
         # the same ordered local candidates and therefore yields the same value.
         k, v = is_function(instance[1])
+        if k == "Ref" and v == "AWS::AccountId":
+            selected_map = validator.context.mappings.maps[map_name]
+            account_keys = [
+                key
+                for key in selected_map.keys
+                if key.isascii() and key.isdigit()
+            ]
+
+            if not account_keys:
+                if not default_value_found:
+                    results.append(
+                        (
+                            None,
+                            map_v,
+                            ValidationError(
+                                (
+                                    f"{instance[1]!r} does not match any account ID "
+                                    f"key for mapping {map_name!r}"
+                                ),
+                                path=deque([1]),
+                            ),
+                        )
+                    )
+                continue
+
+            found_second_level_key = False
+            for account_key in account_keys:
+                if selected_map.keys[account_key].is_transform:
+                    continue
+
+                for second_level_key, _, _ in validator.resolve_value(
+                    instance[2]
+                ):
+                    if validator.is_type(second_level_key, "integer"):
+                        second_level_key = str(second_level_key)
+                    if not validator.is_type(second_level_key, "string"):
+                        continue
+                    if second_level_key not in selected_map.keys[account_key].keys:
+                        continue
+
+                    found_second_level_key = True
+                    found_valid_combination = True
+                    for value in selected_map.find_in_map(
+                        account_key, second_level_key
+                    ):
+                        yield (
+                            value,
+                            validator.evolve(
+                                context=validator.context.evolve(
+                                    path=validator.context.path.evolve(
+                                        value_path=deque(
+                                            [
+                                                "Mappings",
+                                                map_name,
+                                                account_key,
+                                                second_level_key,
+                                            ]
+                                        )
+                                    )
+                                )
+                            ),
+                            None,
+                        )
+
+            if not found_second_level_key and not default_value_found:
+                results.append(
+                    (
+                        None,
+                        validator,
+                        ValidationError(
+                            (
+                                f"{instance[2]!r} is not available for any account "
+                                f"ID key in mapping {map_name!r}"
+                            ),
+                            path=deque([2]),
+                        ),
+                    )
+                )
+            continue
+
         if k == "Ref" and v in PSEUDOPARAMS:
             continue
         for top_level_key, top_v, _ in validator.resolve_value(instance[1]):

@@ -298,7 +298,19 @@ def test_invalid_functions(name, instance, response):
         (
             "Valid FindInMap with an top level key that is a Ref to pseudo param",
             {"Fn::FindInMap": ["foo", {"Ref": "AWS::AccountId"}, "second"]},
-            [],
+            [
+                (
+                    None,
+                    deque([]),
+                    ValidationError(
+                        (
+                            "{'Ref': 'AWS::AccountId'} does not match any account "
+                            "ID key for mapping 'foo'"
+                        ),
+                        path=deque(["Fn::FindInMap", 1]),
+                    ),
+                )
+            ],
         ),
         (
             "Valid FindInMap with a second level key that is a Ref to pseudo param",
