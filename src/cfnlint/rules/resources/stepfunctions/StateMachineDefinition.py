@@ -215,6 +215,10 @@ class StateMachineDefinition(CfnLintJsonSchema):
         #   never accept a different, partial, or case-variant placeholder name
         #   never extend this exemption beyond inline Task.Resource occurrences
         #   missing/malformed local substitutions fail closed to normal validation
+        # GEV-006, GEV-007 -- nested-to-outer validation integration seam:
+        # this rule owns only the nested ASL error stream below. The caller's
+        # dispatcher retains ownership of unrelated resource, property, and rule
+        # validation; exemption decisions therefore remain local to one E3601.
         substitutions = self._get_definition_substitutions(validator)
         for err in step_validator.iter_errors(instance):
             if self._is_declared_task_resource(err, instance, substitutions):
