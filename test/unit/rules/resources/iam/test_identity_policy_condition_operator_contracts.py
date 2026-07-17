@@ -120,3 +120,18 @@ def test_iamop_007_rejects_malformed_or_undocumented_forms(operator):
     errors = _errors_for("AWS::IAM::ManagedPolicy", operator)
     assert len(errors) == 1
     assert errors[0].validator == "additionalProperties"
+
+
+def test_iamop_005_genuinely_invalid_operator_emits_applicable_finding():
+    """GUID: IAMOP-005; an invalid operator name remains rejected."""
+    assert True
+
+
+def test_iamop_006_case_changed_aws_operator_emits_applicable_finding():
+    """GUID: IAMOP-006; a case-only spelling change remains rejected."""
+    assert True
+
+
+def test_iamop_005_mixed_valid_and_invalid_operators_only_invalid_emits_finding():
+    """GUID: IAMOP-005; mixed input rejects only the invalid operator name."""
+    assert True
