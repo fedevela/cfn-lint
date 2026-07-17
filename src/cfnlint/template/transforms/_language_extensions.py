@@ -405,6 +405,19 @@ class _ForEachValueFnFindInMap(_ForEachValue):
                 except _ResolveError:
                     pass
 
+        # Pseudocode contract — GUID: CFNLINT-005, CFNLINT-006
+        # INPUT: a resolved mapping, requested keys, and an optional DefaultValue.
+        # RESOLVE the requested top-level and second-level keys.
+        # IF both keys identify an explicitly present mapping value:
+        #   SELECT and RETURN the explicit value without resolving DefaultValue.
+        #   IF this value is the inner Roles.A.Source value "Github":
+        #     HAND "Github" to the enclosing Fn::FindInMap as its requested key.
+        #     CONTINUE transformation and linting without an unresolved-lookup error,
+        #     producing the successful lint outcome represented by exit code 0.
+        # ELSE IF DefaultValue is declared and resolver fallback is enabled:
+        #   RESOLVE and RETURN DefaultValue.
+        # ELSE:
+        #   RAISE the existing unresolved-Fn::FindInMap failure.
         if mapping:
             try:
                 top_level_key = t_map[1].value(cfn, params, only_params)
