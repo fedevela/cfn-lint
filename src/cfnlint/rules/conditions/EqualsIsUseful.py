@@ -3,8 +3,6 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
-import json
-
 from cfnlint.jsonschema import ValidationError
 from cfnlint.rules import CloudFormationLintRule
 
@@ -54,27 +52,14 @@ class EqualsIsUseful(CloudFormationLintRule):
         if len(instance) != 2:
             return
 
-        # testing on 2023/09/24
-        # True (boolean) != "True"
-        # True (boolean) == "true"
-        # 1 == "1"
-        if json.dumps(instance[0]) == json.dumps(instance[1]):
-            yield ValidationError(
-                f"{instance!r} will always return {True!r} or {False!r}",
-                rule=self,
-            )
+        literal_types = ("boolean", "integer", "number", "string")
+        if any(
+            not any(validator.is_type(value, type_) for type_ in literal_types)
+            for value in instance
+        ):
             return
-        try:
-            first = instance[0]
-            second = instance[1]
-            if validator.is_type(first, "boolean"):
-                first = "true" if first else "false"
-            if validator.is_type(second, "boolean"):
-                first = "true" if first else "false"
-            if str(first) == str(second):
-                yield ValidationError(
-                    f"{instance!r} will always return {True!r} or {False!r}",
-                    rule=self,
-                )
-        except:  # noqa: E722
-            pass
+
+        yield ValidationError(
+            f"{instance!r} will always return {True!r} or {False!r}",
+            rule=self,
+        )
