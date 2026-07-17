@@ -23,6 +23,15 @@ class Used(CloudFormationLintRule):
 
         conditions = cfn.template.get("Conditions", {})
         if conditions:
+            # PSEUDOCODE [CFNLINT-005, CFNLINT-008] — compatibility input:
+            # INPUT the declared conditions and every condition reference found
+            # through the existing non-dynamic paths: `Fn::If`, condition-to-
+            # condition use, a resource `Condition`, and an output `Condition`.
+            # FOR EACH such reference, preserve its complete condition name in
+            # the referenced-condition collection; do not require `Fn::ForEach`
+            # expansion and do not alter, discard, or synthesize a name.
+            # IF no dynamically resolved `Fn::ForEach` reference is present,
+            # carry this existing collection unchanged to classification.
             # Get all "If's" that reference a Condition
             iftrees = cfn.search_deep_keys("Fn::If")
 
@@ -82,6 +91,15 @@ class Used(CloudFormationLintRule):
             # this W8001 boundary owns exact-name association and preserves each
             # nonmatching declaration as an independently reportable result.
             # Check if the confitions are used
+            # PSEUDOCODE [CFNLINT-005, CFNLINT-008] — compatibility result:
+            # FOR EACH declaration, compare its complete name with the preserved
+            # reference collection independently of every other declaration.
+            # IF a direct non-`Fn::ForEach` reference matches, classify that
+            # declaration as used and produce no W8001 result for it.
+            # ELSE classify it as unused and keep it eligible for its existing
+            # W8001 result; a directly used sibling must not suppress this path.
+            # OUTPUT the same per-declaration used-versus-unused classifications
+            # for any template unaffected by dynamic `Fn::ForEach` resolution.
             # PSEUDOCODE [CFNLINT-003, CFNLINT-004] — exact classification:
             # FOR EACH declared condition, compare its complete name for equality
             # against every collected direct or resolved generated reference.
