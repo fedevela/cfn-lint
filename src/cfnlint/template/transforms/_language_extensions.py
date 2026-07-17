@@ -110,6 +110,11 @@ class _Transform:
 
     # pylint: disable=too-many-return-statements
     def _walk(self, item: Any, params: MutableMapping[str, Any], cfn: Any):
+        # ARCHITECTURE [FOREACH-006, FOREACH-007, FOREACH-008]: This private
+        # recursive boundary owns non-empty loop materialization. It consumes
+        # _ForEach's normalized value iterator, carries the identifier binding
+        # through key and intrinsic-property traversal, and returns ordinary
+        # template structure to the existing transform-to-validation seam.
         obj = deepcopy(item)
         if isinstance(obj, dict):
             # adjust keys if needed
