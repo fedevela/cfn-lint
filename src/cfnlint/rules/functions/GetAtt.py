@@ -70,6 +70,11 @@ class GetAtt(BaseFn):
         # jsonschema._resolvers_cfn.sub, and declared-resource checking remains owned
         # by _resolve_getatt. The implementation seam is therefore the transform-gated
         # resource_functions contract; no GetAtt-local substitution adapter is needed.
+        # GEV-003 / GEV-004 architecture boundary: LanguageExtensions owns Fn::ForEach
+        # expansion, while jsonschema._resolvers_cfn.sub owns variable-map expansion
+        # through Validator.resolve_value (including Fn::FindInMap). GetAtt depends only
+        # on the resolved logical-name candidates delivered through that resolver
+        # contract, and validates each candidate independently in _resolve_getatt.
         resource_functions = []
         if validator.context.transforms.has_language_extensions_transform():
             resource_functions = ["Ref", "Fn::Sub"]
