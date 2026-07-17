@@ -107,6 +107,28 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     mappings = list(validator.context.mappings.maps.keys())
     results = []
     found_valid_combination = False
+
+    # Unrelated second-level entry isolation pseudocode (FIM-006, FIM-008):
+    # INPUT: the four-argument lookup components, mapping data, and receiving
+    # property schema.
+    # FOR each statically resolved lookup-component combination:
+    #   1. Resolve map name, top-level key, and requested second-level key in
+    #      lookup order; use mapping keys only to test that resolved combination.
+    #   2. IF the combination selects an existing entry, retrieve and hand off
+    #      only that entry's value for receiving-property validation (FIM-006).
+    #   3. Do not traverse, collect, or validate sibling second-level values;
+    #      therefore adding, removing, or changing an unrelated sibling cannot
+    #      alter the requested lookup's property-validation result (FIM-006).
+    # WHEN any lookup component cannot be resolved statically:
+    #   1. Do not replace the unresolved component with every key or value from
+    #      its mapping level.
+    #   2. Do not hand off an unrelated second-level value as an applicable
+    #      result, and do not derive a property error solely from it (FIM-008).
+    # FAILURE/HANDOFF: preserve existing missing-entry, default-applicability,
+    # and unresolved-result paths; this isolation rule neither selects additional
+    # candidates nor changes how otherwise-applicable candidates are validated.
+    # OUTPUT: the receiving-property validator sees selected applicable values
+    # only, never unrelated second-level mapping data.
     k, v = is_function(instance[0])
     if k == "Ref" and v in PSEUDOPARAMS:
         if default_value_found:
