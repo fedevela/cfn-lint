@@ -39,6 +39,11 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
             return
 
 
+# ARCHITECTURE [CFNLINT-001, CFNLINT-002, CFNLINT-009]: find_in_map owns the
+# integration seam between intrinsic argument selection and the canonical keys
+# held by context.mappings. Key preservation remains in context._mappings; this
+# resolver may inspect only template-local mapping state for AWS::AccountId and
+# must not introduce a dependency on credentials or live account discovery.
 def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
     if not validator.is_type(instance, "array"):
         return

@@ -76,6 +76,10 @@ class Map:
     This class holds a mapping
     """
 
+    # ARCHITECTURE [CFNLINT-001, CFNLINT-002]: Map owns the canonical textual
+    # form of each account selector (the first key beneath a mapping name).
+    # create_from_dict is the ingestion boundary for exact YAML integer-to-text
+    # normalization; find_in_map and resolver callers consume only that form.
     keys: dict[str, _MappingSecondaryKey] = field(init=True, default_factory=dict)
     is_transform: bool = field(init=True, default=False)
 
