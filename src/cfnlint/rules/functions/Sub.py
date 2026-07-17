@@ -65,6 +65,12 @@ class Sub(BaseFn):
         # ELSE return the valid structure to normal substitution-reference validation.
         # OUTPUT: validation covers the complete nested expression, including every
         # variable-map value, before GetAtt can resolve a resource-name candidate.
+        # GEV-008 architecture boundary: Sub owns the complete nested-expression
+        # contract; GetAtt owns only admission of Fn::Sub at its resource-name port.
+        # The second fn_items slot is the variable-map boundary, and its functions
+        # list is the dependency port to each intrinsic's existing validator. Shared
+        # BaseFn validation carries findings back across that seam, so neither map
+        # shape nor nested-intrinsic contracts are duplicated in GetAtt.
         return {
             "type": ["array", "string"],
             "minItems": 2,

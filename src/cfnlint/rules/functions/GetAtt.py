@@ -50,6 +50,12 @@ class GetAtt(BaseFn):
         # ELSE hand the structurally valid pair to the existing semantic flow.
         # OUTPUT: declaring the transform never converts malformed GetAtt structure
         # into an accepted or partially resolved expression.
+        # GEV-007 architecture boundary: this schema owns the outer GetAtt value,
+        # pair cardinality, and per-operand contracts. The transform-capability port
+        # may extend only resource_functions; fn_items remains the integration seam
+        # into shared structural and nested-function validation. Keep dependency
+        # direction from GetAtt admission to transform context and shared validation;
+        # _resolve_getatt consumes only values that satisfy this boundary.
         # GEV-006 -- complete two-argument Fn::Sub transform boundary:
         # INPUT: the Fn::GetAtt resource-name operand and the template transforms.
         # IF the operand is Fn::Sub [template_string, variable_map]:
