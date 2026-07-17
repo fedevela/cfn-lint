@@ -156,6 +156,26 @@ class HardCodedArnProperties(CloudFormationLintRule):
 
             # Lambda is added for authorizer's Uniform Resource Identifier (URI)
             # https://github.com/aws-cloudformation/cfn-lint/issues/3716
+            # PSEUDOCODE [I3042-OAI-003, I3042-OAI-004]
+            # INPUT: accountId configuration, the parsed account segment in
+            # candidate[2], the canonical-OAI decision in candidate[3], source
+            # path, and the accumulated matches.
+            # IF accountId checking is disabled, do not perform an account
+            # decision and continue with the next extracted ARN candidate.
+            # OTHERWISE classify candidate[2] with the existing accepted-account
+            # forms, including a correctly placed ${AWS::AccountId}.
+            # IF the account form is accepted OR the candidate is canonical OAI,
+            # preserve the accumulated matches and continue to the next candidate.
+            # ELSE route both preservation obligations to the same account-ID
+            # finding transition:
+            #   I3042-OAI-003: a literal hardcoded account ID is not an accepted
+            #   account form, so append the account-ID finding at the source path.
+            #   I3042-OAI-004: a pseudo parameter that is not valid in the account
+            #   segment is incorrectly placed, so append that same finding.
+            # OUTPUT: exactly one account-ID finding for this rejected candidate;
+            # retain earlier findings and continue evaluating remaining candidates.
+            # FAILURE PATH: an unrecognized account form fails closed through the
+            # rejected-candidate branch; do not broaden the accepted forms here.
             valid_account = bool(
                 re.match(
                     r"^\$\{\w+}|\$\{AWS::AccountId}|aws|lambda|$", candidate[2]
