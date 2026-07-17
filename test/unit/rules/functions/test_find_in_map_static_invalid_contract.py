@@ -3,11 +3,67 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+from cfnlint.api import lint
+from cfnlint.rules import RulesCollection
+from cfnlint.rules.functions.FindInMap import FindInMap
+
+
 # Architecture boundary: CFNLINT-003, CFNLINT-007.
 # Production ownership remains in jsonschema._resolvers_cfn.find_in_map; this module
 # owns the regression-case and E1011-observation seam without importing resolver
 # internals. Implementation should drive cases through the registered FindInMap rule
 # so dependencies flow test -> E1011/BaseFn -> resolver -> mapping context.
+
+TEMPLATE = """\
+Mappings:
+  ExistingMap:
+    ExistingFirstKey:
+      ExistingSecondKey: value
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::FindInMap: %s
+"""
+
+REGRESSION_CASES = (
+    (
+        "missing mapping name",
+        '["MissingMap", "ExistingFirstKey", "ExistingSecondKey"]',
+        0,
+    ),
+    (
+        "invalid first-level key",
+        '["ExistingMap", "MissingFirstKey", "ExistingSecondKey"]',
+        1,
+    ),
+    (
+        "invalid second-level key",
+        '["ExistingMap", "ExistingFirstKey", "MissingSecondKey"]',
+        2,
+    ),
+)
+
+
+def _e1011_matches(find_in_map_arguments):
+    rules = RulesCollection(include_rules=["E1011"])
+    rules.register(FindInMap())
+
+    return [
+        match
+        for match in lint(TEMPLATE % find_in_map_arguments, rules, ["us-east-1"])
+        if match.rule.id == "E1011"
+    ]
+
+
+def _assert_e1011_at_argument(find_in_map_arguments, argument_index):
+    matches = _e1011_matches(find_in_map_arguments)
+
+    assert matches, f"Expected E1011 for FindInMap argument {argument_index}"
+    assert any(
+        match.path[-2:] == ["Fn::FindInMap", argument_index] for match in matches
+    ), matches
 
 
 def test_cfnlint_003_static_missing_mapping_name_validation_emits_e1011_contract():
@@ -20,7 +76,9 @@ def test_cfnlint_003_static_missing_mapping_name_validation_emits_e1011_contract
     # THEN REQUIRE the collected lint findings to include E1011 for that path.
     # FAILURE: no E1011, a different rule ID, or a different argument path fails
     # this preservation contract.
-    assert True
+    _, find_in_map_arguments, argument_index = REGRESSION_CASES[0]
+
+    _assert_e1011_at_argument(find_in_map_arguments, argument_index)
 
 
 def test_cfnlint_003_static_invalid_selected_mapping_level_key_emits_e1011_contract():
@@ -33,7 +91,8 @@ def test_cfnlint_003_static_invalid_selected_mapping_level_key_emits_e1011_contr
     # THEN REQUIRE every case to produce E1011 at its corresponding key path.
     # FAILURE: accepting an absent key or reporting outside its selected level
     # fails this preservation contract.
-    assert True
+    for _, find_in_map_arguments, argument_index in REGRESSION_CASES[1:]:
+        _assert_e1011_at_argument(find_in_map_arguments, argument_index)
 
 
 def test_cfnlint_007_regression_suite_observes_e1011_for_static_invalid_find_in_map():
@@ -45,4 +104,11 @@ def test_cfnlint_007_regression_suite_observes_e1011_for_static_invalid_find_in_
     # IF every case contains its expected E1011 finding:
     #   PASS and preserve the observable evidence for CFNLINT-003.
     # ELSE FAIL with the case whose expected E1011 finding was not observed.
-    assert True
+    for case_name, find_in_map_arguments, argument_index in REGRESSION_CASES:
+        matches = _e1011_matches(find_in_map_arguments)
+
+        assert matches, f"{case_name} did not produce E1011"
+        assert any(
+            match.path[-2:] == ["Fn::FindInMap", argument_index]
+            for match in matches
+        ), f"{case_name} produced E1011 at an unexpected path: {matches!r}"
