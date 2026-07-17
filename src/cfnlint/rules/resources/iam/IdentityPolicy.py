@@ -137,6 +137,14 @@ class IdentityPolicy(Policy):
             statement_path.append("Condition")
 
             for child_name in condition:
+                # PSEUDOCODE (IAMCOND-003) — valid-condition acceptance:
+                # INPUT the direct child between Condition and its condition key.
+                # IF the child is an intrinsic-function handoff, SKIP operator
+                # classification and PRODUCE no missing-or-invalid finding here.
+                # ELSE IF the child is a recognized condition operator (including
+                # its permitted qualifier/suffix forms), MARK this branch valid,
+                # CONTINUE with the next child, and PRODUCE no operator finding.
+                # ELSE HAND OFF to the malformed-condition diagnostic path below.
                 if child_name in FUNCTIONS or self._is_condition_operator(child_name):
                     continue
                 yield ValidationError(
@@ -155,6 +163,16 @@ class IdentityPolicy(Policy):
         policy: Any,
         schema: dict[str, Any],
     ) -> ValidationResult:
+        # PSEUDOCODE (IAMCOND-007) — unrelated-behavior preservation:
+        # INPUT the shared identity-policy validation stream and EMIT every
+        # pre-existing result unchanged; do not filter, replace, or reorder it.
+        # IF the context is not the managed-policy PolicyDocument locus, RETURN
+        # without invoking condition-structure validation.
+        # IF a managed policy is string encoded, ATTEMPT decoding; on decoding
+        # failure, RETURN after the shared results already emitted.
+        # OTHERWISE HAND OFF the decoded/object policy to the supplemental
+        # condition validator and EMIT only the findings that validator produces.
+        # NEVER alter findings outside the IAM Condition structure.
         yield from super().validate(validator, policy_type, policy, schema)
 
         if validator.context.path.cfn_path_string != self._MANAGED_POLICY_PATH:
