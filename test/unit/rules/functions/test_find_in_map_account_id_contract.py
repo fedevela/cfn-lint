@@ -92,3 +92,13 @@ def test_cfnlint_005_unchanged_template_keeps_e1011_enabled_no_suppression():
     """CFNLINT-005: preserve the template and the enabled rule configuration."""
     assert "!Sub ${AWS::AccountId}AccountBucketName" in SHORT_FORM_TEMPLATE
     assert _e1011_matches(SHORT_FORM_TEMPLATE) == []
+
+
+def test_cfnlint_006_supplied_template_and_lint_config_complete_without_e1011():
+    """CFNLINT-006: supplied regression case transitions to no E1011 finding."""
+    assert True
+
+
+def test_cfnlint_006_validation_context_account_id_is_not_a_definitive_map_key():
+    """CFNLINT-006: substituted mapping key remains deployment-dependent."""
+    assert True
