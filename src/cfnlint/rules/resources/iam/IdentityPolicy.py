@@ -19,6 +19,22 @@ class IdentityPolicy(Policy):
     tags = ["resources", "iam"]
 
     def __init__(self):
+        # PSEUDOCODE — GUID: IAMOP-001, IAMOP-002, IAMOP-003, IAMOP-007
+        # INPUT: an identity-policy Condition operator reached through the
+        # AWS::IAM::ManagedPolicy or AWS::IAM::Policy keyword below.
+        # OBTAIN the canonical, exactly spelled documented IAM operator names,
+        # including AWS-defined IfExists, ForAnyValue:, and ForAllValues: forms.
+        # FOR EACH operator name in the Condition mapping:
+        #   IF it exactly matches a canonical documented name:
+        #     ACCEPT the name and hand its value to normal Condition validation.
+        #     This includes StringEqualsIfExists (IAMOP-001),
+        #     ForAnyValue:StringEquals (IAMOP-002), and
+        #     ForAllValues:StringEquals (IAMOP-003).
+        #   ELSE:
+        #     PRESERVE the operator-name E3510 finding; do not normalize an
+        #     approximate spelling or infer validity from modifier-like syntax.
+        # OUTPUT: documented exact names continue without an operator-name
+        # finding; malformed, undocumented, or arbitrary names remain errors.
         super().__init__(
             [
                 "Resources/AWS::IAM::Group/Properties/Policies/*/PolicyDocument",
