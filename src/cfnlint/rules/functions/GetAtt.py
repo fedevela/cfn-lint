@@ -47,6 +47,13 @@ class GetAtt(BaseFn):
         # ELSE preserve the existing resource-name operand validation flow.
         # OUTPUT: the nested form can proceed only across the declared-transform
         # boundary; otherwise it remains rejected without changing Sub semantics.
+        # GEV-006 architecture boundary: this schema owns the resource-name
+        # function-admission contract. Its transform-capability port is
+        # validator.context.transforms.has_language_extensions_transform(); the
+        # existing fn_items resource_functions slot is the integration seam that
+        # gates Fn::Sub before shared resolution and declared-resource validation.
+        # Keep the dependency directed from GetAtt admission to transform context;
+        # no GetAtt-local transform detector or Fn::Sub resolver belongs here.
         # GEV-003 / GEV-004 -- mapped Fn::Sub resource-name validation:
         # INPUT: each Fn::GetAtt composition delivered after LanguageExtensions
         # expands the reported Fn::ForEach for a-1, a-2, b-1, and b-2.
