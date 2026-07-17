@@ -33,6 +33,12 @@ OPERATOR_LOCI = (
         "ForAnyValue:StringEqualsIfExists",
     ),
 )
+UNRELATED_FINDING_PATH = (
+    "Resources",
+    "UnrelatedBucket",
+    "Properties",
+    "BucketName1",
+)
 
 
 def _at_path(document, path):
@@ -60,6 +66,42 @@ def _reported_operator_rejections(matches):
             if match_path[: len(condition_path)] == condition_path:
                 rejections.append((condition_path + (operator,), match))
     return rejections
+
+
+def _lint_template_with_unrelated_finding(operator=None):
+    resources = {
+        "UnrelatedBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {"BucketName1": "invalid-property"},
+        }
+    }
+    if operator is not None:
+        resources["Policy"] = {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "*",
+                        "Condition": {
+                            operator: {"aws:RequestTag/environment": "production"}
+                        },
+                    },
+                }
+            },
+        }
+
+    return lint(json.dumps({"Resources": resources}))
+
+
+def _unrelated_property_findings(matches):
+    return [
+        match
+        for match in matches
+        if tuple(match.path) == UNRELATED_FINDING_PATH
+    ]
 
 
 class TestIamConditionOperatorReproductionContracts:
@@ -220,7 +262,7 @@ class TestIamConditionOperatorReproductionContracts:
 
 
 class TestIamConditionOperatorRegressionPreservationContracts:
-    """Verification placeholders for GUID: IAMOP-010."""
+    """Integration regression contracts for GUID: IAMOP-010."""
 
     # ARCHITECTURE — GUID: IAMOP-010
     # This class owns isolation at the public lint integration boundary, where
@@ -247,7 +289,14 @@ class TestIamConditionOperatorRegressionPreservationContracts:
         #   RECORD an unrelated-rule behavior regression.
         # FAIL with every recorded regression; otherwise PRESERVE the finding under
         # the same unrelated validation rule and its existing acceptance conditions.
-        assert True
+        findings = _unrelated_property_findings(
+            _lint_template_with_unrelated_finding()
+        )
+
+        assert len(findings) == 1
+        assert findings[0].rule.id == "E3002"
+        assert findings[0].validator == "additionalProperties"
+        assert "BucketName1" in findings[0].message
 
     def test_iamop_010_corrected_operator_with_unrelated_content_preserves_both_outcomes(
         self,
@@ -268,4 +317,28 @@ class TestIamConditionOperatorRegressionPreservationContracts:
         # LEAVE findings at all remaining loci governed by their existing rules.
         # FAIL with both categories of recorded regression; otherwise REPORT no
         # false E3510 for the operator and the unchanged unrelated-rule outcome.
-        assert True
+        operator = "StringEqualsIfExists"
+        matches = _lint_template_with_unrelated_finding(operator)
+        operator_path = (
+            "Resources",
+            "Policy",
+            "Properties",
+            "PolicyDocument",
+            "Statement",
+            "Condition",
+            operator,
+        )
+        operator_name_findings = [
+            match
+            for match in matches
+            if match.rule.id == "E3510"
+            and match.validator == "additionalProperties"
+            and tuple(match.path) == operator_path
+        ]
+        unrelated_findings = _unrelated_property_findings(matches)
+
+        assert operator_name_findings == []
+        assert len(unrelated_findings) == 1
+        assert unrelated_findings[0].rule.id == "E3002"
+        assert unrelated_findings[0].validator == "additionalProperties"
+        assert "BucketName1" in unrelated_findings[0].message

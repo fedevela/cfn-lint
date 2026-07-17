@@ -38,6 +38,25 @@ BASE_OPERATORS = (
     "StringLike",
     "StringNotLike",
 )
+PREVIOUSLY_ACCEPTED_OPERATORS = (
+    "ArnEquals",
+    "ArnLike",
+    "ArnNotEquals",
+    "ArnNotLike",
+    "BinaryEquals",
+    "Bool",
+    "DateEquals",
+    "DateNotEquals",
+    "IpAddress",
+    "NotIpAddress",
+    "Null",
+    "StringEquals",
+    "StringEqualsIgnoreCase",
+    "StringLike",
+    "StringNotEquals",
+    "StringNotEqualsIgnoreCase",
+    "StringNotLike",
+)
 
 
 def _errors_for_conditions(resource_type, conditions):
@@ -65,7 +84,10 @@ def _errors_for_conditions(resource_type, conditions):
 
 
 def _errors_for(resource_type, operator):
-    condition_value = ["value"] if operator.startswith("For") else "value"
+    if operator in ("Bool", "Null"):
+        condition_value = "true"
+    else:
+        condition_value = ["value"] if operator.startswith("For") else "value"
     return _errors_for_conditions(
         resource_type, {operator: {"aws:TagKeys": condition_value}}
     )
@@ -164,7 +186,10 @@ def test_iamop_005_mixed_valid_and_invalid_operators_only_invalid_emits_finding(
     assert list(errors[0].path) == ["Statement", "Condition", "StringResembles"]
 
 
+@pytest.mark.parametrize("resource_type", RESOURCE_TYPES)
+@pytest.mark.parametrize("operator", PREVIOUSLY_ACCEPTED_OPERATORS)
 def test_iamop_008_previously_accepted_operator_remains_without_operator_name_finding(
+    resource_type, operator
 ):
     """GUID: IAMOP-008; validation preserves prior operator acceptance."""
     # PSEUDOCODE — GUID: IAMOP-008
@@ -180,4 +205,13 @@ def test_iamop_008_previously_accepted_operator_remains_without_operator_name_fi
     #     with undocumented names or alter the status of previously invalid names.
     # FAIL with all recorded regressions; otherwise REPORT no operator-name
     # findings for every previously accepted operator/resource pairing.
-    assert True
+    operator_path = ["Statement", "Condition", operator]
+    operator_name_findings = [
+        error
+        for error in _errors_for(resource_type, operator)
+        if error.rule.id == "E3510"
+        and error.validator == "additionalProperties"
+        and list(error.path) == operator_path
+    ]
+
+    assert operator_name_findings == []
