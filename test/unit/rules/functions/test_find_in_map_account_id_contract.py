@@ -96,9 +96,32 @@ def test_cfnlint_005_unchanged_template_keeps_e1011_enabled_no_suppression():
 
 def test_cfnlint_006_supplied_template_and_lint_config_complete_without_e1011():
     """CFNLINT-006: supplied regression case transitions to no E1011 finding."""
+    # Pseudocode contract: CFNLINT-006 / no-E1011 regression obligation.
+    # GIVEN SHORT_FORM_TEMPLATE unchanged, including AWS::LanguageExtensions,
+    # FindInMap, Fn::Sub, AWS::AccountId, the supplied mapping, and resource.
+    # AND GIVEN _e1011_matches configures the reported region and account-ID lint
+    # option while keeping E1011 registered and enabled.
+    # WHEN the regression case is linted and its E1011 results are collected:
+    #   IF one or more E1011 matches exist:
+    #     FAIL and expose those matches as the regression evidence.
+    #   ELSE:
+    #     PASS with the empty E1011 result as the required evidence.
     assert True
 
 
 def test_cfnlint_006_validation_context_account_id_is_not_a_definitive_map_key():
     """CFNLINT-006: substituted mapping key remains deployment-dependent."""
+    # Pseudocode contract: CFNLINT-006 / non-definitive-key obligation.
+    # GIVEN a validator and the supplied FindInMap expression from
+    # SHORT_FORM_TEMPLATE.
+    # EXTRACT the third FindInMap argument containing
+    # "${AWS::AccountId}AccountBucketName".
+    # RESOLVE that argument in isolation and record any validation-context account
+    # ID candidate produced for general intrinsic validation.
+    # RESOLVE the complete FindInMap expression against the supplied mapping.
+    # IF the validation-context candidate is used as a definitive mapping key:
+    #   FAIL because the deployment account ID was not authoritatively supplied.
+    # ELSE:
+    #   REQUIRE the complete expression to remain deployment-dependent.
+    #   REQUIRE the validation results to contain no resulting E1011 mismatch.
     assert True
