@@ -100,6 +100,10 @@ def language_extension(cfn: Any) -> TransformResult:
         ], None
 
 
+# ARCHITECTURE [CFNLINT-001, CFNLINT-006, CFNLINT-007]: This private transform is
+# the sole owner of iteration bindings and nested `Fn::ForEach` expansion.  Its
+# output contract is the fully expanded template shape; generated resource fields
+# cross that boundary unchanged so downstream rules need no transform dependency.
 class _Transform:
     def __init__(self) -> None:
         self._collections: MutableMapping[str, str] = {}
