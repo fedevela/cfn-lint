@@ -20,6 +20,28 @@ class Enum(CloudFormationLintRule):
     }
 
     def enum(self, validator, enums, instance, schema):
+        # Scoped Batch compute-environment Type pseudocode contract:
+        #
+        # INPUT: validation context, schema enum values, and candidate instance.
+        # IDENTIFY: inspect the generic CloudFormation path; the exceptional locus is
+        # exactly Resources/AWS::Batch::ComputeEnvironment/Properties/Type.
+        #
+        # GUID: BATCHTYPE-004
+        # IF the candidate is a supported intrinsic value, preserve the existing
+        # intrinsic-resolution handoff and its validation outcome; STOP this branch.
+        #
+        # IF the candidate is a literal at the exceptional locus:
+        #   GUID: BATCHTYPE-001
+        #   IF its case-normalized semantic value equals MANAGED, accept without E3030.
+        #   GUID: BATCHTYPE-002
+        #   ELSE IF its case-normalized semantic value equals UNMANAGED, accept without
+        #   E3030.
+        #   GUID: BATCHTYPE-003
+        #   ELSE emit the ordinary enum-validation error for the property.
+        #
+        # GUID: BATCHTYPE-005
+        # ELSE delegate to the existing enum validator with the original instance and
+        # enum values, preserving case-sensitive behavior at every other locus.
         if (
             len(validator.context.path.value_path) > 0
             and validator.context.path.value_path[0] == "Parameters"
