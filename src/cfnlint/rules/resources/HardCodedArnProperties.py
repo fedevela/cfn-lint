@@ -151,6 +151,26 @@ class HardCodedArnProperties(CloudFormationLintRule):
                     " incorrectly placed Pseudo Parameters"
                 )
                 matches.append(RuleMatch(path, message.format(path[1])))
+
+            # PSEUDOCODE [I3042-OAI-007]
+            # INPUT: region configuration, candidate[1] as the parsed region
+            # segment, source path, and matches accumulated before region checking.
+            # RECORD the pre-correction region result for each existing I3042 case
+            # as either no region finding or one region finding at the source path.
+            # IF region checking is disabled, preserve the accumulated matches and
+            # continue without making a region-validation transition.
+            # OTHERWISE evaluate candidate[1] only against the existing accepted
+            # region forms: a substitution variable, ${AWS::Region}, or empty.
+            # IF candidate[1] is accepted, append no region finding; ELSE append the
+            # existing hardcoded-or-misplaced-region finding at the source path.
+            # DO NOT consult candidate[2], the canonical-OAI decision, or accountId
+            # configuration while selecting either region branch.
+            # OUTPUT: for every existing case evaluated with region=True, retain
+            # exactly its recorded pre-correction region result while account
+            # validation proceeds independently afterward.
+            # FAILURE PATH: any region form outside the existing accepted set takes
+            # the existing region-finding branch; the OAI account exception cannot
+            # suppress, add, or otherwise change that result.
             if self.config["region"] and not re.match(
                 r"^(\$\{\w+}|\$\{AWS::Region}|)$", candidate[1]
             ):
