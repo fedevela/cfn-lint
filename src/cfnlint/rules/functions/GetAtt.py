@@ -32,6 +32,21 @@ class GetAtt(BaseFn):
         super().__init__("Fn::GetAtt", all_types)
 
     def schema(self, validator, instance) -> dict[str, Any]:
+        # GEV-006 -- complete two-argument Fn::Sub transform boundary:
+        # INPUT: the Fn::GetAtt resource-name operand and the template transforms.
+        # IF the operand is Fn::Sub [template_string, variable_map]:
+        #   IF AWS::LanguageExtensions is declared:
+        #     admit Fn::Sub as a string-producing resource-name function;
+        #     hand the complete two-element form to normal function validation,
+        #     resolution, and declared-resource checking.
+        #   ELSE:
+        #     do not add Fn::Sub to the admitted resource-name functions;
+        #     validate the unadmitted object against the existing string schema;
+        #     emit the existing Fn::GetAtt validation finding at operand 0;
+        #     stop before resource-name resolution or attribute validation.
+        # ELSE preserve the existing resource-name operand validation flow.
+        # OUTPUT: the nested form can proceed only across the declared-transform
+        # boundary; otherwise it remains rejected without changing Sub semantics.
         # GEV-003 / GEV-004 -- mapped Fn::Sub resource-name validation:
         # INPUT: each Fn::GetAtt composition delivered after LanguageExtensions
         # expands the reported Fn::ForEach for a-1, a-2, b-1, and b-2.
