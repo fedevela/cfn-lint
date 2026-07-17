@@ -114,7 +114,7 @@ class StringLength(CloudFormationLintRule):
                         validator, mL, self._fix_sub_string(value[0]), schema
                     )
                 return
-        if schema.get("type") == "object":
+        if validator.is_type(instance, "object"):
             yield from self._non_string_max_length(instance, mL)
 
     # pylint: disable=unused-argument, arguments-renamed
