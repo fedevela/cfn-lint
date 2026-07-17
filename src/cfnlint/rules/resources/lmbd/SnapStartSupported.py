@@ -18,7 +18,21 @@ class SnapStartSupported(CfnLintKeyword):
     # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008: E2530 owns the private
     # runtime/region capability boundary. Implementations populate this contract
     # from AWS regional-availability data; callers must not supply capability data.
-    _runtime_region_support: Mapping[str, AbstractSet[str]]
+    _runtime_region_support: Mapping[str, AbstractSet[str]] = {
+        "python3.12": frozenset(
+            {
+                "ap-northeast-1",
+                "ap-southeast-1",
+                "ap-southeast-2",
+                "eu-central-1",
+                "eu-north-1",
+                "eu-west-1",
+                "us-east-1",
+                "us-east-2",
+                "us-west-2",
+            }
+        )
+    }
 
     id = "E2530"
     shortdesc = "SnapStart supports the configured runtime"
@@ -85,21 +99,26 @@ class SnapStartSupported(CfnLintKeyword):
             # region selection. Runtime capability checks consume context.regions at
             # this existing seam and must not introduce a second defaulting path.
 
-            # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008, SNAPSTART-009:
-            # IF runtime is "python3.12":
-            #   SNAPSTART-009: SET selected_regions to validator.context.regions so
-            #   explicit and implicit selection retain existing cfn-lint semantics.
-            #   SET unsupported_regions to an empty collection.
-            #   FOR EACH region in selected_regions:
-            #     LOOK UP support for the Python 3.12 and SnapStart combination in
-            #     that region's existing AWS regional-availability data.
-            #     SNAPSTART-001: IF supported, emit no E2530 for that region.
-            #     SNAPSTART-002, SNAPSTART-008: ELSE append the region to
-            #     unsupported_regions, independently of every other region.
-            #   SNAPSTART-002, SNAPSTART-008: IF unsupported_regions is not empty,
-            #   emit an unsupported SnapStart E2530 identifying only those regions.
-            #   END this scenario's runtime evaluation so supported Python 3.12 is
-            #   not rejected by the generic non-Java runtime failure path below.
+            # SNAPSTART-001, SNAPSTART-002, SNAPSTART-008, SNAPSTART-009
+            if (
+                isinstance(runtime, str)
+                and runtime in self._runtime_region_support
+            ):
+                supported_regions = self._runtime_region_support[runtime]
+                unsupported_regions = [
+                    region
+                    for region in validator.context.regions
+                    if region not in supported_regions
+                ]
+                if unsupported_regions:
+                    yield ValidationError(
+                        (
+                            "'SnapStart' enabled functions are not supported in "
+                            f"{unsupported_regions!r}"
+                        ),
+                        path=deque(["SnapStart", "ApplyOn"]),
+                    )
+                continue
 
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
