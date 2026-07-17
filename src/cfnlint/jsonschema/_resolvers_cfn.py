@@ -103,7 +103,14 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
             path=deque([0]),
         )
 
-    # Pseudocode contract: CFNLINT-003 / static mapping-name validation.
+    # Architecture boundary: CFNLINT-003 / static mapping-name validation.
+    # Ownership: find_in_map owns candidate resolution, comparison with Mapping
+    # names, and argument-relative ValidationError construction. The E1011 rule
+    # remains the public lint boundary and consumes this resolver through BaseFn.
+    # Dependency direction: resolver -> Validator resolution + Context mappings;
+    # neither the mappings model nor E1011 should duplicate this traversal policy.
+    #
+    # Pseudocode contract:
     # INPUT the FindInMap mapping-name expression and the template's mappings.
     # RESOLVE every statically determinable mapping-name candidate.
     # FOR EACH string candidate:
@@ -210,7 +217,13 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
                     )
             continue
 
-        # Pseudocode contract: CFNLINT-003 / static selected-level key validation.
+        # Architecture boundary: CFNLINT-003 / selected-level key validation.
+        # Ownership: this mapping branch owns ordered parent/child selection and
+        # mismatch paths [1] and [2]; Context mappings own only stored map data.
+        # Integration seam: accumulated ValidationError results leave this resolver
+        # only after all static candidates fail, preserving BaseFn's E1011 handoff.
+        #
+        # Pseudocode contract:
         # INPUT the valid selected mapping and its first- and second-level keys.
         # RESOLVE each statically determinable key candidate in argument order.
         # NORMALIZE an integer candidate to its string key representation.

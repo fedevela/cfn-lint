@@ -3,6 +3,12 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
+# Architecture boundary: CFNLINT-003, CFNLINT-007.
+# Production ownership remains in jsonschema._resolvers_cfn.find_in_map; this module
+# owns the regression-case and E1011-observation seam without importing resolver
+# internals. Implementation should drive cases through the registered FindInMap rule
+# so dependencies flow test -> E1011/BaseFn -> resolver -> mapping context.
+
 
 def test_cfnlint_003_static_missing_mapping_name_validation_emits_e1011_contract():
     """CFNLINT-003: a statically missing mapping name transitions to E1011."""
