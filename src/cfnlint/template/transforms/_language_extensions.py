@@ -407,9 +407,20 @@ class _ForEachValueFnFindInMap(_ForEachValue):
 
         if mapping:
             try:
-                return mapping.get(t_map[1].value(cfn, params, only_params), {}).get(
-                    t_map[2].value(cfn, params, only_params)
-                )
+                top_level_key = t_map[1].value(cfn, params, only_params)
+                second_level_key = t_map[2].value(cfn, params, only_params)
+                missing = object()
+                top_level = mapping.get(top_level_key, missing)
+                if isinstance(top_level, dict):
+                    value = top_level.get(second_level_key, missing)
+                else:
+                    value = missing
+
+                if value is not missing:
+                    return value
+                if len(self._map) == 4 and default_on_resolver_failure:
+                    return self._map[3].value(cfn, params, only_params)
+                raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
             except _ResolveError as e:
                 if len(self._map) == 4 and default_on_resolver_failure:
                     return self._map[3].value(cfn, params, only_params)
