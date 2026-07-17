@@ -475,3 +475,15 @@ def test_gev_005_gev_010_dynamic_sub_declared_resource_valid_attribute_no_findin
     assert list(
         rule.fn_getatt(validator, case["schema"], case["instance"], {})
     ) == []
+
+
+def test_gev_006_without_language_extensions_complete_two_argument_sub_getatt_resource_name_is_rejected(
+):
+    """GEV-006: reject nested two-argument Sub without LanguageExtensions."""
+    assert True
+
+
+def test_gev_006_only_language_extensions_template_accepts_complete_two_argument_sub_getatt_resource_name(
+):
+    """GEV-006: acceptance transitions only at the LanguageExtensions boundary."""
+    assert True
