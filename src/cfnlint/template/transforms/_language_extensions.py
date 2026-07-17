@@ -98,6 +98,12 @@ def language_extension(cfn: Any) -> TransformResult:
         ], None
 
 
+# ARCHITECTURE [CFNLINT-005, CFNLINT-006, CFNLINT-007, CFNLINT-008]:
+# _Transform is the output-assembly owner. It consumes the ordered item stream
+# exposed by _ForEach, applies the existing generic substitution walk to each
+# isolated output fragment, and owns collision-safe insertion into the result.
+# Resource-specific knowledge (including AWS::SNS::Subscription) stays in the
+# template fragment rather than crossing into this transform boundary.
 class _Transform:
     def __init__(self) -> None:
         self._collections: MutableMapping[str, str] = {}
@@ -508,6 +514,10 @@ class _ForEachValueRef(_ForEachValue):
         raise _ResolveError("Can't resolve Fn::Ref", self._obj)
 
 
+# ARCHITECTURE [CFNLINT-003]: _ForEachCollection is the collection-resolution
+# boundary. Both literal lists and intrinsic expressions terminate here as one
+# ordered stream of scalar-compatible loop values; output expansion must depend
+# on that stream and must not resolve collection expressions independently.
 class _ForEachCollection:
     def __init__(self, obj: Any) -> None:
         self._collection: list[_ForEachValue] | None = None
@@ -593,6 +603,11 @@ class _ForEachOutput:
         return self._output
 
 
+# ARCHITECTURE [CFNLINT-003, CFNLINT-005, CFNLINT-006, CFNLINT-007,
+# CFNLINT-008]: _ForEach is the private integration seam between collection
+# resolution and _Transform output assembly. Its items() contract preserves the
+# resolver's order and values without acquiring substitution or resource
+# insertion responsibilities.
 class _ForEach:
     def __init__(
         self, key: str, value: Any, collection_cache: MutableMapping[str, str]
