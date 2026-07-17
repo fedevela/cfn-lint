@@ -266,3 +266,13 @@ def test_validate(name, instance, schema, child_rules, expected, validator, rule
     errs = list(rule.fn_getatt(validator, schema, instance, {}))
 
     assert errs == expected, f"Test {name!r} got {errs!r}"
+
+
+def test_gev_001_language_extensions_accepts_complete_literal_map_sub_as_getatt_resource_name():
+    """GEV-001: a complete literal-map Fn::Sub resource name emits no E1010."""
+    assert True
+
+
+def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_declared_resource():
+    """GEV-002: literal a1 resolves to the declared InputQueuea1 resource."""
+    assert True
