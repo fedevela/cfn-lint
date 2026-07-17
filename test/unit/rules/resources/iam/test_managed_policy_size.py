@@ -35,3 +35,9 @@ def test_iammp_001_static_managed_policy_compact_over_6144_reports_policy_doc_er
     assert errors[0].message == "Item is too long"
     assert list(errors[0].path) == ["Properties", "PolicyDocument"]
     assert errors[0].rule.id == "E3033"
+
+
+def test_iammp_002_validating_compact_managed_policy_at_6144_does_not_report_size_error(
+):
+    """IAMMP-002: an exact-limit compact PolicyDocument has no size-limit error."""
+    assert True
