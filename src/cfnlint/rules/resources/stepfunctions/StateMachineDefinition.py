@@ -77,6 +77,34 @@ class StateMachineDefinition(CfnLintJsonSchema):
                 schema=self.schema,
             )
 
+        # GEV-001, GEV-002, GEV-003, GEV-004 pseudocode -- declared Task
+        # Resource substitution gate:
+        #
+        # INPUTS:
+        #   inline_definition := instance
+        #   containing_resource := resource named by validator.context.path
+        #   local_substitutions := containing_resource.Properties
+        #       .DefinitionSubstitutions when it is a mapping; otherwise empty
+        #
+        # FOR EACH Task.Resource reached while validating inline_definition:
+        #   IF Resource is exactly the established `${Name}` placeholder form:
+        #       placeholder_name := the text between `${` and `}`
+        #       IF local_substitutions contains an exact key equal to placeholder_name:
+        #           mark only this Resource occurrence as a declared placeholder
+        #           do not resolve or inspect the declaration value; a supported
+        #               CloudFormation intrinsic expression remains opaque
+        #           bypass the concrete ARN pattern for this occurrence, then
+        #               continue all remaining state-machine validation
+        #       ELSE:
+        #           apply the concrete ARN pattern normally and preserve E3601
+        #   ELSE:
+        #       apply the existing Resource validation without an exemption
+        #
+        # ISOLATION / FAILURE RULES:
+        #   never consult or merge substitutions from another state machine
+        #   never accept a different, partial, or case-variant placeholder name
+        #   never extend this exemption beyond inline Task.Resource occurrences
+        #   missing/malformed local substitutions fail closed to normal validation
         for err in step_validator.iter_errors(instance):
             if add_path_to_message:
                 err = self._fix_message(err)
