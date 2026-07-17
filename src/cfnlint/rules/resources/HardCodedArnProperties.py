@@ -38,6 +38,13 @@ class HardCodedArnProperties(CloudFormationLintRule):
     regex = re.compile(
         r"arn:(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*):[^:\s]+:(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*):(\$\{[^:\r\n]*::[^:\r\n]*}|[^:\s]*)"
     )
+    # ARCHITECTURE [I3042-OAI-005, I3042-OAI-006]
+    # This full-ARN recognizer is the sole producer of canonical-OAI context.
+    # _match_values() transmits its boolean result beside the parsed segments;
+    # match() consumes that result at the account-policy boundary.  Keep the
+    # contract directional and narrow: the literal account value "cloudfront"
+    # cannot create the context itself, and no generic nonnumeric-account
+    # predicate belongs between extraction and account validation.
     canonical_oai_regex = re.compile(
         r"arn:\$\{AWS::Partition}:iam::cloudfront:"
         r"user/CloudFront Origin Access Identity [^\s/]+"
@@ -156,7 +163,8 @@ class HardCodedArnProperties(CloudFormationLintRule):
 
             # Lambda is added for authorizer's Uniform Resource Identifier (URI)
             # https://github.com/aws-cloudformation/cfn-lint/issues/3716
-            # ARCHITECTURE [I3042-OAI-003, I3042-OAI-004]
+            # ARCHITECTURE [I3042-OAI-003, I3042-OAI-004, I3042-OAI-005,
+            # I3042-OAI-006]
             # Account-segment acceptance is owned by this I3042 match boundary:
             # _match_values() supplies candidate[2] as the account segment and
             # candidate[3] as narrowly scoped canonical-OAI context.  Both rejected
@@ -164,6 +172,9 @@ class HardCodedArnProperties(CloudFormationLintRule):
             # RuleMatch reporting seam.  Keep this policy local to I3042 so neither
             # ARN extraction nor the canonical-OAI exception becomes a general
             # account allowlist, and keep partition/region validation independent.
+            # The only dependency from account policy back to OAI recognition is
+            # candidate[3]; candidate[2] remains subject to the existing accepted-
+            # account contract whenever that canonical context is false.
             # PSEUDOCODE [I3042-OAI-003, I3042-OAI-004, I3042-OAI-005,
             # I3042-OAI-006]
             # INPUT: accountId configuration, the parsed account segment in
