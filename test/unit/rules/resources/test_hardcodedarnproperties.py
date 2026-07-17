@@ -201,13 +201,46 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
         self,
     ):
         """GUID: I3042-OAI-005; noncanonical cloudfront ARN is not exempted."""
-        self.assertTrue(True)
+        noncanonical_arns = [
+            CANONICAL_OAI_ARN.replace(":iam::", ":s3::"),
+            CANONICAL_OAI_ARN.replace(":iam::", ":iam:us-east-1:"),
+            CANONICAL_OAI_ARN.replace("user/", "role/"),
+            CANONICAL_OAI_ARN.replace(
+                "CloudFront Origin Access Identity ", "CloudFront User "
+            ),
+            CANONICAL_OAI_ARN.replace(" E1234567890ABC", ""),
+        ]
+
+        for arn in noncanonical_arns:
+            with self.subTest(arn=arn):
+                account_matches = [
+                    match
+                    for match in self._matches_for_oai_arn(arn)
+                    if "AccountId" in match.message
+                ]
+                self.assertEqual(1, len(account_matches))
+                self.assertEqual("I3042", account_matches[0].rule.id)
 
     def test_i3042_oai_006_accountid_true_arbitrary_nonnumeric_account_is_not_accepted(
         self,
     ):
         """GUID: I3042-OAI-006; arbitrary nonnumeric account is not accepted."""
-        self.assertTrue(True)
+        for account in (
+            "not-an-account",
+            "aws-custom",
+            "lambda-custom",
+            "cloudfront-custom",
+        ):
+            arn = CANONICAL_OAI_ARN.replace(":cloudfront:", f":{account}:")
+
+            with self.subTest(account=account):
+                account_matches = [
+                    match
+                    for match in self._matches_for_oai_arn(arn)
+                    if "AccountId" in match.message
+                ]
+                self.assertEqual(1, len(account_matches))
+                self.assertEqual("I3042", account_matches[0].rule.id)
 
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""

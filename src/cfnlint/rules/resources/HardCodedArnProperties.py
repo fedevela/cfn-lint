@@ -203,8 +203,8 @@ class HardCodedArnProperties(CloudFormationLintRule):
             # FAILURE PATH: an unrecognized account form fails closed through the
             # rejected-candidate branch; do not broaden the accepted forms here.
             valid_account = bool(
-                re.match(
-                    r"^\$\{\w+}|\$\{AWS::AccountId}|aws|lambda|$", candidate[2]
+                re.fullmatch(
+                    r"\$\{\w+}|\$\{AWS::AccountId}|aws|lambda|", candidate[2]
                 )
             )
             if self.config["accountId"] and not (valid_account or candidate[3]):
