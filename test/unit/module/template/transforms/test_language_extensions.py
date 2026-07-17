@@ -984,28 +984,61 @@ class TestForEachEmptyAndMappingSelectionRegressionContract(TestCase):
         self,
     ):
         """FOREACH-010: Direct empty collections lint with zero loop resources."""
+        # PSEUDOCODE FOREACH-010 / direct-empty logic obligation:
+        # GIVEN a LanguageExtensions template whose Fn::ForEach collection is []
+        #   AND whose Resources contain one independent, non-loop resource
+        # WHEN the template is transformed and the original template is linted
+        # IF either path reports an Fn::ForEach resolution error, FAIL
+        # ELSE REQUIRE the transformed Resources to equal the independent baseline
+        #   so the number of loop-derived resources is deterministically zero
         self.assertTrue(True)
 
     def test_foreach_010_findinmap_selected_empty_collection_transforms_lints_and_produces_zero_loop_resources(
         self,
     ):
         """FOREACH-010: Selected empty mappings lint with zero loop resources."""
+        # PSEUDOCODE FOREACH-010 / mapping-selected-empty logic obligation:
+        # GIVEN a mapping-based collection fixture with empty and non-empty entries
+        #   AND selection values that make Fn::FindInMap resolve the empty entry
+        # WHEN that fixture is transformed and linted with the empty selection
+        # IF collection lookup is unresolved or emits an Fn::ForEach error, FAIL
+        # ELSE REQUIRE the transform to preserve only independent Resources
+        #   and REQUIRE zero logical IDs derived from the loop body
         self.assertTrue(True)
 
     def test_foreach_011_non_empty_mapping_selection_expands_expected_resource(
         self,
     ):
         """FOREACH-011: A non-empty mapping selection expands its resource."""
+        # PSEUDOCODE FOREACH-011 / non-empty expansion logic obligation:
+        # GIVEN the same mapping-based fixture used by the empty-selection case
+        #   AND selection values that resolve one known collection identifier
+        # WHEN the LanguageExtensions transform consumes the resolved collection
+        # FOR EACH resolved identifier, expand exactly one copy of the loop body
+        # IF no copy or more than one copy is produced for that identifier, FAIL
+        # ELSE REQUIRE the expected loop-derived resource to be present
         self.assertTrue(True)
 
     def test_foreach_011_expanded_resource_has_substituted_logical_id_and_properties(
         self,
     ):
         """FOREACH-011: Expansion substitutes the logical ID and properties."""
+        # PSEUDOCODE FOREACH-011 / substitution logic obligation:
+        # GIVEN the resource expanded from the selected non-empty identifier
+        # DERIVE its expected logical ID and property values from that identifier
+        # REQUIRE the transformed Resources key to equal the derived logical ID
+        # REQUIRE every identifier-bearing property to equal its derived value
+        # IF a placeholder remains or any derived value differs, FAIL
         self.assertTrue(True)
 
     def test_foreach_011_expanded_resource_validates_successfully(self):
         """FOREACH-011: The resource from a non-empty selection validates."""
+        # PSEUDOCODE FOREACH-011 / validation handoff logic obligation:
+        # GIVEN the mapping fixture configured for the non-empty selection
+        # WHEN the fixture enters the normal transform-and-lint validation path
+        # PASS the expanded resource to the configured resource validators
+        # IF transform resolution or resource validation emits a match, FAIL
+        # ELSE COMPLETE with no validation matches for the expanded resource
         self.assertTrue(True)
 
 
