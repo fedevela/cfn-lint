@@ -30,28 +30,7 @@ class Enum(CloudFormationLintRule):
     # - The contract-test module is the downstream verification seam; this class gains
     #   no public helper, adapter, configuration, or cross-rule dependency.
     def enum(self, validator, enums, instance, schema):
-        # Scoped Batch compute-environment Type pseudocode contract:
-        #
-        # INPUT: validation context, schema enum values, and candidate instance.
-        # IDENTIFY: inspect the generic CloudFormation path; the exceptional locus is
-        # exactly Resources/AWS::Batch::ComputeEnvironment/Properties/Type.
-        #
         # GUID: BATCHTYPE-004
-        # IF the candidate is a supported intrinsic value, preserve the existing
-        # intrinsic-resolution handoff and its validation outcome; STOP this branch.
-        #
-        # IF the candidate is a literal at the exceptional locus:
-        #   GUID: BATCHTYPE-001
-        #   IF its case-normalized semantic value equals MANAGED, accept without E3030.
-        #   GUID: BATCHTYPE-002
-        #   ELSE IF its case-normalized semantic value equals UNMANAGED, accept without
-        #   E3030.
-        #   GUID: BATCHTYPE-003
-        #   ELSE emit the ordinary enum-validation error for the property.
-        #
-        # GUID: BATCHTYPE-005
-        # ELSE delegate to the existing enum validator with the original instance and
-        # enum values, preserving case-sensitive behavior at every other locus.
         if (
             len(validator.context.path.value_path) > 0
             and validator.context.path.value_path[0] == "Parameters"
@@ -61,4 +40,19 @@ class Enum(CloudFormationLintRule):
                     validator, enums, instance, schema
                 )
             return
+
+        if (
+            validator.context.path.cfn_path_string
+            == "Resources/AWS::Batch::ComputeEnvironment/Properties/Type"
+            and isinstance(instance, str)
+        ):
+            normalized_instance = instance.upper()
+            # GUID: BATCHTYPE-001
+            if normalized_instance == "MANAGED":
+                return
+            # GUID: BATCHTYPE-002
+            if normalized_instance == "UNMANAGED":
+                return
+
+        # GUID: BATCHTYPE-003, BATCHTYPE-005
         yield from enum(validator, enums, instance, schema)
