@@ -492,6 +492,25 @@ def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compli
     }
 
 
+# IAMMP-010 architecture boundary:
+# - this focused test module owns the managed-policy size regression matrix;
+#   each named test below is one matrix cell and remains independently attributable
+#   to its over-limit, exact-limit, under-limit, whitespace, or reproduction case;
+# - _policy_document_json_variants is the test-fixture construction port for the
+#   three threshold cells and the whitespace-equivalence cell, keeping boundary
+#   data generation separate from validation and diagnostic selection;
+# - _managed_policy_size_errors is the validation adapter for those four cells;
+#   it alone binds the test matrix to Properties -> schema maxLength -> E3033 and
+#   exposes only size diagnostics at the PolicyDocument boundary;
+# - _iammp_005_supplied_reproduction_errors is the reproduction adapter reused by
+#   the fifth cell, preserving the supplied resource shape while exposing the full
+#   validation result needed to establish invalidity and its causal size error;
+# - StringLength/E3033 remains the production owner of compact-size comparison;
+#   these tests own regression evidence only and must not duplicate that behavior.
+# Dependency direction is matrix cell -> test fixture/adapter -> Properties/schema
+# dispatch -> StringLength/E3033 -> path-preserving diagnostic. The reproduction
+# cell depends on its dedicated adapter rather than on synthetic boundary fixtures;
+# no production module may depend on this test-only matrix or its helpers.
 def test_iammp_010_over_limit_managed_policy_reports_size_limit_error():
     """IAMMP-010: an over-limit policy must report the size-limit error."""
     # IAMMP-010 logic obligation: over-limit regression branch.
