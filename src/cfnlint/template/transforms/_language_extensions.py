@@ -123,6 +123,16 @@ class _Transform:
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
                 if re.match(FUNCTION_FOR_EACH, k):
+                    # PSEUDOCODE [FOREACH-003, FOREACH-004, FOREACH-005]:
+                    # - Resolve the collection before expanding the loop output.
+                    # - FOR EACH resolved value, recursively expand the output and
+                    #   merge each generated entry; reject duplicate generated keys.
+                    # - IF the resolved collection is empty, perform zero expansions:
+                    #   add no generated, partial, placeholder, or malformed entry.
+                    # - After either zero or more expansions, remove only the
+                    #   original Fn::ForEach declaration from this object.
+                    # - Continue walking all sibling content so independent template
+                    #   entries remain in the transformed template for validation.
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach
@@ -517,6 +527,16 @@ class _ForEachCollection:
     def values(
         self, cfn: Any, collection_cache: MutableMapping[str, Any]
     ) -> Iterator[str | dict[Any, Any]]:
+        # PSEUDOCODE [FOREACH-001, FOREACH-002]:
+        # - IF a direct collection was declared (including an empty list), resolve
+        #   and yield each member; an empty list completes successfully with zero
+        #   yielded values and no Fn::ForEach resolution error.
+        # - ELSE resolve the intrinsic collection expression.
+        # - IF the intrinsic resolves to a list (including an empty list), validate
+        #   and yield each member; an empty list likewise completes successfully.
+        # - ELSE IF it resolves to a non-list, report the collection type error.
+        # - ELSE IF resolution fails, use the existing cached fallback flow.
+        # - Report "could not be resolved" only when no collection source resolves.
         if self._collection:
             for item in self._collection:
                 try:
