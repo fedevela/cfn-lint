@@ -15,6 +15,11 @@ class EqualsIsUseful(CloudFormationLintRule):
     true/false and not always be true or false
     """
 
+    # ARCHITECTURE — W8003-001 / W8003-002 / W8003-007
+    # This rule owns constant-result analysis for one already validated Fn::Equals
+    # operand list. Fn::Equals traversal and source-location context remain owned by
+    # Equals; keeping that boundary makes each invocation produce only its finding.
+
     id = "W8003"
     shortdesc = "Fn::Equals will always return true or false"
     description = (

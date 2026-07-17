@@ -22,6 +22,11 @@ class Equals(BaseFn):
 
     def __init__(self) -> None:
         super().__init__("Fn::Equals", ("boolean",))
+        # ARCHITECTURE — W8003-001 / W8003-002 / W8003-007
+        # Optional child-rule injection is the integration seam from structural
+        # Fn::Equals traversal to constant-result analysis. The dependency points
+        # from this traversal owner to W8003; W8003 does not depend on or aggregate
+        # traversal state, so each expression retains this invocation's location.
         self.child_rules = {
             "W8003": None,
         }
