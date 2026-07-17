@@ -24,6 +24,15 @@ class HardCodedArnProperties(CloudFormationLintRule):
     )
     source_url = ""
     tags = ["resources"]
+
+    # ARCHITECTURE [I3042-OAI-001, I3042-OAI-002, I3042-OAI-008]
+    # Ownership remains inside I3042: ARN extraction supplies locally parsed
+    # partition/service/region/account/resource context to match(), and match()
+    # owns the narrow canonical-OAI account exception.  The exception must not
+    # become a shared account allowlist or a dependency of partition/region
+    # validation.  This extractor-to-policy seam uses only template content and
+    # rule configuration; no AWS session, network, credential, or OS adapter
+    # belongs on either side of the boundary.
     # using \r\n inside ${ } because there can be spaces in the sub parameter naming
     # using \s for matching outside of Sub parameters as no space will work
     regex = re.compile(
