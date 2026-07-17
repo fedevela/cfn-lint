@@ -108,10 +108,13 @@ class TemplateRunner:
         Yields:
             Match: The unique matches from the input sequence.
         """
-        seen: list[Match] = []
+        seen: list[tuple[Match, tuple[Any, ...]]] = []
         for match in matches:
-            if match not in seen:
-                seen.append(match)
+            # IAMMP-009: distinct logical paths are distinct findings even when
+            # source locations are unavailable and all other fields match.
+            match_key = (match, tuple(getattr(match, "path", [])))
+            if match_key not in seen:
+                seen.append(match_key)
                 yield match
 
     def run(self) -> Iterator[Match]:

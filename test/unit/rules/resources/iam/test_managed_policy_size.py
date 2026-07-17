@@ -6,6 +6,9 @@ SPDX-License-Identifier: MIT-0
 import json
 
 from cfnlint import ConfigMixIn, Rules
+from cfnlint.rules.jsonschema.CfnLint import CfnLint
+from cfnlint.rules.jsonschema.JsonSchema import JsonSchema
+from cfnlint.rules.resources.Configuration import Configuration
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 from cfnlint.rules.resources.properties.Properties import Properties
 from cfnlint.rules.resources.properties.StringLength import StringLength
@@ -94,12 +97,13 @@ def _iammp_008_errors(compact_length):
             {
                 "Effect": "Invalid",
                 "Action": "service:Action",
-                "Resource": "",
+                "Resource": "*",
+                "Sid": "",
             }
         ],
     }
     empty_resource_length = len(json.dumps(policy_document, separators=(",", ":")))
-    policy_document["Statement"][0]["Resource"] = "a" * (
+    policy_document["Statement"][0]["Sid"] = "a" * (
         compact_length - empty_resource_length
     )
     template = {
@@ -111,6 +115,9 @@ def _iammp_008_errors(compact_length):
         }
     }
     rules = Rules()
+    rules.register(JsonSchema())
+    rules.register(CfnLint())
+    rules.register(Configuration())
     rules.register(Properties())
     rules.register(StringLength())
     rules.register(IdentityPolicy())
@@ -125,6 +132,46 @@ def _iammp_008_errors(compact_length):
             rules=rules,
         ).run()
     )
+
+
+def _iammp_009_size_errors():
+    policy_documents = {
+        "OversizedManagedPolicyOne": json.loads(
+            _policy_document_json_variants(6145)[0]
+        ),
+        "CompliantManagedPolicy": json.loads(
+            _policy_document_json_variants(6144)[0]
+        ),
+        "OversizedManagedPolicyTwo": json.loads(
+            _policy_document_json_variants(6146)[0]
+        ),
+    }
+    template = {
+        "Resources": {
+            name: {
+                "Type": "AWS::IAM::ManagedPolicy",
+                "Properties": {"PolicyDocument": policy_document},
+            }
+            for name, policy_document in policy_documents.items()
+        }
+    }
+    rules = Rules()
+    rules.register(JsonSchema())
+    rules.register(CfnLint())
+    rules.register(Configuration())
+    rules.register(Properties())
+    rules.register(StringLength())
+
+    return [
+        error
+        for error in TemplateRunner(
+            filename=None,
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        ).run()
+        if error.rule.id == "E3033"
+    ]
 
 
 def test_iammp_001_static_managed_policy_compact_over_6144_reports_policy_doc_error(
@@ -412,10 +459,34 @@ def test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other
 def test_iammp_009_validating_multiple_managed_policies_identifies_every_oversized_policy_document(
 ):
     """IAMMP-009: every oversized policy in a multi-policy template is identified."""
-    assert True
+    errors = _iammp_009_size_errors()
+
+    assert [error.message for error in errors] == [
+        "Item is too long",
+        "Item is too long",
+    ]
+    assert [error.path for error in errors] == [
+        [
+            "Resources",
+            "OversizedManagedPolicyOne",
+            "Properties",
+            "PolicyDocument",
+        ],
+        [
+            "Resources",
+            "OversizedManagedPolicyTwo",
+            "Properties",
+            "PolicyDocument",
+        ],
+    ]
 
 
 def test_iammp_009_validating_multiple_managed_policies_does_not_identify_compliant_policy_documents_as_oversized(
 ):
     """IAMMP-009: compliant policies in a multi-policy template are not identified."""
-    assert True
+    errors = _iammp_009_size_errors()
+
+    assert {error.path[1] for error in errors} == {
+        "OversizedManagedPolicyOne",
+        "OversizedManagedPolicyTwo",
+    }
