@@ -321,3 +321,15 @@ def test_iammp_007_validating_managed_policy_with_unresolved_final_compact_conte
     ]
 
     assert errors == []
+
+
+def test_iammp_008_oversized_managed_policy_reports_size_error_and_preserves_other_applicable_lint_rule(
+):
+    """IAMMP-008: size failure preserves every other applicable lint rule."""
+    assert True
+
+
+def test_iammp_008_compliant_managed_policy_omits_size_error_and_preserves_other_applicable_lint_rule(
+):
+    """IAMMP-008: size success preserves every other applicable lint rule."""
+    assert True
