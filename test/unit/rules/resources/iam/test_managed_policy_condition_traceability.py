@@ -10,6 +10,23 @@ from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 
 
+# ARCHITECTURE (IAMCOND-006, IAMCOND-008):
+# This module remains the regression owner because it already provides the
+# managed-policy PolicyDocument context and the condition-finding observation
+# boundary.  `_validate` is the test-only execution adapter and explicit
+# IdentityPolicy check-selection seam; repeated and malformed-versus-valid
+# scenarios must enter through that same adapter with unchanged surrounding
+# policy data.  Production code has no dependency on this test seam.
+#
+# `_condition_operator_errors` is the shared diagnostic-selection boundary for
+# both requirements.  IAMCOND-006 owns comparison of emitted rule identity,
+# message, and path at the test locus, without adding sorting or determinism
+# machinery to IdentityPolicy.  IAMCOND-008 owns two tests in the existing class
+# that share this adapter and filter while varying only the Condition structure.
+# Pytest's existing discovery of this module is the suite-integration seam, so no
+# new fixture module, runner configuration, or public production API is needed.
+
+
 def _validate(
     condition,
     resource_type="AWS::IAM::ManagedPolicy",
