@@ -794,6 +794,19 @@ class ConfigMixIn(TemplateArgs, CliArgs, ConfigFileArgs):
         all_filenames = []
 
         for filename in filenames:
+            # Pseudocode: explicit missing template path obligations
+            # [CFNLINT-001, CFNLINT-002, CFNLINT-003]
+            # EXPAND filename as the existing template-selection expression.
+            # IF expansion yields one or more paths:
+            #     ADD every expanded path to the template-processing handoff.
+            # ELSE IF filename is an explicit local path, not a glob pattern:
+            #     PRESERVE filename in the template-processing handoff.
+            #     WHEN decoding reports that this path does not exist:
+            #         CONVERT the condition into the normal deterministic error result.
+            #         INCLUDE the missing-file condition and filename in stderr.
+            #         COMPLETE normal CLI termination with an exit status greater than zero.
+            # ELSE:
+            #     RETAIN the existing unmatched-glob behavior; it is outside these obligations.
             add_filenames = glob.glob(filename, recursive=True)
 
             if isinstance(add_filenames, list):
