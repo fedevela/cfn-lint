@@ -40,6 +40,24 @@ _gev_literal_map_template = {
     },
 }
 
+_gev_find_in_map_template = {
+    "Transform": "AWS::LanguageExtensions",
+    "Mappings": {
+        "ResourceNames": {
+            "a-1": {"EscapedInput": "a1"},
+            "a-2": {"EscapedInput": "a2"},
+            "b-1": {"EscapedInput": "b1"},
+            "b-2": {"EscapedInput": "b2"},
+        }
+    },
+    "Resources": {
+        "InputQueuea1": {"Type": "AWS::SQS::Queue"},
+        "InputQueuea2": {"Type": "AWS::SQS::Queue"},
+        "InputQueueb1": {"Type": "AWS::SQS::Queue"},
+        "InputQueueb2": {"Type": "AWS::SQS::Queue"},
+    },
+}
+
 
 @pytest.fixture(scope="module")
 def gev_literal_map_getatt_case():
@@ -57,6 +75,28 @@ def gev_literal_map_getatt_case():
             ]
         },
         "schema": {"type": "string"},
+    }
+
+
+def _gev_mapped_getatt_case(loop_input):
+    return {
+        "Fn::GetAtt": [
+            {
+                "Fn::Sub": [
+                    "InputQueue${EscapedInput}",
+                    {
+                        "EscapedInput": {
+                            "Fn::FindInMap": [
+                                "ResourceNames",
+                                loop_input,
+                                "EscapedInput",
+                            ]
+                        }
+                    },
+                ]
+            },
+            "Arn",
+        ]
     }
 
 
@@ -323,11 +363,40 @@ def test_gev_002_literal_map_sub_resolving_to_input_queue_a1_is_accepted_as_decl
     ) == []
 
 
-def test_gev_003_two_arg_sub_findinmap_declared_resource_name_is_accepted():
+@pytest.mark.parametrize("template", [_gev_find_in_map_template], indirect=True)
+def test_gev_003_two_arg_sub_findinmap_declared_resource_name_is_accepted(
+    validator, rule
+):
     """GEV-003: LanguageExtensions maps Sub to an accepted resource name."""
-    assert True
+    instance = _gev_mapped_getatt_case("a-1")
+    resource_name = instance["Fn::GetAtt"][0]
+    rule.child_rules = {}
+
+    assert [value for value, _, _ in validator.resolve_value(resource_name)] == [
+        "InputQueuea1"
+    ]
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
 
 
-def test_gev_004_foreach_a_1_a_2_b_1_b_2_dynamic_getatt_emits_no_e1010():
+@pytest.mark.parametrize("template", [_gev_find_in_map_template], indirect=True)
+@pytest.mark.parametrize(
+    "loop_input,expected_resource_name",
+    [
+        ("a-1", "InputQueuea1"),
+        ("a-2", "InputQueuea2"),
+        ("b-1", "InputQueueb1"),
+        ("b-2", "InputQueueb2"),
+    ],
+)
+def test_gev_004_foreach_a_1_a_2_b_1_b_2_dynamic_getatt_emits_no_e1010(
+    loop_input, expected_resource_name, validator, rule
+):
     """GEV-004: the reported loop inputs transition without E1010 findings."""
-    assert True
+    instance = _gev_mapped_getatt_case(loop_input)
+    resource_name = instance["Fn::GetAtt"][0]
+    rule.child_rules = {}
+
+    assert [value for value, _, _ in validator.resolve_value(resource_name)] == [
+        expected_resource_name
+    ]
+    assert list(rule.fn_getatt(validator, {"type": "string"}, instance, {})) == []
