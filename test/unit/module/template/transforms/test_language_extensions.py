@@ -812,21 +812,105 @@ class TestEmptyForEachContract(TestCase):
 
 
 class TestNonEmptyForEachContract(TestCase):
+    @staticmethod
+    def _template():
+        return convert_dict(
+            {
+                "Transform": "AWS::LanguageExtensions",
+                "Resources": {
+                    "Fn::ForEach::Buckets": [
+                        "Identifier",
+                        ["alpha", "beta"],
+                        {
+                            "LoopBucket${Identifier}": {
+                                "Type": "AWS::S3::Bucket",
+                                "Properties": {
+                                    "BucketName": {
+                                        "Fn::Sub": "foreach-${Identifier}"
+                                    },
+                                    "Tags": [
+                                        {
+                                            "Key": "Identifier",
+                                            "Value": {"Ref": "Identifier"},
+                                        },
+                                        {
+                                            "Key": "Substitution",
+                                            "Value": {
+                                                "Fn::Sub": "value-${Identifier}"
+                                            },
+                                        },
+                                    ],
+                                },
+                            }
+                        },
+                    ]
+                },
+            }
+        )
+
+    def _transform(self):
+        cfn = Template(
+            filename="",
+            template=self._template(),
+            regions=["us-east-1"],
+        )
+        return language_extension(cfn)
+
+    @staticmethod
+    def _lint(template):
+        rules = Rules(
+            {
+                "E0001": TransformError(),
+                "E3006": ResourceType(),
+            }
+        )
+        runner = TemplateRunner(
+            filename="",
+            template=template,
+            config=ConfigMixIn(regions=["us-east-1"]),
+            rules=rules,
+        )
+        return list(runner.run())
+
     def test_foreach_006_non_empty_collection_transforms_to_one_resource_per_value(
         self,
     ):
         """FOREACH-006: Each collection value expands to one resource."""
-        self.assertTrue(True)
+        matches, transformed = self._transform()
+
+        self.assertListEqual(matches, [])
+        self.assertEqual(len(transformed["Resources"]), 2)
 
     def test_foreach_007_non_empty_collection_substitutes_value_into_logical_id(self):
         """FOREACH-007: Each generated logical ID contains its collection value."""
-        self.assertTrue(True)
+        _, transformed = self._transform()
+
+        self.assertSetEqual(
+            set(transformed["Resources"]),
+            {"LoopBucketalpha", "LoopBucketbeta"},
+        )
 
     def test_foreach_008_non_empty_collection_substitutes_properties_and_lints(
         self,
     ):
         """FOREACH-008: Generated properties are substituted and lint successfully."""
-        self.assertTrue(True)
+        _, transformed = self._transform()
+
+        for identifier in ("alpha", "beta"):
+            self.assertDictEqual(
+                transformed["Resources"][f"LoopBucket{identifier}"]["Properties"],
+                {
+                    "BucketName": f"foreach-{identifier}",
+                    "Tags": [
+                        {"Key": "Identifier", "Value": identifier},
+                        {
+                            "Key": "Substitution",
+                            "Value": f"value-{identifier}",
+                        },
+                    ],
+                },
+            )
+        self.assertListEqual(self._lint(self._template()), [])
 
 
 class TestTransformValues(TestCase):
