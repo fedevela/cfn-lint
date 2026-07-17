@@ -10,7 +10,11 @@ from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 
 
-def _validate(condition, resource_type="AWS::IAM::ManagedPolicy"):
+def _validate(
+    condition,
+    resource_type="AWS::IAM::ManagedPolicy",
+    effect="Allow",
+):
     rule = IdentityPolicy()
     validator = CfnTemplateValidator().evolve(
         context=Context(
@@ -25,7 +29,7 @@ def _validate(condition, resource_type="AWS::IAM::ManagedPolicy"):
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Effect": "Allow",
+                "Effect": effect,
                 "Action": "servicecatalog:ListPortfolios",
                 "Resource": "*",
                 "Condition": condition,
@@ -96,8 +100,41 @@ class TestManagedPolicyConditionTraceability:
         self,
     ):
         """IAMCOND-003: a valid operator condition produces no operator finding."""
-        assert True
+        errors = _condition_operator_errors(
+            _validate(
+                {
+                    "StringEquals": {
+                        "servicecatalog:accountLevel": "account",
+                    }
+                }
+            )
+        )
+
+        assert errors == []
 
     def test_iamcond_007_unrelated_lint_findings_remain_unchanged(self):
         """IAMCOND-007: findings outside IAM Condition structure remain unchanged."""
-        assert True
+        condition = {
+            "StringEquals": {
+                "servicecatalog:accountLevel": "account",
+            }
+        }
+        managed_policy_errors = _validate(condition, effect="NotAllow")
+        inline_policy_errors = _validate(
+            condition,
+            resource_type="AWS::IAM::Policy",
+            effect="NotAllow",
+        )
+
+        def error_details(errors):
+            return [(error.message, list(error.path)) for error in errors]
+
+        assert error_details(managed_policy_errors) == error_details(
+            inline_policy_errors
+        )
+        assert error_details(managed_policy_errors) == [
+            (
+                "'NotAllow' is not one of ['Allow', 'Deny']",
+                ["Statement", 0, "Effect"],
+            )
+        ]
