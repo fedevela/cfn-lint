@@ -60,6 +60,10 @@ def ref(validator: Validator, instance: Any) -> ResolutionResult:
 # Dependency direction: mapping lookup -> applicability -> default-result adapter ->
 # conditional removal / receiving-property validation.
 def _find_in_map_default(validator: Validator, default_value: Any) -> ResolutionResult:
+    fn_k, fn_v = is_function(default_value)
+    if fn_k == "Ref" and fn_v == "AWS::NoValue":
+        return
+
     for value, v, _ in validator.resolve_value(default_value):
         yield value, v.evolve(
             context=v.context.evolve(
