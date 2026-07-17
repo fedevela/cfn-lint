@@ -50,6 +50,10 @@ class _TypeError(Exception):
 
 
 def language_extension(cfn: Any) -> TransformResult:
+    # ARCHITECTURE [FOREACH-009]: This entrypoint is the transform-error adapter.
+    # Collection classification and resolution failures cross this private call
+    # boundary as transform exceptions and are returned as lint-visible matches
+    # with no transformed template; the collection layer must not absorb them.
     transform = _Transform()
     try:
         return transform.transform(cfn)
@@ -529,9 +533,11 @@ class _ForEachValueRef(_ForEachValue):
         raise _ResolveError("Can't resolve Fn::Ref", self._obj)
 
 
-# ARCHITECTURE [FOREACH-001, FOREACH-002]: This private boundary owns the
-# distinction between a declared collection (including an empty list) and an
-# intrinsic collection expression. values() is its normalized iterator contract.
+# ARCHITECTURE [FOREACH-001, FOREACH-002, FOREACH-009]: This private boundary
+# owns the distinction between a declared collection (including an empty list),
+# an intrinsic collection expression, and invalid or unresolved input. values()
+# is its normalized iterator-or-error contract; only resolved lists may reach
+# _ForEach as iterable values, while failures remain owned by the error adapter.
 class _ForEachCollection:
     def __init__(self, obj: Any) -> None:
         # PSEUDOCODE [FOREACH-009 — invalid collection]:
