@@ -246,7 +246,38 @@ class TestHardCodedArnProperties(BaseRuleTestCase):
         self,
     ):
         """GUID: I3042-OAI-007; region results remain unchanged."""
-        self.assertTrue(True)
+        region_cases = [
+            ("", 0),
+            ("${AWS::Region}", 0),
+            ("${Region}", 0),
+            ("us-east-1", 1),
+            ("${AWS::Partition}", 1),
+            ("${AWS::AccountId}", 1),
+        ]
+
+        for region, expected_count in region_cases:
+            arn = CANONICAL_OAI_ARN.replace(":iam::", f":iam:{region}:")
+
+            with self.subTest(region=region):
+                region_matches_without_account_validation = [
+                    match
+                    for match in self._matches_for_oai_arn(arn, account_id=False)
+                    if "Region" in match.message
+                ]
+                region_matches_with_account_validation = [
+                    match
+                    for match in self._matches_for_oai_arn(arn, account_id=True)
+                    if "Region" in match.message
+                ]
+
+                self.assertEqual(
+                    region_matches_without_account_validation,
+                    region_matches_with_account_validation,
+                )
+                self.assertEqual(
+                    expected_count,
+                    len(region_matches_with_account_validation),
+                )
 
     def test_i3042_oai_008_offline_macos_and_ubuntu_have_no_account_finding(self):
         """GUID: I3042-OAI-008; offline macOS and Ubuntu have no finding."""
