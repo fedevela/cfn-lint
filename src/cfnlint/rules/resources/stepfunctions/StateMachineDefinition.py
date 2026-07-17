@@ -92,6 +92,20 @@ class StateMachineDefinition(CfnLintJsonSchema):
             #   diagnostics for inspectable definitions and other properties are preserved.
             # OUTPUT: if no independent diagnostic exists, the reproduction completes
             #   validation successfully (CFNLINT-003).
+            # ARCHITECTURE COMPATIBILITY CONTRACT: CFNLINT-004, CFNLINT-005,
+            #   CFNLINT-006
+            # Ownership: this rule retains ownership of ASL diagnostics for every
+            # directly inspectable Definition or DefinitionString (CFNLINT-004).
+            # Boundary: the opaque-value branch below excludes only generated
+            # DefinitionString content from this rule's ASL inspection (CFNLINT-005).
+            # Dependency direction: the branch returns to the enclosing resource
+            # validation pipeline; it must not absorb or replace sibling-property
+            # schema and intrinsic diagnostics (CFNLINT-005).
+            # Stable path: literal parsing, DefinitionSubstitutions handling, error
+            # cleanup, and attribution remain downstream of the narrow boundary and
+            # are shared unchanged by every inspectable input (CFNLINT-006).
+            # Integration seam: future implementation belongs at the classification
+            # guard, without moving validation ownership or widening the bypass.
             # PSEUDOCODE COMPATIBILITY CONTRACT: CFNLINT-004, CFNLINT-005,
             #   CFNLINT-006
             # LOGIC OBLIGATION (CFNLINT-004):
