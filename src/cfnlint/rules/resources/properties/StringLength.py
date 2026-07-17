@@ -62,7 +62,8 @@ class StringLength(CloudFormationLintRule):
 
         return obj
 
-    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004/IAMMP-005 architecture boundary:
+    # IAMMP-001/IAMMP-002/IAMMP-003/IAMMP-004/IAMMP-005/IAMMP-006
+    # architecture boundary:
     # - the managed-policy schema owns applicability and the 6,144 limit;
     # - template parsing owns removal of source-format whitespace by producing
     #   the structured object received at this boundary;
@@ -124,6 +125,9 @@ class StringLength(CloudFormationLintRule):
     # IAMMP-005 verification:
     # test_iammp_005_validating_supplied_reproduction_reports_template_invalid
     # test_iammp_005_supplied_oversized_managed_policy_reports_policy_doc_size_error
+    # IAMMP-006 verification:
+    # test_iammp_006_oversized_aws_iam_managedpolicy_applies_6144_character_limit
+    # test_iammp_006_oversized_non_managedpolicy_resource_is_not_reported_by_6144_limit
     # pylint: disable=unused-argument, arguments-renamed
     def maxLength(self, validator, mL, instance, schema):
         # IAMMP-001 logic obligation
@@ -193,6 +197,25 @@ class StringLength(CloudFormationLintRule):
         # resource and property locus.
         # FAILURE PATH: do not split, shorten, rewrite, or otherwise repair the
         # oversized policy; report the size failure without mutating the input.
+        # IAMMP-006 logic obligation
+        # INPUT: the current resource type, its PolicyDocument when present, and
+        # the maximum-length keyword supplied by the resource's own schema.
+        # APPLICABILITY DECISION BEFORE KEYWORD HANDOFF:
+        #   - IF the resource type is AWS::IAM::ManagedPolicy, select that
+        #     resource schema; when its PolicyDocument declares maxLength 6,144,
+        #     hand the document and maximum to this keyword flow.
+        #   - ELSE do not dispatch the managed-policy 6,144-character constraint
+        #     to this flow, even when the resource contains policy-shaped content.
+        # MANAGED-POLICY TRANSITION:
+        #   1. Receive the selected ManagedPolicy PolicyDocument and maximum.
+        #   2. Hand non-string policy content to compact-length normalization.
+        #   3. IF its compact count is greater than 6,144, yield the size error;
+        #      ELSE yield no managed-policy size error.
+        # NON-MANAGED-POLICY OUTPUT: produce no error attributable to the
+        # managed-policy 6,144-character constraint; independently applicable
+        # schema validations remain unaffected.
+        # FAILURE PATH: never infer managed-policy applicability from property
+        # shape or content; resource-type/schema selection is the required gate.
         if validator.is_type(instance, "string"):
             if len(instance) > mL:
                 yield ValidationError(f"{instance!r} is longer than {mL}")
