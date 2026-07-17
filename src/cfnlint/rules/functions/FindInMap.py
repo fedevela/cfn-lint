@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
+from cfnlint.jsonschema import ValidationResult, Validator
 from cfnlint.rules.functions._BaseFn import BaseFn, singular_types
 
 
@@ -173,12 +173,25 @@ class FindInMap(BaseFn):
             )
         )
         if is_overlong:
-            yield ValidationError(
-                "FindInMap supports no more than two lookup levels",
-                path=deque([key]),
-                schema_path=deque(["maxItems"]),
-                validator=self.fn.py,
+            depth_validator = validator.evolve(
+                context=validator.context.evolve(resources={})
             )
+            depth_schema = self.schema(depth_validator, instance)
+            if has_language_extensions and len(value) == 4:
+                depth_schema["maxItems"] = 3
+
+            for err in self.fix_errors(
+                self.validator(depth_validator).descend(
+                    value,
+                    depth_schema,
+                    path=key,
+                )
+            ):
+                if err.schema_path == deque(["maxItems"]):
+                    err.message = (
+                        "FindInMap supports no more than two lookup levels"
+                    )
+                    yield err
             return
 
         if has_language_extensions:

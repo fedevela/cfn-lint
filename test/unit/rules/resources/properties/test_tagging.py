@@ -144,10 +144,32 @@ def test_validate(name, instance, schema, expected, rule, validator):
 
 
 class TestE1011007E3024FindingPreservation:
-    """Placeholder verification contract for GUID: E1011-007."""
+    """Verification contract for GUID: E1011-007."""
 
     def test_e1011_007_e3024_template_after_e1011_enhancement_retains_finding_unchanged(
-        self,
+        self, rule, validator
     ):
         """An E3024-producing template retains its E3024 finding unchanged."""
-        assert True
+        errors = list(
+            rule.tagging(
+                validator,
+                {"taggable": True},
+                {"Tags": {"aws:Foo": "Bar"}},
+                {},
+            )
+        )
+
+        assert rule.id == "E3024"
+        assert errors == [
+            ValidationError(
+                (
+                    "'aws:Foo' does not match any of the regexes: "
+                    "'^(?!aws:).+$'"
+                ),
+                path=deque(["Tags", "aws:Foo"]),
+                schema_path=deque(
+                    ["properties", "Tags", "additionalProperties"]
+                ),
+                validator="tagging",
+            )
+        ]

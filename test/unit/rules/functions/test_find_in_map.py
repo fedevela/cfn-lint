@@ -224,45 +224,121 @@ class TestE1011003E1011004FindInMapBoundaryClassificationPreservation:
 
 
 class TestE1011005ExcessiveFindInMapDiagnosticEnvelopePreservation:
-    """Placeholder verification contracts for GUID: E1011-005."""
+    """Verification contracts for GUID: E1011-005."""
+
+    @staticmethod
+    def _before_and_after(rule, context, cfn):
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+        schema = {"type": "string"}
+        instance = {"Fn::FindInMap": ["A", "B", "C", "D"]}
+        before_validator = validator.evolve(
+            context=validator.context.evolve(resources={})
+        )
+
+        before = list(BaseFn.validate(rule, before_validator, schema, instance, {}))
+        after = list(rule.fn_findinmap(validator, schema, instance, {}))
+
+        assert len(before) == len(after) == 1
+        return before[0], after[0]
 
     def test_e1011_005_excessive_lookup_after_enhancement_retains_e1011_identifier(
-        self,
+        self, rule, context, cfn
     ):
         """The enhanced excessive-lookup finding remains identified as E1011."""
-        assert True
+        _, after = self._before_and_after(rule, context, cfn)
+
+        assert rule.id == "E1011"
+        assert after.validator == "fn_findinmap"
 
     def test_e1011_005_excessive_lookup_after_enhancement_retains_location_and_path(
-        self,
+        self, rule, context, cfn
     ):
         """The enhanced finding retains its diagnostic location and path."""
-        assert True
+        before, after = self._before_and_after(rule, context, cfn)
 
-    def test_e1011_005_excessive_lookup_after_enhancement_retains_metadata(self):
+        assert after.path == before.path == deque(["Fn::FindInMap"])
+        assert after.relative_path == before.relative_path
+        assert after.absolute_path == before.absolute_path
+        assert after.path_override == before.path_override
+
+    def test_e1011_005_excessive_lookup_after_enhancement_retains_metadata(
+        self, rule, context, cfn
+    ):
         """The enhanced finding retains all diagnostic metadata."""
-        assert True
+        before, after = self._before_and_after(rule, context, cfn)
+        location_fields = {"path", "relative_path", "path_override"}
+        before_metadata = {
+            key: value
+            for key, value in vars(before).items()
+            if key not in {"message", *location_fields}
+        }
+        after_metadata = {
+            key: value
+            for key, value in vars(after).items()
+            if key not in {"message", *location_fields}
+        }
+
+        assert after_metadata == before_metadata
 
     def test_e1011_005_excessive_lookup_after_enhancement_changes_only_message_text(
-        self,
+        self, rule, context, cfn
     ):
         """Only the targeted excessive-lookup message text changes."""
-        assert True
+        before, after = self._before_and_after(rule, context, cfn)
+
+        assert before.message == "['A', 'B', 'C', 'D'] is too long (3)"
+        assert after.message == "FindInMap supports no more than two lookup levels"
+        assert {
+            key: value for key, value in vars(after).items() if key != "message"
+        } == {
+            key: value for key, value in vars(before).items() if key != "message"
+        }
 
 
 class TestE1011006UnrelatedValidationAndWordingPreservation:
-    """Placeholder verification contracts for GUID: E1011-006."""
+    """Verification contracts for GUID: E1011-006."""
 
     def test_e1011_006_after_enhancement_unrelated_condition_keeps_behavior_and_wording(
-        self,
+        self, rule, context, cfn
     ):
         """An unrelated validation condition retains behavior and wording."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+        schema = {"type": "string"}
+        instance = {"Fn::FindInMap": {"foo": "bar"}}
+        before_validator = validator.evolve(
+            context=validator.context.evolve(resources={})
+        )
+
+        before = list(BaseFn.validate(rule, before_validator, schema, instance, {}))
+        after = list(rule.fn_findinmap(validator, schema, instance, {}))
+
+        assert after == before
+        assert after[0].message == "{'foo': 'bar'} is not of type 'array'"
 
     def test_e1011_006_unrelated_suite_after_enhancement_retains_findings_and_wording(
-        self,
+        self, rule, context, cfn
     ):
         """The unrelated suite retains its findings and diagnostic wording."""
-        assert True
+        validator = CfnTemplateValidator({})(context=context, cfn=cfn)
+        schema = {"type": "string"}
+        cases = [
+            (
+                {"Fn::FindInMap": [{"Fn::GetAtt": "MyResource.Arn"}, "foo", "bar"]},
+                "{'Fn::GetAtt': 'MyResource.Arn'} is not of type 'string'",
+            ),
+            ({"Fn::FindInMap": ["A", "B"]}, "['A', 'B'] is too short (3)"),
+        ]
+
+        findings = [
+            list(rule.fn_findinmap(validator, schema, instance, {}))
+            for instance, _ in cases
+        ]
+
+        assert [len(errors) for errors in findings] == [1, 1]
+        assert [errors[0].message for errors in findings] == [
+            message for _, message in cases
+        ]
+        assert all(errors[0].validator == "fn_findinmap" for errors in findings)
 
 
 @pytest.mark.parametrize(
