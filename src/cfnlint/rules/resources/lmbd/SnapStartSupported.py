@@ -149,6 +149,22 @@ class SnapStartSupported(CfnLintKeyword):
             # may depend on this fallback; this fallback must not depend on or infer
             # membership from capability-map keys.
 
+            # SNAPSTART-005 logic obligation: preserve Java support independently.
+            # INPUT: an enabled SnapStart configuration whose resolved runtime was
+            # not consumed by the runtime-specific capability path above.
+            # DECISION/FLOW:
+            # 1. Determine regional validity exclusively against the existing Java
+            #    support boundary in self.regions; do not consult, intersect, or
+            #    substitute any _runtime_region_support allowlist.
+            # 2. If any selected region is outside that Java boundary, hand the
+            #    unsupported set to the existing regional E2530 failure path.
+            # 3. Otherwise preserve acceptance for Java runtimes recognized by the
+            #    legacy runtime check, including every previously valid Java case.
+            # OUTPUT: a valid Java runtime/region combination yields no E2530 even
+            # when Python 3.12 availability for the same region differs.
+            # FAILURE/HANDOFF: only the Java boundary may reject a Java configuration;
+            # non-Java and unresolved runtimes continue to their existing checks.
+
             if any(region not in self.regions for region in validator.context.regions):
                 unsupported_regions = [
                     region
