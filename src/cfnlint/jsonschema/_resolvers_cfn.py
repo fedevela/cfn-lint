@@ -98,6 +98,29 @@ def find_in_map(validator: Validator, instance: Any) -> ResolutionResult:
         if validator.context.mappings.maps[map_name].is_transform:
             continue
 
+        # PSEUDOCODE [CFNLINT-001, CFNLINT-002, CFNLINT-009] — resolve an
+        # account-ID selector from the mapping itself, without external state:
+        # INPUT: the selected local mapping, instance[1] as the first-level
+        # selector, and instance[2] as the requested second-level value key.
+        # IF instance[1] is Ref: AWS::AccountId:
+        #   SET found_account_key = false and found_value_key = false.
+        #   FOR each preserved first-level mapping key in stable template order:
+        #     IF the key is not composed solely of account-ID digits, CONTINUE.
+        #     SET found_account_key = true.
+        #     RESOLVE instance[2] using only the current local validator context.
+        #     FOR each resolved second-level key:
+        #       IF it is absent below the candidate account key, CONTINUE.
+        #       SET found_value_key = true.
+        #       READ the mapped value using the exact preserved digit string.
+        #       YIELD the value (including an Emails array unchanged), a value
+        #       path through that exact key, and no error.
+        #   IF no account-ID candidate exists, YIELD a validation error at [1].
+        #   ELSE IF no candidate contains the requested value key, YIELD a
+        #   validation error at [2].
+        #   STOP this map-name branch so the generic Ref resolution cannot
+        #   substitute credentials, live account context, or a numeric rewrite.
+        # Repeating this flow with the same template and expression traverses
+        # the same ordered local candidates and therefore yields the same value.
         k, v = is_function(instance[1])
         if k == "Ref" and v in PSEUDOPARAMS:
             continue

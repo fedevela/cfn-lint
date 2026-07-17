@@ -90,6 +90,17 @@ class Map:
             return cls({})
         is_transform = False
         keys = {}
+
+        # PSEUDOCODE [CFNLINT-001, CFNLINT-002] — preserve account-ID keys:
+        # INPUT: each first-level mapping key and its second-level value map.
+        # FOR each source key in template order:
+        #   IF the key is a string, retain it unchanged.
+        #   ELSE IF the key is an integer scalar, convert its exact base-10 digit
+        #     sequence to text once; do not pass through float conversion,
+        #     arithmetic, rounding, or width-limited numeric storage.
+        #   ELSE ignore it under the existing mapping-key type contract.
+        # STORE the value map under that preserved textual key so a later
+        # Fn::FindInMap comparison observes every original digit.
         for k, v in instance.items():
             if k == "Fn::Transform":
                 is_transform = True
