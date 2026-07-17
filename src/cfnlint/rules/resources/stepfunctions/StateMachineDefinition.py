@@ -92,6 +92,10 @@ class StateMachineDefinition(CfnLintJsonSchema):
             #   diagnostics for inspectable definitions and other properties are preserved.
             # OUTPUT: if no independent diagnostic exists, the reproduction completes
             #   validation successfully (CFNLINT-003).
+            function, _ = cfnlint.helpers.is_function(value)
+            if k == "DefinitionString" and function == "Fn::Join":
+                continue
+
             add_path_to_message = False
             if validator.is_type(value, "string"):
                 try:
