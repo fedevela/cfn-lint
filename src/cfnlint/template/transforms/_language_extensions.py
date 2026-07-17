@@ -534,6 +534,14 @@ class _ForEachValueRef(_ForEachValue):
 # intrinsic collection expression. values() is its normalized iterator contract.
 class _ForEachCollection:
     def __init__(self, obj: Any) -> None:
+        # PSEUDOCODE [FOREACH-009 — invalid collection]:
+        # - INPUT the declared Fn::ForEach collection.
+        # - IF it is a list, classify it as a valid direct collection; preserve an
+        #   empty list as successful zero-item input.
+        # - ELSE IF it is an object, classify it as an expression to resolve later.
+        # - ELSE classify it as invalid, raise the existing collection type error,
+        #   and hand that failure to the transform-error boundary; do not create an
+        #   empty iterator or continue into loop materialization.
         self._collection: list[_ForEachValue] | None = None
         self._obj = obj
         self._fn: _ForEachValue | None = None
@@ -559,8 +567,20 @@ class _ForEachCollection:
         # - IF the intrinsic resolves to a list (including an empty list), validate
         #   and yield each member; an empty list likewise completes successfully.
         # - ELSE IF it resolves to a non-list, report the collection type error.
-        # - ELSE IF resolution fails, use the existing cached fallback flow.
+        # - ELSE IF resolution fails, preserve the genuine resolution failure path.
         # - Report "could not be resolved" only when no collection source resolves.
+        # PSEUDOCODE [FOREACH-009 — invalid/unresolvable result]:
+        # - Resolve a collection expression before deciding whether iteration may
+        #   complete successfully.
+        # - IF resolution produces a list, validate every member, yield its values,
+        #   and allow an empty list alone to complete as valid zero-item input.
+        # - ELSE IF resolution produces a non-list, raise the existing collection
+        #   value error and hand it to the transform-error boundary.
+        # - ELSE IF resolution fails, preserve and propagate a resolution error to
+        #   that boundary; do not substitute an empty list, yield synthetic values,
+        #   remove the loop declaration, or return a transformed template.
+        # - OUTPUT exactly one of: a valid collection iterator, or an observable
+        #   genuine transformation error; failure never transitions to valid-empty.
         if self._collection is not None:
             for item in self._collection:
                 try:
