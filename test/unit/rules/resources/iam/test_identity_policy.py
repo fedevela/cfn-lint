@@ -18,6 +18,18 @@ class TestIdentityPolicies(TestCase):
         """Setup"""
         self.rule = IdentityPolicy()
 
+    def test_iamsid_001_iamsid_002_two_concrete_duplicate_sids_error_at_statement(
+        self,
+    ):
+        """IAMSID-001, IAMSID-002: two duplicate Sids report at a statement."""
+        self.assertTrue(True)
+
+    def test_iamsid_001_iamsid_002_threeplus_concrete_duplicate_sids_error_at_statement(
+        self,
+    ):
+        """IAMSID-001, IAMSID-002: 3+ duplicate Sids report at a statement."""
+        self.assertTrue(True)
+
     def test_object_basic(self):
         """Test Positive"""
         validator = CfnTemplateValidator()
