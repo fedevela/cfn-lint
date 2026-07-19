@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::LanguageExtensions
+Resources:
+  ExistingBucket:
+    Type: AWS::S3::Bucket
+  "Fn::ForEach::EmptyQueues":
+    - Identifier
+    - []
+    - "GeneratedQueue${Identifier}":
+        Type: AWS::SQS::Queue
+Outputs:
+  ExistingBucketName:
+    Value: !Ref ExistingBucket

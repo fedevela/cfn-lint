@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::LanguageExtensions
+Mappings:
+  LoopValues:
+    Empty:
+      Names: []
+Resources:
+  ExistingBucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  ExistingBucketName:
+    Value: !Ref ExistingBucket
+  "Fn::ForEach::EmptyOutputs":
+    - Identifier
+    - !FindInMap [LoopValues, Empty, Names]
+    - "GeneratedOutput${Identifier}":
+        Value: !Ref Identifier
