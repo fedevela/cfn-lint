@@ -1,0 +1,28 @@
+{
+  "artifacts": {
+    "test/requirements/issue_138_iam_condition_entry_point_verification.json": [
+      "IAMCOND-006"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_owned_resource_type_is_linted_then_no_unsupported_operator_error": [
+      "IAMCOND-006"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_genuine_condition_violation_at_each_owned_entry_point_when_template_is_linted_then_match_remains_e3510_with_full_owning_policy_path": [
+      "IAMCOND-006"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_group_role_or_user_with_multiple_policy_entries_when_corrected_operator_occurs_at_any_wildcard_location_then_e3510_accepts_that_entry": [
+      "IAMCOND-006"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_one_valid_corrected_condition_per_owned_resource_type_when_all_are_linted_together_then_entry_point_validation_is_independent_and_unchanged": [
+      "IAMCOND-006"
+    ]
+  },
+  "requirements": {
+    "IAMCOND-006": [
+      "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_owned_resource_type_is_linted_then_no_unsupported_operator_error",
+      "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_group_role_or_user_with_multiple_policy_entries_when_corrected_operator_occurs_at_any_wildcard_location_then_e3510_accepts_that_entry",
+      "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_genuine_condition_violation_at_each_owned_entry_point_when_template_is_linted_then_match_remains_e3510_with_full_owning_policy_path",
+      "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_one_valid_corrected_condition_per_owned_resource_type_when_all_are_linted_together_then_entry_point_validation_is_independent_and_unchanged",
+      "test/requirements/issue_138_iam_condition_entry_point_verification.json"
+    ]
+  }
+}
