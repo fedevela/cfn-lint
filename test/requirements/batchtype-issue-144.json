@@ -1,4 +1,26 @@
 {
+  "architecture_artifacts": {
+    "BATCHTYPE-004": [
+      "test/requirements/batchtype-issue-144.architecture.md::L1",
+      "test/requirements/batchtype-issue-144.architecture.md::L2",
+      "test/requirements/batchtype-issue-144.architecture.md::L4",
+      "test/requirements/batchtype-issue-144.architecture.md::L5",
+      "test/requirements/batchtype-issue-144.architecture.md::L6"
+    ],
+    "BATCHTYPE-009": [
+      "test/requirements/batchtype-issue-144.architecture.md::L1",
+      "test/requirements/batchtype-issue-144.architecture.md::L4",
+      "test/requirements/batchtype-issue-144.architecture.md::L5",
+      "test/requirements/batchtype-issue-144.architecture.md::L6"
+    ],
+    "BATCHTYPE-011": [
+      "test/requirements/batchtype-issue-144.architecture.md::L1",
+      "test/requirements/batchtype-issue-144.architecture.md::L3",
+      "test/requirements/batchtype-issue-144.architecture.md::L4",
+      "test/requirements/batchtype-issue-144.architecture.md::L5",
+      "test/requirements/batchtype-issue-144.architecture.md::L6"
+    ]
+  },
   "issue": 144,
   "logic_artifacts": {
     "BATCHTYPE-004": [
