@@ -1,5 +1,12 @@
 {
   "artifacts": {
+    "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
     "test/fixtures/templates/issues/issue_3777_parallelcluster_condition_operators.yaml": [
       "IAMCOND-001",
       "IAMCOND-002",
@@ -91,6 +98,7 @@
   },
   "requirements": {
     "IAMCOND-001": [
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_001_given_string_or_string_array_when_string_equals_if_exists_then_e3510_accepts",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_validates_both_if_exists_and_set_qualified_occurrences_then_no_condition_operator_errors",
       "test/fixtures/templates/issues/issue_3777_parallelcluster_condition_operators.yaml",
@@ -105,6 +113,7 @@
       "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-002": [
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_002_given_string_array_when_for_any_value_string_equals_then_e3510_accepts",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_validates_both_if_exists_and_set_qualified_occurrences_then_no_condition_operator_errors",
       "test/fixtures/templates/issues/issue_3777_parallelcluster_condition_operators.yaml",
@@ -119,6 +128,7 @@
       "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-003": [
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_003_given_string_array_when_for_all_values_string_equals_then_e3510_accepts",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_validates_both_if_exists_and_set_qualified_occurrences_then_no_condition_operator_errors",
       "test/fixtures/templates/issues/issue_3777_parallelcluster_condition_operators.yaml",
@@ -133,6 +143,7 @@
       "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-004": [
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_004_given_supported_comparison_family_when_correct_set_qualifier_and_array_values_then_shared_condition_accepts",
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
@@ -145,6 +156,7 @@
       "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-005": [
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition/patternProperties",
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_005_given_non_set_comparison_family_when_if_exists_with_established_values_then_shared_condition_accepts",
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",

@@ -2,8 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Netzach verification placeholders for IAM Condition operator recognition.
-Remove the skip markers only when these obligations move to executable validation.
+Verification coverage for IAM Condition operator recognition.
 """
 
 # ruff: noqa: E501 -- canonical requirement IDs and scenario names stay readable
@@ -17,7 +16,6 @@ from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 
 
-PLACEHOLDER_REASON = "Netzach placeholder: enable during Malkhut validation"
 PARALLELCLUSTER_FIXTURE = Path(
     "test/fixtures/templates/issues/issue_3777_parallelcluster_condition_operators.yaml"
 )
@@ -53,7 +51,6 @@ def _validate_identity_policy(policy):
     )
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize("value", ["value", ["value", "second-value"]])
 def test_iamcond_001_given_string_or_string_array_when_string_equals_if_exists_then_e3510_accepts(
     value,
@@ -65,7 +62,6 @@ def test_iamcond_001_given_string_or_string_array_when_string_equals_if_exists_t
     assert _validate_identity_policy(policy) == []
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 def test_iamcond_002_given_string_array_when_for_any_value_string_equals_then_e3510_accepts():
     policy = _policy_with_condition(
         {"ForAnyValue:StringEquals": {"example:key": ["value", "second-value"]}}
@@ -74,7 +70,6 @@ def test_iamcond_002_given_string_array_when_for_any_value_string_equals_then_e3
     assert _validate_identity_policy(policy) == []
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 def test_iamcond_003_given_string_array_when_for_all_values_string_equals_then_e3510_accepts():
     policy = _policy_with_condition(
         {"ForAllValues:StringEquals": {"example:key": ["value", "second-value"]}}
@@ -107,7 +102,6 @@ SET_QUALIFIED_OPERATORS = [
 ]
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize(
     "qualifier,operator",
     [
@@ -150,7 +144,6 @@ IF_EXISTS_OPERATORS = [
 ]
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize(
     "operator",
     [pytest.param(operator, id=operator) for operator in IF_EXISTS_OPERATORS],
@@ -163,7 +156,6 @@ def test_iamcond_005_given_non_set_comparison_family_when_if_exists_with_establi
     assert _validate_identity_policy(policy) == []
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 def test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_validates_both_if_exists_and_set_qualified_occurrences_then_no_condition_operator_errors():
     template = cfn_yaml.load(str(PARALLELCLUSTER_FIXTURE))
     policies = [
