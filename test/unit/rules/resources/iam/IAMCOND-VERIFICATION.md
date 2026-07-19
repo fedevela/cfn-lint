@@ -2,14 +2,15 @@
 
 The established shared-schema selectors are active in
 `test_iam_condition_contract.py`. The issue 122 selectors are active in
-`test_iamcond_issue_122_contract.py`. Their parametrized node IDs preserve
-selection mode, rule family, operator or entry point, input shape, and expected
-outcome.
+`test_iamcond_issue_122_contract.py`. The issue 123 selectors are inert in
+`test_iamcond_issue_123_contract.py` until Malkhut enables executable
+validation. Their parametrized node IDs preserve selection mode, rule family,
+operator or entry point, input shape, and expected outcome.
 
 The deterministic procedures for the established shared-schema and issue 122
-obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The issue 122 procedures
+obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The issue-specific modules
 preserve their Runner, selection, fixture, rule-keyword, schema-delegation, and
-finding-path boundaries.
+finding-path boundaries directly at the verification locus.
 
 ## Requirement to verification
 
@@ -18,6 +19,7 @@ finding-path boundaries.
 | IAMCOND-001 | `test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]` |
 | IAMCOND-002 | `test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition[shape-rule]` |
 | IAMCOND-003 | `test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]`; `test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result` |
+| IAMCOND-004 | `test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]`; `test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]` |
 | IAMCOND-006 | `test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body[body-operator-rule]` |
 | IAMCOND-007 | `test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_null_operator_preserves_boolean_context_value_shapes[value-rule]` |
 | IAMCOND-008 | `test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family[rule]` |
@@ -34,6 +36,7 @@ finding-path boundaries.
 | `test_IAMCOND_001_` | IAMCOND-001 |
 | `test_IAMCOND_002_` | IAMCOND-002 |
 | `test_IAMCOND_003_` | IAMCOND-003 |
+| `test_IAMCOND_004_` | IAMCOND-004 |
 | `test_IAMCOND_006_` | IAMCOND-006 |
 | `test_IAMCOND_007_` | IAMCOND-007 |
 | `test_IAMCOND_008_` | IAMCOND-008 |
@@ -54,6 +57,12 @@ finding-path boundaries.
 - The IAMCOND-001 reproduction and IAMCOND-003 selection-continuity selector
   share `managed_policy_missing_condition_operator.yaml`; the entry-point
   matrix uses `identity_policy_entry_points_missing_condition_operator.yaml`.
+- IAMCOND-004 is split between five missing-operator rejection/path cases and
+  five recognized-condition non-finding cases. Both matrices preserve the
+  E3512 keyword and resource-relative path for KMS, OpenSearch Service, S3,
+  SNS, and SQS. The malformed matrix uses
+  `resource_policy_entry_points_missing_condition_operator.yaml`; the accepted
+  matrix uses `resource_policy_entry_points_recognized_condition.yaml`.
 - The rule matrix explicitly shares IAMCOND-002, IAMCOND-006, IAMCOND-007,
   IAMCOND-008, IAMCOND-009, IAMCOND-011, and IAMCOND-012 across E3510, E3512,
   and E3513.
