@@ -1,8 +1,59 @@
 {
   "issue": 127,
   "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py",
+  "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
   "inert_marker": "module pytestmark skip until executable validation",
+  "architectural_loci": {
+    "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
+    "DECLARED_PLACEHOLDER_PREDICATE": "StateMachineDefinition.py private all-referenced-keys helper",
+    "DEFERRED_ERROR_TREE_FILTER": "StateMachineDefinition.py private recursive helper",
+    "E3601_VALIDATION_ORCHESTRATOR": "StateMachineDefinition.validate",
+    "ISSUE_127_VERIFICATION_SEAM": "test_state_machine_definition_substitution_ownership.py and issue_127_traceability.json",
+    "OWNING_SUBSTITUTION_KEY_READER": "StateMachineDefinition.py private path-scoped helper"
+  },
+  "acceptance_criterion_to_architecture": {
+    "AC-1-undeclared-standalone-resource-placeholder-retains-E3601": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "AC-2-declarations-are-isolated-by-state-machine-owner": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "AC-3-fully-declared-embedded-forms-are-deferred": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "AC-4-fully-declared-comma-delimited-form-is-deferred": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "AC-5-partially-declared-embedded-or-comma-delimited-form-retains-E3601": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ]
+  },
   "acceptance_criterion_to_verification": {
     "AC-1-undeclared-standalone-resource-placeholder-retains-E3601": [
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains"
@@ -53,6 +104,48 @@
       "retain_non_deferred_failure"
     ]
   },
+  "logic_to_architecture": {
+    "load_definition_substitution_keys": [
+      "OWNING_SUBSTITUTION_KEY_READER"
+    ],
+    "retain_non_deferred_failure": [
+      "DEFERRED_ERROR_TREE_FILTER"
+    ],
+    "string_contains_declared_substitution": [
+      "DECLARED_PLACEHOLDER_PREDICATE"
+    ],
+    "validate_state_machine_definition": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_architecture": {
+    "CFNSFN-004": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-005": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-011": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ]
+  },
   "requirement_to_verification": {
     "CFNSFN-004": [
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains",
@@ -87,6 +180,56 @@
       "load_definition_substitution_keys",
       "string_contains_declared_substitution",
       "retain_non_deferred_failure"
+    ]
+  },
+  "verification_to_architecture": {
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_127_VERIFICATION_SEAM"
     ]
   },
   "verification_to_requirements": {
