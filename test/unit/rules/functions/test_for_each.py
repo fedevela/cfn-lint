@@ -3,8 +3,6 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 """
 
-from unittest import skip
-
 from test.unit.rules import BaseRuleTestCase
 
 from cfnlint.rules.functions.ForEach import ForEach
@@ -38,7 +36,6 @@ class TestForEach015TransformRequirement(BaseRuleTestCase):
         runner = TemplateRunner(filename, template, self.config, self.collection)
         return list(runner.run())
 
-    @skip("FOREACH-015 verification placeholder; activate during Malkhut")
     def test_foreach_015_without_transform_reports_e1032_at_resources_outputs_and_nested_loops(
         self,
     ):
@@ -52,7 +49,7 @@ class TestForEach015TransformRequirement(BaseRuleTestCase):
             "Outputs/Fn::ForEach::BucketOutputs/2/Fn::ForEach::GetAttLoop",
         ]
         self.assertEqual(expected_paths, [failure.path_string for failure in failures])
-        self.assertTrue(all(failure.rule.id == "E1032" for failure in failures))
+        self.assertEqual(["E1032"] * 3, [failure.rule.id for failure in failures])
         self.assertEqual(
             [
                 (
@@ -65,7 +62,6 @@ class TestForEach015TransformRequirement(BaseRuleTestCase):
             [failure.message for failure in failures],
         )
 
-    @skip("FOREACH-015 verification placeholder; activate during Malkhut")
     def test_foreach_015_without_transform_and_literal_empty_collection_reports_e1032(
         self,
     ):
@@ -86,7 +82,6 @@ class TestForEach015TransformRequirement(BaseRuleTestCase):
             failures[0].message,
         )
 
-    @skip("FOREACH-015 verification placeholder; activate during Malkhut")
     def test_foreach_015_with_language_extensions_transform_value_reports_no_e1032(
         self,
     ):
@@ -96,7 +91,6 @@ class TestForEach015TransformRequirement(BaseRuleTestCase):
             self._run_fixture("test/fixtures/templates/good/functions/foreach.yaml"),
         )
 
-    @skip("FOREACH-015 verification placeholder; activate during Malkhut")
     def test_foreach_015_with_language_extensions_in_transform_list_reports_no_e1032(
         self,
     ):
