@@ -319,7 +319,7 @@ class _ForEachValueFnFindInMap(_ForEachValue):
         self,
         cfn: Any,
         params: Mapping[str, Any] | None = None,
-    ) -> list[Any]:
+    ) -> Any:
         """Resolve a FindInMap used directly as a ForEach collection."""
         if params is None:
             params = {}
@@ -334,25 +334,20 @@ class _ForEachValueFnFindInMap(_ForEachValue):
         if not isinstance(mapping, dict) or not isinstance(second_key, str):
             raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
 
-        collection: list[Any] | None = None
+        collection: Any = None
+        has_collection = False
         for account_entry in mapping.values():
             if not isinstance(account_entry, dict) or second_key not in account_entry:
                 raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
 
             candidate = account_entry[second_key]
-            if (
-                not isinstance(candidate, list)
-                or not candidate
-                or any(not isinstance(value, (str, dict)) for value in candidate)
-            ):
-                raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
-
-            if collection is None:
+            if not has_collection:
                 collection = deepcopy(candidate)
+                has_collection = True
             elif candidate != collection:
                 raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
 
-        if collection is None:
+        if not has_collection:
             raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
         return collection
 
@@ -562,33 +557,16 @@ class _ForEachCollection:
                     yield v
             return
         if self._fn:
+            account_find_in_map = isinstance(
+                self._fn, _ForEachValueFnFindInMap
+            ) and self._fn._uses_runtime_account()
             try:
                 if isinstance(self._fn, _ForEachValueFnFindInMap):
                     values = self._fn.value_for_collection(cfn, {})
                 else:
                     values = self._fn.value(cfn, {}, False)
-                if values:
-                    if isinstance(values, list):
-                        for value in values:
-                            if isinstance(value, (str, dict)):
-                                yield value
-                            else:
-                                raise _ValueError(
-                                    (
-                                        "Fn::ForEach collection value "
-                                        f"must be a {_SCALAR_TYPES!r}"
-                                    ),
-                                    self._obj,
-                                )
-                        return
-                    raise _ValueError(
-                        "Fn::ForEach collection must return a list", self._obj
-                    )
             except _ResolveError:
-                if (
-                    isinstance(self._fn, _ForEachValueFnFindInMap)
-                    and self._fn._uses_runtime_account()
-                ):
+                if account_find_in_map:
                     raise
                 if self._fn.hash in collection_cache:
                     yield from iter(collection_cache[self._fn.hash])
@@ -599,6 +577,26 @@ class _ForEachCollection:
                         collection_cache[self._fn.hash].append(v)
                         yield v
                 return
+
+            if values == [] or (not values and not account_find_in_map):
+                raise _ResolveError("Fn::ForEach could not be resolved", self._obj)
+            if not isinstance(values, list):
+                raise _ValueError(
+                    "Fn::ForEach collection must return a list", self._obj
+                )
+
+            for value in values:
+                if not isinstance(value, (str, dict)):
+                    raise _ValueError(
+                        (
+                            "Fn::ForEach collection value "
+                            f"must be a {_SCALAR_TYPES!r}"
+                        ),
+                        self._obj,
+                    )
+
+            yield from values
+            return
         raise _ResolveError("Fn::ForEach could not be resolved", self._obj)
 
 
