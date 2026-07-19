@@ -1,6 +1,6 @@
 # E3601 object-definition substitution architecture
 
-Issues: `#126`, `#127`, `#128`
+Issues: `#126`, `#127`, `#128`, `#129`
 
 Runtime owner: `StateMachineDefinition.py`
 
@@ -11,6 +11,7 @@ Verification sources:
 - `test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitutions.py`
 - `test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py`
 - `test/unit/rules/resources/stepfunctions/test_state_machine_definition_validation_continuity.py`
+- `test/unit/rules/resources/stepfunctions/test_state_machine_validation_surface_boundaries.py`
 
 ## Decision
 
@@ -37,6 +38,14 @@ placeholder, the filter is observationally transparent: acceptance, validators,
 paths, schema paths, rule ownership, context order, and emitted error order remain
 those of the existing E3601 pipeline.
 
+Issue #129 preserves the division between CloudFormation property validation and
+E3601. The regional provider schema and the resource `Properties` rule continue
+to own `DefinitionSubstitutions` container and value findings. E3601 receives
+only the object-valued `Definition` instance selected by its registered keyword,
+reads sibling declaration keys without validating their values, and filters only
+its own ASL error trees. The provider schema's separate `DefinitionString`
+property does not broaden E3601's intentionally object-only registration.
+
 ## Architectural loci
 
 ### `E3601_VALIDATION_ORCHESTRATOR`
@@ -44,8 +53,9 @@ those of the existing E3601 pipeline.
 - Owner: `StateMachineDefinition.validate` in `StateMachineDefinition.py`.
 - Requirements: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
   `CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
-  `CFNSFN-011`, `CFNSFN-012`.
-- Procedures: `validate_state_machine_definition`.
+  `CFNSFN-010`, `CFNSFN-011`, `CFNSFN-012`.
+- Procedures: `validate_state_machine_definition` and
+  `preserve_state_machine_validation_surface_boundaries`.
 - Responsibility: preserve the existing JSON-string/object split and ASL resolver,
   load declaration keys once per invocation, run ordinary ASL validation, pass each
   fresh error tree through the deferred-failure filter, and then retain the current
@@ -62,6 +72,9 @@ those of the existing E3601 pipeline.
 - Continuity contract: ASL validation always precedes filtering. The orchestrator
   never replaces deferred strings before schema evaluation and never short-circuits
   validation because a declaration exists elsewhere in the definition.
+- Ownership contract: the orchestrator receives no provider-property
+  `ValidationError` tree. Its deferred-error filter therefore has neither a
+  dependency nor mutation authority over E3012/E3017 findings.
 
 ### `OWNING_SUBSTITUTION_KEY_READER`
 
@@ -135,15 +148,46 @@ those of the existing E3601 pipeline.
 
 ### `CLOUDFORMATION_DECLARATION_SCHEMA`
 
-- Owner: the normal resource-properties/provider-schema validation path using the
-  regional `src/cfnlint/data/schemas/providers/*/aws-stepfunctions-statemachine.json`
+- Owner: `Properties.validate` in
+  `src/cfnlint/rules/resources/properties/Properties.py`, its E3012/E3017 child
+  rules, and the regional
+  `src/cfnlint/data/schemas/providers/*/aws-stepfunctions-statemachine.json`
   artifacts.
-- Requirements: `CFNSFN-003`, `CFNSFN-009`.
-- Responsibility: continue validating the schema-permitted primitive declaration
-  forms and CloudFormation intrinsic expressions. This locus is consumed as an
-  independent validation boundary and is not changed by Issue #126.
+- Requirements: `CFNSFN-003`, `CFNSFN-009`, `CFNSFN-010`.
+- Procedures: `preserve_state_machine_validation_surface_boundaries`.
+- Responsibility: validate the `DefinitionSubstitutions` object shape and each
+  value through the provider-schema branch. The schema permits strings, integers,
+  booleans, and the validator's established CloudFormation intrinsic handling;
+  zero and false remain type-valid rather than being interpreted by truthiness.
+- Finding contract: container type failures remain E3012 findings and invalid
+  value alternatives remain provider-owned E3012/E3017 findings at their original
+  property paths. They enter the lint result independently of any E3601 finding
+  retained or deferred for `Definition`.
 - Dependency direction: E3601 may observe key presence but must not call into,
-  duplicate, weaken, or replace this validation policy.
+  duplicate, weaken, replace, or filter this validation policy. Provider
+  validation does not depend on E3601 or its declared-placeholder predicate.
+
+### `E3601_KEYWORD_REGISTRATION`
+
+- Owner: `StateMachineDefinition.__init__` in `StateMachineDefinition.py`, with
+  dispatch performed by the existing E1101 `cfnLint` keyword hook.
+- Requirements: `CFNSFN-013`.
+- Procedures: `register_e3601_definition_surface` and
+  `preserve_state_machine_validation_surface_boundaries`.
+- Contract: expose exactly
+  `Resources/AWS::StepFunctions::StateMachine/Properties/Definition` in
+  `StateMachineDefinition.keywords`. The commented `DefinitionString` keyword is
+  an intentionally disabled compatibility boundary associated with issue #3518,
+  not a second active interface.
+- Incoming dependencies: provider-schema traversal supplies a matching property
+  keyword and instance to E1101; E1101 compares that exact keyword with each child
+  rule's registered keywords.
+- Outgoing dependency: only a matching object-valued `Definition` dispatches to
+  `E3601_VALIDATION_ORCHESTRATOR` and the ASL schema. `DefinitionString` retains
+  its provider-schema contract but has no E3601/ASL-schema edge.
+- Compatibility and lifecycle: provider schemas may continue exposing both
+  definition interfaces without changing E3601's registration. Registration is
+  initialized once per rule instance and owns no mutable per-template state.
 
 ### `ASL_SCHEMA`
 
@@ -212,20 +256,45 @@ those of the existing E3601 pipeline.
   #126/#127 suites and introduces no production dependency. Atlas owns execution
   through the focused Malkhut harness target.
 
+### `ISSUE_129_VERIFICATION_SEAM`
+
+- Owner:
+  `test/unit/rules/resources/stepfunctions/test_state_machine_validation_surface_boundaries.py`
+  and `issue_129_traceability.json`.
+- Requirements: `CFNSFN-010`, `CFNSFN-013`.
+- Procedures: `preserve_state_machine_validation_surface_boundaries` and
+  `register_e3601_definition_surface`.
+- Contract: use the public full-template `lint` seam to observe provider findings
+  and the absence of cross-rule suppression, then inspect the provider properties
+  and E3601 keyword registration directly to pin the object-only dispatch seam.
+- Coverage responsibility: preserve E3012/E3017 findings for malformed
+  `DefinitionSubstitutions`; preserve provider acceptance for string, integer,
+  boolean, zero, false, and intrinsic values while E3601 defers the corresponding
+  placeholder; and prove that `DefinitionString` introduces no E3601 finding or
+  registration.
+- Lifecycle: this seam is intentionally inert until Malkhut removes its module
+  skip and performs executable validation. It introduces no production,
+  provider-schema, or dispatch dependency.
+
 ## Flow and dependency direction
 
 ```text
-resource-property dispatcher
-  -> StateMachineDefinition.validate
-       -> Validator.context.path + Template.template (read sibling keys)
-       -> ASL schema/resolver (ordinary synchronous validation)
-       -> all-referenced-keys predicate (pure authorization decision)
-       -> deferred error-tree filter (pure error selection)
-       -> existing path decoration / rule ownership / error cleaning
-  -> E3601 findings
-
 provider-schema resource validation
-  -> DefinitionSubstitutions value validity (independent findings)
+  -> Properties.validate + regional provider schema
+       -> DefinitionSubstitutions shape/value findings (E3012/E3017)
+  -> E1101 exact-keyword dispatch
+       -> Definition -> StateMachineDefinition.validate
+            -> Validator.context.path + Template.template (read sibling keys)
+            -> ASL schema/resolver (ordinary synchronous validation)
+            -> all-referenced-keys predicate (pure authorization decision)
+            -> deferred error-tree filter (pure error selection)
+            -> existing path decoration / rule ownership / error cleaning
+            -> E3601 findings
+       -> DefinitionString -/-> E3601 (no registered edge)
+
+lint result
+  <- independent provider-property findings
+  <- independently retained E3601 findings
 ```
 
 The complete path is synchronous, read-only, and invocation-local. It owns no
@@ -240,6 +309,13 @@ Error ownership crosses no asynchronous seam. The ASL schema creates each
 a composite node to retain children; E3601 then preserves the existing path
 decoration, rule assignment, and cleaning lifecycle. There is no retry,
 compensation, or alternate error translator.
+
+The provider schema owns the declaration mapping data and its validity; the
+current state-machine resource owns the declaration keys E3601 may observe. No
+transaction or consistency protocol joins the provider and E3601 branches: both
+read the transformed template synchronously, emit rule-owned findings, and rely on
+the existing lint runner for collection and deduplication. Neither branch can
+delete or translate the other's findings.
 
 ## Verification-to-locus map
 
@@ -291,6 +367,19 @@ compensation, or alternate error translator.
   `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
   `ISSUE_128_VERIFICATION_SEAM`, and the existing
   `test_state_machine_definition.py` regression seam.
+- `CFNSFN-010` invalid `DefinitionSubstitutions` shape and value obligations:
+  `CLOUDFORMATION_DECLARATION_SCHEMA`, `E3601_VALIDATION_ORCHESTRATOR`, and
+  `ISSUE_129_VERIFICATION_SEAM`.
+- `CFNSFN-010` schema-valid string, integer, boolean, zero, false, and intrinsic
+  value obligation: `CLOUDFORMATION_DECLARATION_SCHEMA`,
+  `E3601_VALIDATION_ORCHESTRATOR`, `OWNING_SUBSTITUTION_KEY_READER`,
+  `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
+  and `ISSUE_129_VERIFICATION_SEAM`.
+- `CFNSFN-013` `DefinitionString` full-lint and registration obligations:
+  `E3601_KEYWORD_REGISTRATION`, `E3601_VALIDATION_ORCHESTRATOR`, `ASL_SCHEMA`,
+  and `ISSUE_129_VERIFICATION_SEAM`. The latter two are deliberately absent from
+  the `DefinitionString` dependency path; the verification seam observes that
+  negative edge.
 
 ## Implementation status
 
@@ -306,10 +395,14 @@ compensation, or alternate error translator.
    exact-failing-string filter already place every continuity obligation at a
    cohesive owner. Its nine mapped verification cases are executable and
    nominated as the focused Malkhut harness surface.
-5. The Issue #126 substitution suite and existing E3601 suite remain compatibility
+5. Issue #129 requires no new runtime locus: provider-property validation,
+   exact-keyword E1101 dispatch, and E3601's private error filter already establish
+   the required ownership boundaries. Its five mapped verification obligations
+   are inert until Malkhut.
+6. The Issue #126 substitution suite and existing E3601 suite remain compatibility
    seams. No schema, provider-data, public-interface, packaging, or deployment
    change is required.
 
-The architecture keeps Issue #128's implementation delta within the existing
-private E3601 collaborators and leaves the surrounding public, schema, packaging,
-and deployment contracts unchanged.
+The architecture places Issue #129 entirely at existing synchronous validation
+boundaries and leaves production runtime behavior, public interfaces, provider
+data, packaging, and deployment topology unchanged.

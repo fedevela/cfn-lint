@@ -1,8 +1,46 @@
 {
   "issue": 129,
   "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_validation_surface_boundaries.py",
+  "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
+  "implementation_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.py",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
   "inert_marker": "module pytestmark skip until Malkhut executable validation",
+  "verification_status": "inert-until-malkhut",
+  "architectural_loci": {
+    "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
+    "CLOUDFORMATION_DECLARATION_SCHEMA": "Properties.validate, E3012/E3017 child rules, and regional provider schemas",
+    "DECLARED_PLACEHOLDER_PREDICATE": "StateMachineDefinition.py private exact-key predicate",
+    "DEFERRED_ERROR_TREE_FILTER": "StateMachineDefinition.py private recursive error filter",
+    "E3601_KEYWORD_REGISTRATION": "StateMachineDefinition.__init__ and E1101 exact-keyword dispatch",
+    "E3601_VALIDATION_ORCHESTRATOR": "StateMachineDefinition.validate",
+    "ISSUE_129_VERIFICATION_SEAM": "test_state_machine_validation_surface_boundaries.py and issue_129_traceability.json",
+    "OWNING_SUBSTITUTION_KEY_READER": "StateMachineDefinition.py private path-scoped helper"
+  },
+  "acceptance_criterion_to_architecture": {
+    "AC-1-invalid-DefinitionSubstitutions-retains-provider-schema-finding-with-corresponding-object-placeholder": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "AC-2-schema-valid-substitution-value-forms-preserve-provider-semantics-while-E3601-defers": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "AC-3-DefinitionString-lint-does-not-invoke-or-introduce-E3601": [
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "AC-4-provider-schema-exposes-both-interfaces-while-E3601-registers-only-object-Definition": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ]
+  },
   "acceptance_criterion_to_verification": {
     "AC-1-invalid-DefinitionSubstitutions-retains-provider-schema-finding-with-corresponding-object-placeholder": [
       "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable",
@@ -54,6 +92,54 @@
       "register_e3601_definition_surface"
     ]
   },
+  "logic_to_architecture": {
+    "preserve_state_machine_validation_surface_boundaries": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_KEYWORD_REGISTRATION",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "register_e3601_definition_surface": [
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_architecture": {
+    "CFNSFN-010": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-013": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_implementation": {
+    "CFNSFN-010": [
+      "Properties.py::Properties.validate",
+      "aws-stepfunctions-statemachine.json::definitions/DefinitionSubstitutions",
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate"
+    ],
+    "CFNSFN-013": [
+      "aws-stepfunctions-statemachine.json::properties/Definition",
+      "aws-stepfunctions-statemachine.json::properties/DefinitionString",
+      "StateMachineDefinition.py::StateMachineDefinition.__init__",
+      "CfnLint.py::CfnLint.cfnLint"
+    ]
+  },
   "verification_to_requirements": {
     "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable": [
       "CFNSFN-010"
@@ -88,6 +174,40 @@
     "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition": [
       "preserve_state_machine_validation_surface_boundaries",
       "register_e3601_definition_surface"
+    ]
+  },
+  "verification_to_architecture": {
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_corresponding_placeholder_has_invalid_substitution_value_property_schema_finding_remains_observable": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_substitution_value_is_schema_valid_property_schema_accepts_while_e3601_defers_placeholder": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding": [
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition": [
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "E3601_KEYWORD_REGISTRATION",
+      "ISSUE_129_VERIFICATION_SEAM"
     ]
   }
 }
