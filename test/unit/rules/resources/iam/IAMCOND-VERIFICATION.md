@@ -3,9 +3,10 @@
 The established shared-schema selectors are active in
 `test_iam_condition_contract.py`. The issue 122 selectors are active in
 `test_iamcond_issue_122_contract.py`. The issue 123 selectors are active in
-`test_iamcond_issue_123_contract.py`. Their parametrized node IDs preserve
-selection mode, rule family, operator or entry point, input shape, and expected
-outcome.
+`test_iamcond_issue_123_contract.py`. The issue 124 selectors are inert in
+`test_iamcond_issue_124_contract.py` until Malkhut enables executable
+validation. Their node IDs preserve requirement, ECR entry point, condition
+shape, and expected outcome.
 
 The deterministic procedures for the established shared-schema, issue 122, and
 issue 123 obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The
@@ -21,6 +22,7 @@ locus.
 | IAMCOND-002 | `test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition[shape-rule]` |
 | IAMCOND-003 | `test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]`; `test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result` |
 | IAMCOND-004 | `test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]`; `test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]` |
+| IAMCOND-005 | `test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member`; `test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance` |
 | IAMCOND-006 | `test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body[body-operator-rule]` |
 | IAMCOND-007 | `test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_null_operator_preserves_boolean_context_value_shapes[value-rule]` |
 | IAMCOND-008 | `test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family[rule]` |
@@ -38,6 +40,7 @@ locus.
 | `test_IAMCOND_002_` | IAMCOND-002 |
 | `test_IAMCOND_003_` | IAMCOND-003 |
 | `test_IAMCOND_004_` | IAMCOND-004 |
+| `test_IAMCOND_005_` | IAMCOND-005 |
 | `test_IAMCOND_006_` | IAMCOND-006 |
 | `test_IAMCOND_007_` | IAMCOND-007 |
 | `test_IAMCOND_008_` | IAMCOND-008 |
@@ -64,6 +67,11 @@ locus.
   SNS, and SQS. The malformed matrix uses
   `resource_policy_entry_points_missing_condition_operator.yaml`; the accepted
   matrix uses `resource_policy_entry_points_recognized_condition.yaml`.
+- IAMCOND-005 is split between the missing-operator rejection/path case and the
+  recognized-condition non-finding/ECR-statement-acceptance case. Both preserve
+  the E3513 `AWS::ECR::Repository.RepositoryPolicyText` boundary. The malformed
+  case uses `ecr_repository_policy_missing_condition_operator.yaml`; the
+  accepted case uses `ecr_repository_policy_recognized_condition.yaml`.
 - The rule matrix explicitly shares IAMCOND-002, IAMCOND-006, IAMCOND-007,
   IAMCOND-008, IAMCOND-009, IAMCOND-011, and IAMCOND-012 across E3510, E3512,
   and E3513.
@@ -87,6 +95,7 @@ locus.
 | `test_IAMCOND_003_include_checks_` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS` |
 | `test_IAMCOND_004_missing_operator_` | `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
 | `test_IAMCOND_004_recognized_nested_condition_` | `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_005_` | Issue 124 ECR boundary preserved directly in `test_iamcond_issue_124_contract.py`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_006_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_007_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_008_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` |
@@ -108,6 +117,7 @@ recorded in `IAMCOND-ARCHITECTURE.md`.
 | `test_IAMCOND_003_missing_operator_` | E3510 provider entry-point boundary; policy normalization and finding ownership; shared condition schema |
 | `test_IAMCOND_003_include_checks_` | Rule selection; E3510 provider entry-point boundary |
 | `test_IAMCOND_004_` | E3512 provider entry-point boundary; family policy schemas and rule delegates; policy normalization and finding ownership; shared condition schema |
+| `test_IAMCOND_005_` | E3513 ECR provider entry-point boundary; ECR family policy schema and rule delegate; policy normalization and finding ownership; shared condition schema |
 | `test_IAMCOND_006_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_007_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_008_` | Shared condition schema; family policy schemas and rule delegates; policy normalization and finding ownership |
