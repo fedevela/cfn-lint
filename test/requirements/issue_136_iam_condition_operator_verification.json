@@ -33,6 +33,41 @@
       "IAMCOND-004",
       "IAMCOND-005"
     ],
+    "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
+    "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
+    "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
+    "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
+    "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner": [
+      "IAMCOND-001",
+      "IAMCOND-002",
+      "IAMCOND-003",
+      "IAMCOND-004",
+      "IAMCOND-005"
+    ],
     "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_validates_both_if_exists_and_set_qualified_occurrences_then_no_condition_operator_errors": [
       "IAMCOND-001",
       "IAMCOND-002",
@@ -62,7 +97,12 @@
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
       "test/requirements/issue_136_iam_condition_operator_logic.md::validate_shared_iam_condition",
-      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators"
+      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-002": [
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_002_given_string_array_when_for_any_value_string_equals_then_e3510_accepts",
@@ -71,7 +111,12 @@
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
       "test/requirements/issue_136_iam_condition_operator_logic.md::validate_shared_iam_condition",
-      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators"
+      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-003": [
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_003_given_string_array_when_for_all_values_string_equals_then_e3510_accepts",
@@ -80,21 +125,36 @@
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
       "test/requirements/issue_136_iam_condition_operator_logic.md::validate_shared_iam_condition",
-      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators"
+      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-004": [
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_004_given_supported_comparison_family_when_correct_set_qualifier_and_array_values_then_shared_condition_accepts",
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
       "test/requirements/issue_136_iam_condition_operator_logic.md::validate_shared_iam_condition",
-      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators"
+      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-005": [
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_005_given_non_set_comparison_family_when_if_exists_with_established_values_then_shared_condition_accepts",
       "test/requirements/issue_136_iam_condition_operator_verification.json",
       "test/requirements/issue_136_iam_condition_operator_logic.md::define_shared_condition_operator_patterns",
       "test/requirements/issue_136_iam_condition_operator_logic.md::validate_shared_iam_condition",
-      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators"
+      "test/requirements/issue_136_iam_condition_operator_logic.md::validate_e3510_identity_policy_condition_operators",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A1_shared_condition_contract_owner",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A2_shared_schema_resolver_and_error_boundary",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A3_e3510_entry_point_and_shared_consumers",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A4_verification_and_reproduction_seam",
+      "test/requirements/issue_136_iam_condition_operator_architecture.md::A5_traceability_owner"
     ]
   }
 }
