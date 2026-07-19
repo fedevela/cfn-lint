@@ -6,10 +6,10 @@ The established shared-schema selectors are active in
 validation. Their parametrized node IDs preserve selection mode, rule family,
 operator or entry point, input shape, and expected outcome.
 
-The deterministic procedures for the established shared-schema obligations are
-recorded in `IAMCOND-PSEUDOCODE.md`. The issue 122 obligations preserve their
-Runner, selection, fixture, and rule-keyword boundaries directly in the new
-verification module.
+The deterministic procedures for the established shared-schema and issue 122
+obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The issue 122 procedures
+preserve their Runner, selection, fixture, rule-keyword, schema-delegation, and
+finding-path boundaries.
 
 ## Requirement to verification
 
@@ -71,7 +71,10 @@ verification module.
 
 | Verification selector prefix | Procedure(s) in `IAMCOND-PSEUDOCODE.md` |
 | --- | --- |
+| `test_IAMCOND_001_` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
 | `test_IAMCOND_002_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
+| `test_IAMCOND_003_missing_operator_` | `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
+| `test_IAMCOND_003_include_checks_` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS` |
 | `test_IAMCOND_006_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_007_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_008_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` |
@@ -88,7 +91,10 @@ recorded in `IAMCOND-ARCHITECTURE.md`.
 
 | Verification selector prefix | Architectural loci |
 | --- | --- |
+| `test_IAMCOND_001_` | Rule selection; E3510 provider entry-point boundary; policy normalization and finding ownership; shared condition schema |
 | `test_IAMCOND_002_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_003_missing_operator_` | E3510 provider entry-point boundary; policy normalization and finding ownership; shared condition schema |
+| `test_IAMCOND_003_include_checks_` | Rule selection; E3510 provider entry-point boundary |
 | `test_IAMCOND_006_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_007_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_008_` | Shared condition schema; family policy schemas and rule delegates; policy normalization and finding ownership |
@@ -102,6 +108,7 @@ recorded in `IAMCOND-ARCHITECTURE.md`.
 
 | Requirement(s) | Implementation artifact | Manifested behavior and harness evidence |
 | --- | --- | --- |
+| IAMCOND-001, IAMCOND-003 | `ConfigMixIn.include_checks`; `IdentityPolicy.keywords`; E1101 provider-schema dispatch; `Policy.validate`; `policy.json#/definitions/Condition/additionalProperties` | W/E selection remains active when I is appended; all six identity-policy paths converge on E3510; the issue 122 Runner selectors observe error severity, complete resource paths, and stable E3510 signatures. |
 | IAMCOND-002 | `policy.json#/definitions/Condition/additionalProperties` | Closes the top-level condition member namespace; `test_IAMCOND_002_*` observes the member-level finding for scalar, list, and object values in all three rule families. |
 | IAMCOND-006, IAMCOND-007 | Existing `ConditionValue`, `ConditionSetValue`, `Null`, and `Booleans` contracts reached through corrected operator patterns | `test_IAMCOND_006_*` observes object-body enforcement for every recognized operator; all three `test_IAMCOND_007_*` matrices observe the preserved value shapes, including item-index findings below a context key for invalid list members. |
 | IAMCOND-008, IAMCOND-012 | Corrected, fully anchored set-qualified patterns plus the existing unqualified and explicit operator schemas | `test_IAMCOND_008_*` and `test_IAMCOND_012_*` observe valid single- and multi-operator conditions across E3510, E3512, and E3513. |

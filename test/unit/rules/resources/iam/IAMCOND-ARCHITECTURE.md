@@ -2,8 +2,8 @@
 
 This record gives the procedures in `IAMCOND-PSEUDOCODE.md` concrete ownership,
 boundaries, dependency direction, and implementation order. It describes the
-smallest production change satisfying IAMCOND-002 and IAMCOND-006 through
-IAMCOND-013.
+smallest production change satisfying IAMCOND-001 through IAMCOND-003 and
+IAMCOND-006 through IAMCOND-013.
 
 ## Architectural decision
 
@@ -43,7 +43,9 @@ their behavior into a rule class.
 
 | Requirement | Verification obligation(s) | Pseudocode procedure(s) | Owning architectural locus |
 | --- | --- | --- | --- |
+| IAMCOND-001 | `test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` | `ConfigMixIn.include_checks` preserves W/E defaults; Runner and E1101 dispatch the ManagedPolicy keyword to E3510; the closed shared Condition schema emits the missing-operator member path. |
 | IAMCOND-002 | `test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` | `policy.json#/definitions/Condition`: complete operator patterns plus `additionalProperties: false`; `_keywords_cfn.additionalProperties` preserves supported intrinsic names and `_keywords.additionalProperties` emits the member path. |
+| IAMCOND-003 | `test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]`;<br>`test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` | `IdentityPolicy.keywords` owns all six resource-property paths; provider-schema E1101 dispatch and `Policy.validate` converge them on `policy_identity.json` and the shared closed Condition schema without changing E3510 selection or severity. |
 | IAMCOND-006 | `test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy.json#/definitions/Condition` routes explicit and patterned operators to `ConditionValue`, `ConditionSetValue`, or the `Null` object schema; each body contract owns `type: object`. |
 | IAMCOND-007 | `test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes`;<br>`test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes`;<br>`test_IAMCOND_007_null_operator_preserves_boolean_context_value_shapes` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy.json#/definitions/ConditionValue`, `ConditionSetValue`, `Booleans`, and `Boolean` retain context-key value ownership. |
 | IAMCOND-008 | `test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy_identity.json`, `policy_resource.json`, and `policy_resource_ecr.json` retain family statement ownership and refer to `policy#/definitions/Condition`; the three rule classes retain family selection. |
@@ -55,10 +57,34 @@ their behavior into a rule class.
 
 ## Architectural loci
 
+### Issue 122 selection and entry-point dispatch
+
+- **Requirements:** IAMCOND-001 and IAMCOND-003.
+- **Verification:** all selectors in `test_iamcond_issue_122_contract.py`.
+- **Procedures:** `RESOLVE_ISSUE_122_RULE_SELECTION` and
+  `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`.
+- **Owners:** `ConfigMixIn.include_checks`, `Runner`, `Rules`, E1101,
+  `IdentityPolicy.keywords`, and effective provider schemas.
+- **Incoming dependency:** normal CLI selection or `--include-checks I`, plus a
+  decoded template containing one of the six registered identity-policy paths.
+- **Outgoing dependency:** E1101 delegates the selected property value to E3510,
+  which selects `policy_identity.json` through `Policy.validate`.
+- **Contract:** W/E remain active when I is appended; Group, ManagedPolicy,
+  Policy, Role, User, and SSO PermissionSet all reach the same identity schema;
+  relative schema paths are prefixed with the concrete resource/property path.
+- **Failure contract:** decode/configuration failures retain their established
+  ownership; malformed Condition members produce error-level E3510 findings;
+  informational selection cannot remove or mutate those E3510 signatures.
+- **Lifecycle:** dispatch and validation are synchronous, stateless, read-only,
+  and exhaustive. No persistence, retry, compensation, or rollback applies.
+- **Test seam:** the inert Runner-level issue 122 fixtures and selectors await
+  Malkhut activation.
+
 ### Shared condition schema
 
-- **Requirements:** IAMCOND-002, IAMCOND-006, IAMCOND-007, IAMCOND-008,
-  IAMCOND-009, IAMCOND-011, IAMCOND-012, IAMCOND-013.
+- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+  IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-011, IAMCOND-012,
+  IAMCOND-013.
 - **Verification:** every selector except the representation-entry-point matrix,
   which crosses this locus after normalization.
 - **Procedures:** `VALIDATE_SHARED_CONDITION`,
@@ -80,7 +106,8 @@ their behavior into a rule class.
   recognized operator with a scalar or list body produces a `type` finding at
   `Statement/<index>/Condition/<operator>`.
 - **Test seam:** `test_iam_condition_contract.py` operator, body, value, intrinsic,
-  multiplicity, omission, and independent-finding matrices.
+  multiplicity, omission, and independent-finding matrices, plus the issue 122
+  missing-operator Runner matrix.
 - **Implementation order:** repair full-name patterns, close the Condition
   object, then activate the tests.
 
@@ -110,7 +137,8 @@ their behavior into a rule class.
 
 ### Policy normalization and finding ownership
 
-- **Requirements:** IAMCOND-008, IAMCOND-009, IAMCOND-010, IAMCOND-013.
+- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-008, IAMCOND-009,
+  IAMCOND-010, IAMCOND-013.
 - **Verification:** `test_IAMCOND_008_*`, both `test_IAMCOND_009_*`,
   `test_IAMCOND_010_*`, and both `test_IAMCOND_013_*` selectors.
 - **Procedure:** `VALIDATE_IAM_POLICY_DOCUMENT`.
@@ -162,11 +190,14 @@ their behavior into a rule class.
 
 ### Provider entry-point boundary
 
-- **Requirement:** IAMCOND-010.
+- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-010.
 - **Verification:**
+  `test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]`,
+  both `test_IAMCOND_003_*` selectors, and
   `test_IAMCOND_010_object_and_json_string_representations_have_equivalent_outcomes`.
-- **Procedures:** `CONFIGURE_IAM_POLICY_RULE_FAMILY` and
-  `VALIDATE_IAM_POLICY_DOCUMENT`.
+- **Procedures:** `RESOLVE_ISSUE_122_RULE_SELECTION`,
+  `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`,
+  `CONFIGURE_IAM_POLICY_RULE_FAMILY`, and `VALIDATE_IAM_POLICY_DOCUMENT`.
 - **Owners:** concrete rule `keywords` define rule reach; effective provider
   schemas define whether a selected property admits object, string, or both.
 - **Incoming dependency:** CloudFormation resource-property validation identifies
@@ -178,21 +209,23 @@ their behavior into a rule class.
   Role and User inline policy documents remain object-only and outside the
   IAMCOND-010 matrix; IAM Group inline policies remain object/string.
 - **Test seam:** `OBJECT_OR_JSON_STRING_ENTRY_POINTS` asserts both keyword
-  registration and equivalent policy outcomes.
+  registration and equivalent policy outcomes; the issue 122 matrix asserts all
+  six E3510 keyword registrations and concrete Condition path prefixes.
 - **Implementation order:** no provider schema or patch edit.
 
 ### Verification and traceability artifacts
 
-- **Requirements:** IAMCOND-002, IAMCOND-006, IAMCOND-007, IAMCOND-008,
-  IAMCOND-009, IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013.
+- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+  IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-010, IAMCOND-011,
+  IAMCOND-012, IAMCOND-013.
 - **Verification:** all named selectors in `IAMCOND-VERIFICATION.md`.
-- **Procedures:** all five procedures in `IAMCOND-PSEUDOCODE.md`.
+- **Procedures:** all seven procedures in `IAMCOND-PSEUDOCODE.md`.
 - **Owner:** `test/unit/rules/resources/iam/`.
 - **Dependencies:** canonical requirement IDs map forward to verification,
   procedure, and production loci; the reverse map points each verification
   prefix back to its architectural seams.
-- **Contract:** the active test matrix is the executable acceptance boundary for
-  the shared schema implementation.
+- **Contract:** the active shared-schema matrix and inert issue 122 Runner matrix
+  are the executable acceptance boundaries for their mapped obligations.
 - **Implementation state:** the schema implementation and skip removal are
   complete; execution remains owned by the Atlas harness.
 

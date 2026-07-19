@@ -1,9 +1,11 @@
 # Shared IAM Condition procedural contract
 
 This artifact records implementation-ready logic for the shared IAM `Condition`
-schema consumed by E3510, E3512, and E3513. It is procedural documentation only;
+schema consumed by E3510, E3512, and E3513, including the issue 122 E3510 Runner
+and identity-policy entry-point boundaries. It is procedural documentation only;
 it does not change runtime behavior. Verification selectors refer to
-`test_iam_condition_contract.py` in this directory.
+`test_iam_condition_contract.py` and `test_iamcond_issue_122_contract.py` in this
+directory.
 
 ## Operator grammar
 
@@ -41,6 +43,126 @@ unknown-member rejection.
 ## Procedures
 
 ```text
+PROCEDURE RESOLVE_ISSUE_122_RULE_SELECTION(requested_include_checks)
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003
+  VERIFICATION:
+    test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
+    test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result
+
+  RECEIVE
+    requested_include_checks is empty for normal selection, or contains I for
+    --include-checks I
+
+  RESOLVE
+    ACTIVE_PREFIXES := [W, E] followed by requested_include_checks in received order
+    DO NOT replace W or E when requested_include_checks contains I
+
+  DECIDE
+    IF E3510 does not start with any ACTIVE_PREFIX
+      TERMINATE without running E3510
+    ELSE
+      ENABLE E3510 and its E1101 provider-schema parent relationship
+    END IF
+
+  RETURN ACTIVE_PREFIXES and the enabled E3510 rule
+
+  INVARIANTS
+    Normal selection returns W and E as its first two active prefixes
+    --include-checks I returns W, E, and I, so E3510 selection is unchanged
+    Selection does not alter E3510.id, E3510.severity, keywords, or findings
+
+  ON FAILURE configuration or template decoding failure
+    RETURN the established configuration or parse finding
+    DO NOT claim an E3510 identity-policy result for an undecoded template
+END PROCEDURE
+```
+
+```text
+PROCEDURE VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS(
+  template, requested_include_checks
+)
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003
+  VERIFICATION:
+    test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
+    test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
+    test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result
+
+  PRECONDITIONS
+    template decoded successfully
+    each candidate policy is otherwise valid for policy_identity.json
+    the malformed Condition maps servicecatalog:accountLevel directly to self
+
+  LOAD
+    ACTIVE_PREFIXES, E3510 := RESOLVE_ISSUE_122_RULE_SELECTION(
+      requested_include_checks
+    )
+    REGISTERED_ENTRY_POINTS :=
+      AWS::IAM::Group       Properties/Policies/*/PolicyDocument
+      AWS::IAM::ManagedPolicy Properties/PolicyDocument
+      AWS::IAM::Policy      Properties/PolicyDocument
+      AWS::IAM::Role        Properties/Policies/*/PolicyDocument
+      AWS::IAM::User        Properties/Policies/*/PolicyDocument
+      AWS::SSO::PermissionSet Properties/InlinePolicy
+    FINDINGS := empty ordered collection
+
+  DISPATCH
+    FOR EACH resource in template.Resources in document order
+      IF resource.Type has no entry in REGISTERED_ENTRY_POINTS
+        CONTINUE with the next resource
+      END IF
+
+      FOR EACH concrete policy document reached through that resource's registered
+               property path, expanding each Policies/* element in array order
+        DOCUMENT_PATH := Resources / logical-id / concrete property path
+        REQUIRE the provider-schema cfnLint keyword at this location to equal the
+                corresponding complete keyword registered by IdentityPolicy
+        DELEGATE the policy value and current validator context to
+                 VALIDATE_IAM_POLICY_DOCUMENT(E3510, policy value, context)
+
+        FOR EACH delegated E3510 finding in schema order
+          PREFIX its relative path with DOCUMENT_PATH
+          PRESERVE E3510 as its owning rule and error as its severity
+          APPEND it to FINDINGS
+        END FOR
+      END FOR
+    END FOR
+
+  CONDITION DECISION
+    Within each delegated policy, Statement[0].Condition is present and is an object
+    DELEGATE the Condition to VALIDATE_SHARED_CONDITION
+    MATCH_RECOGNIZED_CONDITION_OPERATOR(servicecatalog:accountLevel) returns absent
+    EMIT E3510 at:
+      DOCUMENT_PATH / Statement / 0 / Condition / servicecatalog:accountLevel
+    The emitted path is therefore at or beneath the required Condition path
+
+  FILTER / RETURN
+    RETAIN every finding whose rule starts with an ACTIVE_PREFIX and is not ignored
+    RETURN FINDINGS without requiring an informational finding
+
+  ALTERNATE PATHS
+    IF a registered Policies array has multiple elements
+      VALIDATE every element independently; one result does not suppress another
+    END IF
+    IF the same malformed condition enters through any of the six registered paths
+      APPLY the same identity schema and unknown-operator decision
+    END IF
+    IF requested_include_checks contains I
+      RETURN the same set of E3510 path/message/severity signatures as normal
+      selection; informational rules may add only non-E3510 findings
+    END IF
+
+  REPEATED INVOCATION
+    Retain no state and mutate neither template nor policy; equivalent inputs and
+    selection produce equivalent E3510 signatures
+
+  CONCURRENCY / TRANSACTION / RETRY
+    Resource, policy, statement, and condition traversal is synchronous and
+    deterministic; no asynchronous completion, persistence, transaction, retry,
+    compensation, or rollback applies
+END PROCEDURE
+```
+
+```text
 PROCEDURE CONFIGURE_IAM_POLICY_RULE_FAMILY(rule_id)
   REQUIREMENT_IDS: IAMCOND-008, IAMCOND-010, IAMCOND-013
   VERIFICATION:
@@ -73,9 +195,11 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_IAM_POLICY_DOCUMENT(rule_id, policy, incoming_validator_context)
-  REQUIREMENT_IDS: IAMCOND-008, IAMCOND-009, IAMCOND-010, IAMCOND-011,
-                   IAMCOND-012, IAMCOND-013
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003, IAMCOND-008, IAMCOND-009,
+                   IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013
   VERIFICATION:
+    test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
+    test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family
     test_IAMCOND_009_supported_intrinsic_in_place_of_condition_operator_is_not_unknown
     test_IAMCOND_009_supported_intrinsics_keep_existing_embedded_policy_outcomes
@@ -139,10 +263,13 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_SHARED_CONDITION(condition, path, validator_context)
-  REQUIREMENT_IDS: IAMCOND-002, IAMCOND-006, IAMCOND-007, IAMCOND-008,
-                   IAMCOND-009, IAMCOND-011, IAMCOND-012, IAMCOND-013
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+                   IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-011,
+                   IAMCOND-012, IAMCOND-013
   VERIFICATION:
+    test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
+    test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
@@ -204,9 +331,12 @@ END PROCEDURE
 
 ```text
 PROCEDURE MATCH_RECOGNIZED_CONDITION_OPERATOR(member_name)
-  REQUIREMENT_IDS: IAMCOND-002, IAMCOND-006, IAMCOND-007, IAMCOND-012
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+                   IAMCOND-007, IAMCOND-012
   VERIFICATION:
+    test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
+    test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
