@@ -2,7 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for the Fn::ForEach duplicate-key contract.
+Verification coverage for the Fn::ForEach duplicate-key contract.
 """
 
 import unittest
@@ -10,11 +10,6 @@ import unittest
 from cfnlint.decode import convert_dict
 from cfnlint.template import Template
 from cfnlint.template.transforms._language_extensions import language_extension
-
-
-_PLACEHOLDER_REASON = (
-    "Phase 05 verification placeholder; enable during Malkhut executable validation"
-)
 
 
 class TestForEachDuplicateKeyContract(unittest.TestCase):
@@ -39,7 +34,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             matches[0].message,
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_distinct_iterations_generating_same_key_transform_reports_duplicate_failure(
         self,
     ):
@@ -57,7 +51,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             "RepeatedResource",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_generated_resource_matching_existing_sibling_transform_reports_duplicate_failure(
         self,
     ):
@@ -80,7 +73,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             "ExistingResource",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_generated_output_matching_existing_sibling_transform_reports_duplicate_failure(
         self,
     ):
@@ -100,7 +92,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             "ExistingOutput",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_generated_nested_key_matching_existing_sibling_transform_reports_duplicate_failure(
         self,
     ):
@@ -124,7 +115,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             "ExistingMetadata",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_empty_loop_adjacent_to_existing_sibling_inserts_nothing_and_reports_no_duplicate(
         self,
     ):
@@ -160,7 +150,6 @@ class TestForEachDuplicateKeyContract(unittest.TestCase):
             transformed["Resources"],
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_013_unique_non_empty_loop_after_empty_loop_generates_all_entries_without_stale_state(
         self,
     ):
