@@ -1,6 +1,6 @@
 # E3601 object-definition substitution awareness
 
-Issues: `#126`, `#127`, `#128`
+Issues: `#126`, `#127`, `#128`, `#129`
 
 Owning runtime artifact: `StateMachineDefinition.py`
 
@@ -20,6 +20,13 @@ is a fully declared substitution value may disappear. Concrete Task resources,
 structural and state-type failures, transition and termination relationships, and
 ordinary object definitions remain subject to their established E3601 findings,
 paths, ordering, and acceptance behavior.
+
+Issue #129 preserves the boundary between rule owners. Provider-schema validation
+continues to own the `DefinitionSubstitutions` container and values, and its
+findings are accumulated independently of E3601's read-only use of declaration
+keys. E3601 remains registered for object-valued `Definition` only; the provider's
+presence of `DefinitionString` does not reactivate that intentionally disabled
+keyword surface.
 
 ## Procedure: `validate_state_machine_definition`
 
@@ -394,10 +401,182 @@ PROCEDURE retain_non_deferred_failure(error, declared_keys)
 END PROCEDURE
 ```
 
+## Procedure: `preserve_state_machine_validation_surface_boundaries`
+
+Requirement IDs: `CFNSFN-010`, `CFNSFN-013`
+
+Verification obligations:
+
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable`
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_corresponding_placeholder_has_invalid_substitution_value_property_schema_finding_remains_observable`
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_substitution_value_is_schema_valid_property_schema_accepts_while_e3601_defers_placeholder`
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding`
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition`
+
+```text
+PROCEDURE preserve_state_machine_validation_surface_boundaries(
+  template,
+  provider_schema,
+  enabled_rules,
+)
+  REQUIREMENT_IDS: CFNSFN-010, CFNSFN-013
+  VERIFICATION: every verification obligation listed above
+
+  PRECONDITIONS
+    provider_schema is the regional AWS::StepFunctions::StateMachine schema
+    provider_schema exposes Definition, DefinitionString, and
+      DefinitionSubstitutions as separate properties
+    enabled_rules contains the ordinary provider-property rule and may contain E3601
+    findings is a per-lint-run collection; no rule may delete another rule's finding
+
+  LOAD / RECEIVE
+    FOR EACH AWS::StepFunctions::StateMachine resource IN template
+      properties := resource.Properties, or an empty mapping when absent
+
+  DELEGATE PROVIDER-SCHEMA OWNERSHIP
+    provider_findings := validate properties against provider_schema
+    // Properties validation dispatches each schema keyword to its existing child
+    // rule, including E3012 for type failures and E3017 for anyOf failures.
+
+    FOR EACH provider_finding IN provider_findings
+      append provider_finding to findings with its original rule and property path
+      // Never pass provider findings through E3601's deferred-error filter.
+    END FOR
+
+  DECIDE DEFINITION-SUBSTITUTION SHAPE AND VALUES
+    IF DefinitionSubstitutions is absent
+      preserve zero provider findings for that absent optional property
+    ELSE IF DefinitionSubstitutions is not an object
+      preserve the provider type finding at DefinitionSubstitutions
+      // E3601's declaration-key reader receives no keys from a non-mapping value.
+    ELSE
+      FOR EACH substitution_value IN DefinitionSubstitutions
+        IF substitution_value is a schema-valid string, integer, or boolean
+          preserve provider-schema acceptance
+          // This includes zero and false; acceptance is based on type, not truth.
+        ELSE IF substitution_value is a supported CloudFormation intrinsic
+          preserve the provider validator's established intrinsic-function handling
+        ELSE
+          preserve every provider type or anyOf finding at the substitution value
+        END IF
+      END FOR
+    END IF
+
+  DELEGATE E3601 OWNERSHIP
+    e3601_keywords := register_e3601_definition_surface(provider_schema)
+
+    IF E3601 is enabled AND properties.Definition is selected by e3601_keywords
+      e3601_findings := validate_state_machine_definition(
+        validator scoped to this resource's Definition path,
+        properties.Definition,
+      )
+      append every e3601_finding to findings
+      // E3601 may use sibling declaration-key presence to defer an exact failing
+      // ASL string. It does not validate substitution values and cannot consume,
+      // translate, replace, or suppress provider_findings.
+    END IF
+
+    IF DefinitionString is present
+      do not invoke E3601 for DefinitionString
+      do not parse DefinitionString with the E3601 ASL schema
+      do not emit an E3601 finding from DefinitionString
+      // Provider-schema validation still owns DefinitionString's property schema.
+    END IF
+
+  RETURN
+    findings containing the independent union of all retained provider findings
+      and only the E3601 findings produced for object-valued Definition invocations
+
+  ORDERING / CONCURRENCY
+    provider validation and E3601 selection are independent validation branches
+      within the full-template rule traversal
+    their dispatch order does not alter either branch's inputs or findings
+    merge findings without shared mutable validation state or cross-rule filtering
+
+  REPEATED INVOCATION
+    recreate all per-run finding collections and per-resource declaration-key sets
+    preserve identical owner, path, and result for identical input and rule config
+
+  ON PROVIDER-SCHEMA REJECTION
+    retain the provider finding and continue every independently enabled rule
+    do not convert a property-schema rejection into an E3601 failure or acceptance
+
+  ON E3601 DEFERRED PLACEHOLDER
+    suppress only the qualifying ASL failure selected by
+      retain_non_deferred_failure
+    retain all previously accumulated provider findings unchanged
+
+  ON RULE-LOCAL FAILURE
+    preserve the lint engine's established rule-failure propagation
+    do not treat one owner's implementation failure as another owner's acceptance
+END PROCEDURE
+```
+
+## Procedure: `register_e3601_definition_surface`
+
+Requirement IDs: `CFNSFN-013`
+
+Verification obligations:
+
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding`
+- `test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition`
+
+```text
+PROCEDURE register_e3601_definition_surface(provider_schema)
+  REQUIREMENT_IDS: CFNSFN-013
+  VERIFICATION: every verification obligation listed above
+
+  PRECONDITIONS
+    E3601 is being initialized before keyword-based rule dispatch
+    provider_schema may expose both Definition and DefinitionString
+
+  LOAD
+    active_keyword :=
+      Resources/AWS::StepFunctions::StateMachine/Properties/Definition
+    intentionally_disabled_keyword :=
+      Resources/AWS::StepFunctions::StateMachine/Properties/DefinitionString
+
+  REGISTER
+    register active_keyword as E3601's sole keyword
+    // The explicit rule contract, rather than provider-property discovery, controls
+    // keyword dispatch.
+
+  INSPECT COMPATIBILITY WITHOUT BROADENING
+    confirm provider_schema exposes Definition for the active interface
+    IF provider_schema exposes DefinitionString
+      do not register intentionally_disabled_keyword
+      // Schema availability is not authority to broaden a rule's keyword surface.
+    END IF
+
+  RETURN
+    ordered keyword collection containing exactly active_keyword
+
+  DELEGATION
+    keyword dispatch may invoke validate_state_machine_definition only when the
+      current concrete template path matches active_keyword
+    DefinitionString remains outside E3601 regardless of its contents
+
+  REPEATED INVOCATION
+    return the same one-element keyword collection without mutating provider_schema
+    do not infer or auto-register newly visible provider properties
+
+  ON MISSING OR CHANGED PROVIDER PROPERTY
+    preserve the explicit one-keyword E3601 contract
+    surface schema compatibility changes through their owning update process
+    never fall back to DefinitionString
+END PROCEDURE
+```
+
 ## Control-flow invariants
 
 - E3601 reads `DefinitionSubstitutions` but never validates, resolves, mutates, or
   persists it; the CloudFormation provider schema retains that responsibility.
+- Provider-schema findings for `DefinitionSubstitutions` and E3601 findings for
+  `Definition` are accumulated independently. Neither owner's success, rejection,
+  or deferral removes or reclassifies the other owner's result.
+- E3601's keyword collection contains exactly the object-valued `Definition` path.
+  `DefinitionString` remains intentionally disabled even though the provider schema
+  exposes both interfaces.
 - Declaration recognition is scoped to the concrete owning state machine obtained
   from `validator.context.path.path`. Keys from another resource never defer a
   placeholder in this definition.
