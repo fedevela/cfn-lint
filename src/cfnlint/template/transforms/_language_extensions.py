@@ -517,7 +517,7 @@ class _ForEachCollection:
     def values(
         self, cfn: Any, collection_cache: MutableMapping[str, Any]
     ) -> Iterator[str | dict[Any, Any]]:
-        if self._collection:
+        if self._collection is not None:
             for item in self._collection:
                 try:
                     yield item.value(cfn, {}, False)
@@ -526,23 +526,23 @@ class _ForEachCollection:
                     collection_cache[item.hash] = v
                     yield v
             return
-        if self._fn:
+        if self._fn is not None:
             try:
                 values = self._fn.value(cfn, {}, False)
+                if isinstance(values, list):
+                    for value in values:
+                        if isinstance(value, (str, dict)):
+                            yield value
+                        else:
+                            raise _ValueError(
+                                (
+                                    "Fn::ForEach collection value "
+                                    f"must be a {_SCALAR_TYPES!r}"
+                                ),
+                                self._obj,
+                            )
+                    return
                 if values:
-                    if isinstance(values, list):
-                        for value in values:
-                            if isinstance(value, (str, dict)):
-                                yield value
-                            else:
-                                raise _ValueError(
-                                    (
-                                        "Fn::ForEach collection value "
-                                        f"must be a {_SCALAR_TYPES!r}"
-                                    ),
-                                    self._obj,
-                                )
-                        return
                     raise _ValueError(
                         "Fn::ForEach collection must return a list", self._obj
                     )

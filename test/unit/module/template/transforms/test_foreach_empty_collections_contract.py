@@ -2,7 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for the empty Fn::ForEach collection contract.
+Verification coverage for the empty Fn::ForEach collection contract.
 """
 
 import unittest
@@ -13,11 +13,6 @@ from cfnlint.template import Template
 from cfnlint.template.transforms._language_extensions import (
     _ForEachCollection,
     language_extension,
-)
-
-
-_PLACEHOLDER_REASON = (
-    "Phase 05 verification placeholder; enable during Malkhut executable validation"
 )
 
 
@@ -35,14 +30,12 @@ class TestForEachEmptyCollectionContract(unittest.TestCase):
         self.assertIsNotNone(transformed)
         return transformed
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_001_literal_empty_collection_iterates_zero_times(self):
         """GUID: FOREACH-001; a literal [] is a valid collection boundary."""
         collection = _ForEachCollection([])
 
         self.assertEqual([], list(collection.values(self._template({}), {})))
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_002_find_in_map_empty_collection_iterates_zero_times(self):
         """GUID: FOREACH-002; a resolved Fn::FindInMap [] is valid."""
         cfn = self._template(
@@ -54,7 +47,6 @@ class TestForEachEmptyCollectionContract(unittest.TestCase):
 
         self.assertEqual([], list(collection.values(cfn, {})))
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_001_003_004_005_literal_empty_resources_loop_is_removed(self):
         """GUIDs: FOREACH-001, FOREACH-003, FOREACH-004, FOREACH-005."""
         sibling_resource = {
@@ -85,7 +77,6 @@ class TestForEachEmptyCollectionContract(unittest.TestCase):
         self.assertEqual({"SiblingOutput": sibling_output}, transformed["Outputs"])
         self.assertNotIn("Fn::ForEach::EmptyResources", transformed["Resources"])
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_002_003_004_005_find_in_map_empty_outputs_loop_is_removed(self):
         """GUIDs: FOREACH-002, FOREACH-003, FOREACH-004, FOREACH-005."""
         mappings = {"LoopValues": {"Empty": {"Names": []}}}
@@ -112,7 +103,6 @@ class TestForEachEmptyCollectionContract(unittest.TestCase):
         self.assertEqual({"SiblingOutput": sibling_output}, transformed["Outputs"])
         self.assertNotIn("Fn::ForEach::EmptyOutputs", transformed["Outputs"])
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_006_literal_empty_nested_loop_preserves_outer_expansion(self):
         """GUID: FOREACH-006; nested literal [] does not stop valid expansion."""
         template = {
@@ -150,7 +140,6 @@ class TestForEachEmptyCollectionContract(unittest.TestCase):
             transformed["Outputs"],
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_006_find_in_map_empty_nested_loop_preserves_outer_expansion(self):
         """GUID: FOREACH-006; nested resolved [] does not stop valid expansion."""
         template = {
