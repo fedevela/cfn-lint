@@ -79,18 +79,21 @@ class StateMachineDefinition(CfnLintJsonSchema):
                 schema=self.schema,
             )
 
-        substitutions = []
+        authorized_placeholders = set()
         props_substitutions = instance.get("DefinitionSubstitutions", {})
         if validator.is_type(props_substitutions, "object"):
-            substitutions = list(props_substitutions.keys())
+            authorized_placeholders = {
+                f"${{{key}}}"
+                for key in props_substitutions
+                if validator.is_type(key, "string")
+            }
 
         for err in step_validator.iter_errors(value):
-            if validator.is_type(err.instance, "string"):
-                if (
-                    err.instance.replace("${", "").replace("}", "").strip()
-                    in substitutions
-                ):
-                    continue
+            if (
+                validator.is_type(err.instance, "string")
+                and err.instance in authorized_placeholders
+            ):
+                continue
             if add_path_to_message:
                 err = self._fix_message(err)
 
