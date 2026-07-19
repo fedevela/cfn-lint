@@ -1,6 +1,7 @@
 {
   "issue": 127,
   "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py",
+  "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
   "inert_marker": "module pytestmark skip until executable validation",
   "acceptance_criterion_to_verification": {
     "AC-1-undeclared-standalone-resource-placeholder-retains-E3601": [
@@ -20,6 +21,38 @@
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains"
     ]
   },
+  "acceptance_criterion_to_logic": {
+    "AC-1-undeclared-standalone-resource-placeholder-retains-E3601": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "AC-2-declarations-are-isolated-by-state-machine-owner": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "AC-3-fully-declared-embedded-forms-are-deferred": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "AC-4-fully-declared-comma-delimited-form-is-deferred": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "AC-5-partially-declared-embedded-or-comma-delimited-form-retains-E3601": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ]
+  },
   "requirement_to_verification": {
     "CFNSFN-004": [
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains",
@@ -34,6 +67,26 @@
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form",
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains",
       "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains"
+    ]
+  },
+  "requirement_to_logic": {
+    "CFNSFN-004": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "CFNSFN-005": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "CFNSFN-011": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
     ]
   },
   "verification_to_requirements": {
@@ -56,6 +109,44 @@
     "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains": [
       "CFNSFN-004",
       "CFNSFN-011"
+    ]
+  },
+  "verification_to_logic": {
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
     ]
   }
 }

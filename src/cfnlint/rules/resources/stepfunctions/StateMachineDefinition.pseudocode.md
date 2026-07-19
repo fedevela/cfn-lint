@@ -1,6 +1,6 @@
 # E3601 object-definition substitution awareness
 
-Issue: `#126`
+Issues: `#126`, `#127`
 
 Owning runtime artifact: `StateMachineDefinition.py`
 
@@ -9,9 +9,15 @@ provider schema remains responsible for validating `DefinitionSubstitutions`
 values. E3601 only uses the presence of a declaration key to decide whether an
 ASL string contains a value that CloudFormation intentionally defers.
 
+Issue #127 tightens that decision: the declaration set is loaded only from the
+current state-machine resource, and a string is deferred only when at least one
+supported substitution token is present and every key referenced by every token
+is declared in that owning set.
+
 ## Procedure: `validate_state_machine_definition`
 
-Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-009`
+Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
+`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
 
 Verification obligations:
 
@@ -27,10 +33,17 @@ Verification obligations:
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
 
 ```text
 PROCEDURE validate_state_machine_definition(validator, instance)
-  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-009
+  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
+    CFNSFN-005, CFNSFN-009, CFNSFN-011
   VERIFICATION: every verification obligation listed above
 
   PRECONDITIONS
@@ -88,6 +101,7 @@ PROCEDURE validate_state_machine_definition(validator, instance)
 
   REPEATED INVOCATION
     recompute declared_keys from the current owning resource
+    discard the prior invocation's declared_keys before validating another resource
     do not mutate definition, DefinitionSubstitutions, or rule-level state
     produce the same emitted errors for the same template, path, and schema
 
@@ -103,7 +117,8 @@ END PROCEDURE
 
 ## Procedure: `load_definition_substitution_keys`
 
-Requirement IDs: `CFNSFN-001`, `CFNSFN-003`, `CFNSFN-009`
+Requirement IDs: `CFNSFN-001`, `CFNSFN-003`, `CFNSFN-004`, `CFNSFN-005`,
+`CFNSFN-009`, `CFNSFN-011`
 
 Verification obligations:
 
@@ -116,10 +131,17 @@ Verification obligations:
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
 
 ```text
 PROCEDURE load_definition_substitution_keys(validator)
-  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-003, CFNSFN-009
+  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-003, CFNSFN-004, CFNSFN-005,
+    CFNSFN-009, CFNSFN-011
   VERIFICATION: the key-presence and complete-definition obligations listed above
 
   PRECONDITIONS
@@ -137,6 +159,7 @@ PROCEDURE load_definition_substitution_keys(validator)
   TRANSFORM
     substitutions_path := definition_path with final Definition segment replaced by
       DefinitionSubstitutions
+    // Preserve every preceding segment, including the concrete Resources logical ID.
 
   RECEIVE
     substitutions := traverse validator.cfn.template using substitutions_path
@@ -151,6 +174,7 @@ PROCEDURE load_definition_substitution_keys(validator)
     a new set containing every key in substitutions
     // Inspect keys only. Never resolve, coerce, or test the truthiness of values.
     // String, integer, boolean, zero, false, and intrinsic values are identical here.
+    // Do not merge, cache, or consult substitutions from any other resource path.
 
   ON MISSING_PATH_OR_NON_MAPPING_ANCESTOR
     RETURN empty set
@@ -160,7 +184,8 @@ END PROCEDURE
 
 ## Procedure: `string_contains_declared_substitution`
 
-Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-009`
+Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
+`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
 
 Verification obligations:
 
@@ -169,10 +194,17 @@ Verification obligations:
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[enum_nested_state_type]`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[format_or_equivalent_nested_choice_string]`
 - every `test_cfnsfn_009_*` obligation in this artifact
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
 
 ```text
 PROCEDURE string_contains_declared_substitution(value, declared_keys)
-  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-009
+  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
+    CFNSFN-005, CFNSFN-009, CFNSFN-011
   VERIFICATION: the nested-string and key-presence obligations listed above
 
   PRECONDITIONS
@@ -184,25 +216,40 @@ PROCEDURE string_contains_declared_substitution(value, declared_keys)
     END IF
 
   SCAN
-    parse each complete ${...} placeholder token in value from left to right
+    token_bodies := every complete non-literal ${...} placeholder body in value,
+      parsed from left to right with the shared REGEX_SUB_PARAMETERS grammar
     do not treat malformed or incomplete token text as a placeholder
+    do not treat the escaped ${!...} literal form as a substitution token
 
-    FOR EACH placeholder token
-      referenced_keys := the substitution key names encoded by that token
-      IF referenced_keys is non-empty
-         AND every referenced key is present in declared_keys
-        RETURN TRUE
+    IF token_bodies is empty
+      RETURN FALSE
+    END IF
+
+    referenced_keys := empty ordered list
+    FOR EACH token_body IN token_bodies
+      token_keys := split token_body at every comma, preserving key text exactly
+      IF token_keys is empty OR any token_key is empty
+        RETURN FALSE
+        // An unsupported empty component cannot authorize the failing string.
       END IF
+      append every token_key to referenced_keys in source order
     END FOR
 
+  DECIDE
+    IF every referenced_key in referenced_keys is present in declared_keys
+      RETURN TRUE
+    END IF
+
   RETURN FALSE
-    // Undeclared and partially declared placeholders remain concrete to E3601.
+    // One missing key in any standalone, embedded, or comma-delimited token keeps
+    // the complete failing string concrete and observable to E3601.
 END PROCEDURE
 ```
 
 ## Procedure: `retain_non_deferred_failure`
 
-Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-009`
+Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
+`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
 
 Verification obligations:
 
@@ -211,10 +258,17 @@ Verification obligations:
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[enum_nested_state_type]`
 - `test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[format_or_equivalent_nested_choice_string]`
 - every `test_cfnsfn_009_*` obligation in this artifact
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
 
 ```text
 PROCEDURE retain_non_deferred_failure(error, declared_keys)
-  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-009
+  REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
+    CFNSFN-005, CFNSFN-009, CFNSFN-011
   VERIFICATION: the acceptance and constraint-bypass obligations listed above
 
   DECIDE DIRECT FAILURE
@@ -269,6 +323,8 @@ END PROCEDURE
   followed by the existing message-path decoration, rule assignment, and cleaning.
 - Missing or malformed declarations grant no exemption. Unrelated ASL failures are
   emitted with their existing path, schema path, rule ownership, and ordering.
+- A failing string is an indivisible concrete-constraint instance: all referenced
+  keys across all supported tokens must be owned, or no part of that string's
+  failure is filtered.
 - Validation is synchronous and read-only. There is no retry, persistence,
   compensation, rollback, queue, scheduled work, or asynchronous completion path.
-
