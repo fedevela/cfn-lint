@@ -1,0 +1,29 @@
+{
+  "issue": 143,
+  "requirements": {
+    "BATCHTYPE-007": [
+      "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_omitted_resource_type_emits_e3003_at_properties_boundary",
+      "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_008_accepted_string_passes_structure_and_preserves_domain"
+    ],
+    "BATCHTYPE-008": [
+      "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_008_null_resource_type_emits_e3012_string_contract_finding",
+      "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_008_non_string_literal_emits_finding_and_is_not_accepted",
+      "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_008_accepted_string_passes_structure_and_preserves_domain"
+    ]
+  },
+  "verification_artifacts": {
+    "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_omitted_resource_type_emits_e3003_at_properties_boundary": [
+      "BATCHTYPE-007"
+    ],
+    "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_008_null_resource_type_emits_e3012_string_contract_finding": [
+      "BATCHTYPE-008"
+    ],
+    "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_008_non_string_literal_emits_finding_and_is_not_accepted": [
+      "BATCHTYPE-008"
+    ],
+    "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_008_accepted_string_passes_structure_and_preserves_domain": [
+      "BATCHTYPE-007",
+      "BATCHTYPE-008"
+    ]
+  }
+}
