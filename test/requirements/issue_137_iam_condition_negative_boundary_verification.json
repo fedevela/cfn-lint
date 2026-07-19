@@ -20,6 +20,24 @@
     "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_set_qualified_condition_values": [
       "IAMCOND-010"
     ],
+    "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A1_closed_condition_operator_vocabulary": [
+      "IAMCOND-009"
+    ],
+    "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A2_set_qualified_value_and_string_context_contract": [
+      "IAMCOND-010"
+    ],
+    "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A3_resolver_rule_identity_and_shared_consumers": [
+      "IAMCOND-009",
+      "IAMCOND-010"
+    ],
+    "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A4_verification_seam": [
+      "IAMCOND-009",
+      "IAMCOND-010"
+    ],
+    "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A5_traceability_owner": [
+      "IAMCOND-009",
+      "IAMCOND-010"
+    ],
     "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error": [
       "IAMCOND-009"
     ],
@@ -43,7 +61,11 @@
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error",
       "test/requirements/issue_137_iam_condition_negative_boundary_verification.json",
       "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::reject_unrecognized_condition_operator",
-      "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_e3510_condition_negative_boundary"
+      "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_e3510_condition_negative_boundary",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A1_closed_condition_operator_vocabulary",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A3_resolver_rule_identity_and_shared_consumers",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A4_verification_seam",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A5_traceability_owner"
     ],
     "IAMCOND-010": [
       "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/ConditionSetValue",
@@ -52,7 +74,11 @@
       "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_supported_cfn_string_expressions_when_object_policy_with_functions_is_validated_then_no_type_or_operator_errors",
       "test/requirements/issue_137_iam_condition_negative_boundary_verification.json",
       "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_set_qualified_condition_values",
-      "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_e3510_condition_negative_boundary"
+      "test/requirements/issue_137_iam_condition_negative_boundary_logic.md::validate_e3510_condition_negative_boundary",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A2_set_qualified_value_and_string_context_contract",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A3_resolver_rule_identity_and_shared_consumers",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A4_verification_seam",
+      "test/requirements/issue_137_iam_condition_negative_boundary_architecture.md::A5_traceability_owner"
     ]
   }
 }
