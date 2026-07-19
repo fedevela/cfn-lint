@@ -1,6 +1,6 @@
 # E3601 object-definition substitution awareness
 
-Issues: `#126`, `#127`
+Issues: `#126`, `#127`, `#128`
 
 Owning runtime artifact: `StateMachineDefinition.py`
 
@@ -14,10 +14,18 @@ current state-machine resource, and a string is deferred only when at least one
 supported substitution token is present and every key referenced by every token
 is declared in that owning set.
 
+Issue #128 preserves the boundary around that narrow deferral. The complete ASL
+schema still runs before filtering, and only a failure whose own failing string
+is a fully declared substitution value may disappear. Concrete Task resources,
+structural and state-type failures, transition and termination relationships, and
+ordinary object definitions remain subject to their established E3601 findings,
+paths, ordering, and acceptance behavior.
+
 ## Procedure: `validate_state_machine_definition`
 
 Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
+`CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+`CFNSFN-011`, `CFNSFN-012`
 
 Verification obligations:
 
@@ -39,11 +47,21 @@ Verification obligations:
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged`
 
 ```text
 PROCEDURE validate_state_machine_definition(validator, instance)
   REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
-    CFNSFN-005, CFNSFN-009, CFNSFN-011
+    CFNSFN-005, CFNSFN-006, CFNSFN-007, CFNSFN-008, CFNSFN-009,
+    CFNSFN-011, CFNSFN-012
   VERIFICATION: every verification obligation listed above
 
   PRECONDITIONS
@@ -74,6 +92,8 @@ PROCEDURE validate_state_machine_definition(validator, instance)
 
   VALIDATE
     FOR EACH validation_error IN step_validator.iter_errors(definition)
+      // Run the unchanged, complete ASL schema before making any substitution
+      // decision. Do not replace strings or disable schema branches in advance.
       filtered_error := retain_non_deferred_failure(
         validation_error,
         declared_keys,
@@ -81,7 +101,8 @@ PROCEDURE validate_state_machine_definition(validator, instance)
 
       IF filtered_error is ABSENT
         CONTINUE
-        // The error was caused only by a declared, unresolved string portion.
+        // Every failing leaf in this error tree was the exact string value of a
+        // fully declared substitution. No unrelated failure is present.
       END IF
 
       IF add_path_to_message is TRUE
@@ -98,6 +119,10 @@ PROCEDURE validate_state_machine_definition(validator, instance)
 
   RETURN
     completion after every retained error has been emitted
+    // A valid object definition with no deferred failing strings emits nothing.
+    // An invalid object definition with no deferred failing strings emits the
+    // same cleaned errors, paths, schema paths, rule ownership, and order as the
+    // ordinary E3601 pipeline.
 
   REPEATED INVOCATION
     recompute declared_keys from the current owning resource
@@ -118,7 +143,8 @@ END PROCEDURE
 ## Procedure: `load_definition_substitution_keys`
 
 Requirement IDs: `CFNSFN-001`, `CFNSFN-003`, `CFNSFN-004`, `CFNSFN-005`,
-`CFNSFN-009`, `CFNSFN-011`
+`CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`, `CFNSFN-011`,
+`CFNSFN-012`
 
 Verification obligations:
 
@@ -137,11 +163,14 @@ Verification obligations:
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
+- every `test_state_machine_definition_validation_continuity.py::*` obligation
+  listed under `validate_state_machine_definition`
 
 ```text
 PROCEDURE load_definition_substitution_keys(validator)
   REQUIREMENT_IDS: CFNSFN-001, CFNSFN-003, CFNSFN-004, CFNSFN-005,
-    CFNSFN-009, CFNSFN-011
+    CFNSFN-006, CFNSFN-007, CFNSFN-008, CFNSFN-009, CFNSFN-011,
+    CFNSFN-012
   VERIFICATION: the key-presence and complete-definition obligations listed above
 
   PRECONDITIONS
@@ -185,7 +214,8 @@ END PROCEDURE
 ## Procedure: `string_contains_declared_substitution`
 
 Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
+`CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+`CFNSFN-011`, `CFNSFN-012`
 
 Verification obligations:
 
@@ -200,11 +230,14 @@ Verification obligations:
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
+- every `test_state_machine_definition_validation_continuity.py::*` obligation
+  listed under `validate_state_machine_definition`
 
 ```text
 PROCEDURE string_contains_declared_substitution(value, declared_keys)
   REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
-    CFNSFN-005, CFNSFN-009, CFNSFN-011
+    CFNSFN-005, CFNSFN-006, CFNSFN-007, CFNSFN-008, CFNSFN-009,
+    CFNSFN-011, CFNSFN-012
   VERIFICATION: the nested-string and key-presence obligations listed above
 
   PRECONDITIONS
@@ -249,7 +282,8 @@ END PROCEDURE
 ## Procedure: `retain_non_deferred_failure`
 
 Requirement IDs: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-`CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`
+`CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+`CFNSFN-011`, `CFNSFN-012`
 
 Verification obligations:
 
@@ -264,18 +298,45 @@ Verification obligations:
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains`
 - `test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged`
+- `test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged`
 
 ```text
 PROCEDURE retain_non_deferred_failure(error, declared_keys)
   REQUIREMENT_IDS: CFNSFN-001, CFNSFN-002, CFNSFN-003, CFNSFN-004,
-    CFNSFN-005, CFNSFN-009, CFNSFN-011
-  VERIFICATION: the acceptance and constraint-bypass obligations listed above
+    CFNSFN-005, CFNSFN-006, CFNSFN-007, CFNSFN-008, CFNSFN-009,
+    CFNSFN-011, CFNSFN-012
+  VERIFICATION: every verification obligation listed above
+
+  PRECONDITIONS
+    error is one complete, fresh error tree emitted by ordinary ASL validation
+    declared_keys belongs only to the state machine whose Definition produced error
+    no Definition value has been substituted, normalized, or mutated
 
   DECIDE DIRECT FAILURE
     IF string_contains_declared_substitution(error.instance, declared_keys)
       RETURN ABSENT
       // Covers pattern, enum, const, format, length, type-alternative, and other
       // concrete assertions whose failing instance is the deferred string itself.
+    END IF
+
+    IF error.instance is a concrete string with no supported placeholder
+      RETURN error unchanged
+      // Preserve Resource and Next pattern failures, Type enum failures, and every
+      // other concrete string constraint at its original observable path.
+    END IF
+
+    IF error.instance is an object, array, number, boolean, or null
+      do not authorize deferral from any declared placeholder nested elsewhere
+      // Required, additionalProperties, requiredXor, and container/type failures
+      // are decided from this exact structural instance, not from sibling fields.
     END IF
 
   DECIDE COMPOSITE FAILURE
@@ -298,6 +359,8 @@ PROCEDURE retain_non_deferred_failure(error, declared_keys)
 
   TRANSFORM
     copy error and replace only its context with retained_context
+    preserve validator, message, instance, path, schema path, and rule metadata
+    set each retained child's parent to the copied error
 
   RETURN copied error
     // Structural failures such as required properties, additional properties,
@@ -307,6 +370,27 @@ PROCEDURE retain_non_deferred_failure(error, declared_keys)
     run ordinary ASL validation before this procedure
     never replace a placeholder with a wildcard before evaluating if/then guards
     // In particular, an unresolved Type must not satisfy every state-type guard.
+    retain original child order when deferred and non-deferred failures coexist
+
+  CONTINUITY CASES
+    concrete invalid Task Resource -> retain pattern at States / state / Resource
+    missing Task Resource -> retain required at States / state
+    unsupported state field -> retain additionalProperties at States / state
+    concrete invalid state Type -> retain enum at States / state / Type
+    neither Next nor End -> retain requiredXor at States / state
+    both Next and End -> retain requiredXor at each property path
+    empty concrete Next -> retain pattern at States / state / Next
+    valid object Definition with no failing placeholder -> return no errors
+    invalid object Definition with no failing placeholder -> retain errors unchanged
+
+  REPEATED INVOCATION
+    do not mutate error trees returned by prior invocations
+    return the original error object when neither it nor its descendants change
+    copy only a composite node whose child context is partially retained
+
+  ON UNRELATED OR UNCLASSIFIED ASL FAILURE
+    RETURN the failure unchanged
+    // Deferral is an explicit narrow exemption, never a default recovery path.
 END PROCEDURE
 ```
 
@@ -321,10 +405,16 @@ END PROCEDURE
   nesting depth. Recursive schema validation supplies the leaf and its ASL path.
 - Ordinary ASL validation happens first. Deferred-error filtering happens second,
   followed by the existing message-path decoration, rule assignment, and cleaning.
+- A declaration authorizes only a failing string that directly contains its
+  supported placeholder. It does not authorize its containing state, sibling
+  states, or the definition as a whole.
 - Missing or malformed declarations grant no exemption. Unrelated ASL failures are
   emitted with their existing path, schema path, rule ownership, and ordering.
 - A failing string is an indivisible concrete-constraint instance: all referenced
   keys across all supported tokens must be owned, or no part of that string's
   failure is filtered.
+- With no supported placeholder in an object-valued definition, every filter
+  decision retains the ordinary ASL result, so both acceptance and rejection are
+  observationally unchanged.
 - Validation is synchronous and read-only. There is no retry, persistence,
   compensation, rollback, queue, scheduled work, or asynchronous completion path.
