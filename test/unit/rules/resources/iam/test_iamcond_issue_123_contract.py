@@ -2,11 +2,11 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Inert verification obligations for issue 123 (IAMCOND-004).
+Verification coverage for issue 123 (IAMCOND-004).
 
 The cases use the native Runner boundary so E3512 registration, resource
 keyword dispatch, attribution, and complete resource-relative finding paths
-remain part of the observable contract when Malkhut enables validation.
+remain part of the observable contract exercised by the Atlas harness.
 """
 
 from __future__ import annotations
@@ -74,7 +74,6 @@ def _is_at_or_beneath(match, expected_path: tuple[object, ...]) -> bool:
     return tuple(match.path[: len(expected_path)]) == expected_path
 
 
-@pytest.mark.skip(reason="IAMCOND-004 awaits the issue 123 implementation")
 @pytest.mark.parametrize(
     "registered_keyword,policy_document_path", RESOURCE_POLICY_ENTRY_POINTS
 )
@@ -93,12 +92,11 @@ def test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_cond
     finding = next(
         match
         for match in _e3512_matches(matches)
-        if _is_at_or_beneath(match, expected_path)
+        if tuple(match.path) == expected_path
     )
     assert finding.rule.severity == "error"
 
 
-@pytest.mark.skip(reason="IAMCOND-004 awaits the issue 123 implementation")
 @pytest.mark.parametrize(
     "registered_keyword,policy_document_path", RESOURCE_POLICY_ENTRY_POINTS
 )

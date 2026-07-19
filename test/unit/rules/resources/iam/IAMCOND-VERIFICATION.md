@@ -2,10 +2,10 @@
 
 The established shared-schema selectors are active in
 `test_iam_condition_contract.py`. The issue 122 selectors are active in
-`test_iamcond_issue_122_contract.py`. The issue 123 selectors are inert in
-`test_iamcond_issue_123_contract.py` until Malkhut enables executable
-validation. Their parametrized node IDs preserve selection mode, rule family,
-operator or entry point, input shape, and expected outcome.
+`test_iamcond_issue_122_contract.py`. The issue 123 selectors are active in
+`test_iamcond_issue_123_contract.py`. Their parametrized node IDs preserve
+selection mode, rule family, operator or entry point, input shape, and expected
+outcome.
 
 The deterministic procedures for the established shared-schema, issue 122, and
 issue 123 obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The
@@ -122,6 +122,7 @@ recorded in `IAMCOND-ARCHITECTURE.md`.
 | Requirement(s) | Implementation artifact | Manifested behavior and harness evidence |
 | --- | --- | --- |
 | IAMCOND-001, IAMCOND-003 | `ConfigMixIn.include_checks`; `IdentityPolicy.keywords`; E1101 provider-schema dispatch; `Policy.validate`; `policy.json#/definitions/Condition/additionalProperties` | W/E selection remains active when I is appended; all six identity-policy paths converge on E3510; the issue 122 Runner selectors observe error severity, complete resource paths, and stable E3510 signatures. |
+| IAMCOND-004 | `ResourcePolicy.keywords`; E1101 provider-schema dispatch; `Policy.validate`; `policy_resource.json`; `policy.json#/definitions/Condition`; the paired issue 123 fixtures and active Runner selectors | All five registered resource-policy paths converge on the shared closed Condition schema. The malformed matrix observes error-level E3512 at each exact resource-relative offending member; the recognized matrix observes no E3512 finding at or beneath each Condition path. |
 | IAMCOND-002 | `policy.json#/definitions/Condition/additionalProperties` | Closes the top-level condition member namespace; `test_IAMCOND_002_*` observes the member-level finding for scalar, list, and object values in all three rule families. |
 | IAMCOND-006, IAMCOND-007 | Existing `ConditionValue`, `ConditionSetValue`, `Null`, and `Booleans` contracts reached through corrected operator patterns | `test_IAMCOND_006_*` observes object-body enforcement for every recognized operator; all three `test_IAMCOND_007_*` matrices observe the preserved value shapes, including item-index findings below a context key for invalid list members. |
 | IAMCOND-008, IAMCOND-012 | Corrected, fully anchored set-qualified patterns plus the existing unqualified and explicit operator schemas | `test_IAMCOND_008_*` and `test_IAMCOND_012_*` observe valid single- and multi-operator conditions across E3510, E3512, and E3513. |
