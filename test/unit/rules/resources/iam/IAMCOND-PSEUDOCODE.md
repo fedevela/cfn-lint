@@ -1,11 +1,11 @@
 # Shared IAM Condition procedural contract
 
 This artifact records implementation-ready logic for the shared IAM `Condition`
-schema consumed by E3510, E3512, and E3513, including the issue 122 E3510 Runner
-and identity-policy entry-point boundaries. It is procedural documentation only;
-it does not change runtime behavior. Verification selectors refer to
-`test_iam_condition_contract.py` and `test_iamcond_issue_122_contract.py` in this
-directory.
+schema consumed by E3510, E3512, and E3513, including the issue 122 E3510 and
+issue 123 E3512 Runner entry-point boundaries. It is procedural documentation
+only; it does not change runtime behavior. Verification selectors refer to
+`test_iam_condition_contract.py`, `test_iamcond_issue_122_contract.py`, and
+`test_iamcond_issue_123_contract.py` in this directory.
 
 ## Operator grammar
 
@@ -163,9 +163,98 @@ END PROCEDURE
 ```
 
 ```text
-PROCEDURE CONFIGURE_IAM_POLICY_RULE_FAMILY(rule_id)
-  REQUIREMENT_IDS: IAMCOND-008, IAMCOND-010, IAMCOND-013
+PROCEDURE VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS(template)
+  REQUIREMENT_IDS: IAMCOND-004
   VERIFICATION:
+    test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
+
+  PRECONDITIONS
+    template decoded successfully
+    every candidate is otherwise valid for policy_resource.json
+    each candidate Statement[0] contains exactly one of:
+      MALFORMED_CONDITION := {servicecatalog:accountLevel: self}
+      RECOGNIZED_CONDITION := {StringEquals: {aws:SourceAccount: "123456789012"}}
+
+  LOAD
+    REGISTERED_ENTRY_POINTS :=
+      AWS::KMS::Key                 Properties/KeyPolicy
+      AWS::OpenSearchService::Domain Properties/AccessPolicies
+      AWS::S3::BucketPolicy         Properties/PolicyDocument
+      AWS::SNS::TopicPolicy         Properties/PolicyDocument
+      AWS::SQS::QueuePolicy         Properties/PolicyDocument
+    FINDINGS := empty ordered collection
+
+  DISPATCH
+    FOR EACH resource in template.Resources in document order
+      IF resource.Type has no entry in REGISTERED_ENTRY_POINTS
+        CONTINUE with the next resource
+      END IF
+
+      DOCUMENT_PATH := Resources / logical-id / registered property path
+      REQUIRE the provider-schema cfnLint keyword at DOCUMENT_PATH to equal the
+              corresponding complete keyword registered by ResourcePolicy
+      DELEGATE the policy value and current validator context to
+               VALIDATE_IAM_POLICY_DOCUMENT(E3512, policy value, context)
+
+      FOR EACH delegated finding in schema order
+        PREFIX its relative path with DOCUMENT_PATH
+        PRESERVE E3512 as the owner of non-intrinsic resource-policy findings
+        APPEND it to FINDINGS without suppressing findings from other resources
+      END FOR
+    END FOR
+
+  CONDITION DECISION
+    FOR EACH dispatched Statement[0].Condition
+      CONDITION_PATH := DOCUMENT_PATH / Statement / 0 / Condition
+      DELEGATE the Condition to VALIDATE_SHARED_CONDITION
+
+      IF the condition equals MALFORMED_CONDITION
+        MATCH_RECOGNIZED_CONDITION_OPERATOR(servicecatalog:accountLevel)
+          returns absent
+        EMIT one error-level E3512 additional-property finding at:
+          CONDITION_PATH / servicecatalog:accountLevel
+      ELSE IF the condition equals RECOGNIZED_CONDITION
+        MATCH_RECOGNIZED_CONDITION_OPERATOR(StringEquals)
+          returns CONDITION_VALUE_CONTRACT
+        DELEGATE its object body to VALIDATE_CONDITION_OPERATOR_BODY
+        ACCEPT aws:SourceAccount and its string value
+        EMIT no E3512 finding at or beneath CONDITION_PATH
+      END IF
+    END FOR
+
+  RETURN FINDINGS after every registered resource has been visited
+
+  TERMINAL STATES
+    MALFORMED_CONDITION terminates with an E3512 error at the offending member
+    RECOGNIZED_CONDITION terminates without an E3512 Condition finding
+    an unregistered resource terminates without E3512 resource-policy delegation
+
+  ON FAILURE template decoding or provider-schema traversal failure
+    RETURN the established parse or provider-schema finding
+    DO NOT claim an E3512 result for a policy value that was not dispatched
+
+  ON FAILURE independent resource-policy defect
+    PRESERVE every independently produced E3512 finding
+    DO NOT suppress the missing-operator finding for that policy or later policies
+
+  REPEATED INVOCATION
+    Retain no state and mutate neither template nor policy; equivalent templates
+    produce equivalent ordered E3512 path, message, and severity signatures
+
+  CONCURRENCY / TRANSACTION / RETRY
+    Resource and schema traversal is synchronous, deterministic, and read-only;
+    no asynchronous completion, persistence, transaction, retry, compensation,
+    rollback, event emission, or recovery state applies
+END PROCEDURE
+```
+
+```text
+PROCEDURE CONFIGURE_IAM_POLICY_RULE_FAMILY(rule_id)
+  REQUIREMENT_IDS: IAMCOND-004, IAMCOND-008, IAMCOND-010, IAMCOND-013
+  VERIFICATION:
+    test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family
     test_IAMCOND_010_object_and_json_string_representations_have_equivalent_outcomes
     test_IAMCOND_013_condition_finding_does_not_suppress_independent_findings
@@ -195,11 +284,13 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_IAM_POLICY_DOCUMENT(rule_id, policy, incoming_validator_context)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003, IAMCOND-008, IAMCOND-009,
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-008, IAMCOND-009,
                    IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
+    test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family
     test_IAMCOND_009_supported_intrinsic_in_place_of_condition_operator_is_not_unknown
     test_IAMCOND_009_supported_intrinsics_keep_existing_embedded_policy_outcomes
@@ -263,13 +354,15 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_SHARED_CONDITION(condition, path, validator_context)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
                    IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-011,
                    IAMCOND-012, IAMCOND-013
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
+    test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
@@ -331,12 +424,14 @@ END PROCEDURE
 
 ```text
 PROCEDURE MATCH_RECOGNIZED_CONDITION_OPERATOR(member_name)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-006,
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
                    IAMCOND-007, IAMCOND-012
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
+    test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes

@@ -7,10 +7,11 @@ The established shared-schema selectors are active in
 validation. Their parametrized node IDs preserve selection mode, rule family,
 operator or entry point, input shape, and expected outcome.
 
-The deterministic procedures for the established shared-schema and issue 122
-obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The issue-specific modules
-preserve their Runner, selection, fixture, rule-keyword, schema-delegation, and
-finding-path boundaries directly at the verification locus.
+The deterministic procedures for the established shared-schema, issue 122, and
+issue 123 obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The
+issue-specific modules preserve their Runner, selection, fixture, rule-keyword,
+schema-delegation, and finding-path boundaries directly at the verification
+locus.
 
 ## Requirement to verification
 
@@ -84,6 +85,8 @@ finding-path boundaries directly at the verification locus.
 | `test_IAMCOND_002_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
 | `test_IAMCOND_003_missing_operator_` | `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
 | `test_IAMCOND_003_include_checks_` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS` |
+| `test_IAMCOND_004_missing_operator_` | `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
+| `test_IAMCOND_004_recognized_nested_condition_` | `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_006_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_007_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_008_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` |
@@ -104,6 +107,7 @@ recorded in `IAMCOND-ARCHITECTURE.md`.
 | `test_IAMCOND_002_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_003_missing_operator_` | E3510 provider entry-point boundary; policy normalization and finding ownership; shared condition schema |
 | `test_IAMCOND_003_include_checks_` | Rule selection; E3510 provider entry-point boundary |
+| `test_IAMCOND_004_` | E3512 provider entry-point boundary; family policy schemas and rule delegates; policy normalization and finding ownership; shared condition schema |
 | `test_IAMCOND_006_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_007_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
 | `test_IAMCOND_008_` | Shared condition schema; family policy schemas and rule delegates; policy normalization and finding ownership |
