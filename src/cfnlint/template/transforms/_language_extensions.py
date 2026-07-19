@@ -120,7 +120,7 @@ class _Transform:
 
             for k, v in deepcopy(obj).items():
                 # see if key matches Fn::ForEach
-                if re.match(FUNCTION_FOR_EACH, k):
+                if isinstance(k, str) and re.match(FUNCTION_FOR_EACH, k):
                     # only translate the foreach if its valid
                     foreach = _ForEach(k, v, self._collections)
                     # get the values will flatten the foreach
@@ -311,6 +311,50 @@ class _ForEachValueFnFindInMap(_ForEachValue):
             self._map.append(_FnFindInMapDefaultValue(get_hash(obj[3]), obj[3]))
 
         self._obj = obj
+
+    def _uses_runtime_account(self) -> bool:
+        return self._obj[1] == {"Ref": "AWS::AccountId"}
+
+    def value_for_collection(
+        self,
+        cfn: Any,
+        params: Mapping[str, Any] | None = None,
+    ) -> list[Any]:
+        """Resolve a FindInMap used directly as a ForEach collection."""
+        if params is None:
+            params = {}
+
+        if not self._uses_runtime_account():
+            return self.value(cfn, params, False)
+
+        mappings = cfn.template.get("Mappings", {})
+        map_name = self._map[0].value(cfn, params, False)
+        second_key = self._map[2].value(cfn, params, False)
+        mapping = mappings.get(map_name) if isinstance(mappings, dict) else None
+        if not isinstance(mapping, dict) or not isinstance(second_key, str):
+            raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
+
+        collection: list[Any] | None = None
+        for account_entry in mapping.values():
+            if not isinstance(account_entry, dict) or second_key not in account_entry:
+                raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
+
+            candidate = account_entry[second_key]
+            if (
+                not isinstance(candidate, list)
+                or not candidate
+                or any(not isinstance(value, (str, dict)) for value in candidate)
+            ):
+                raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
+
+            if collection is None:
+                collection = deepcopy(candidate)
+            elif candidate != collection:
+                raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
+
+        if collection is None:
+            raise _ResolveError("Can't resolve Fn::FindInMap", self._obj)
+        return collection
 
     def value(
         self,
@@ -519,7 +563,10 @@ class _ForEachCollection:
             return
         if self._fn:
             try:
-                values = self._fn.value(cfn, {}, False)
+                if isinstance(self._fn, _ForEachValueFnFindInMap):
+                    values = self._fn.value_for_collection(cfn, {})
+                else:
+                    values = self._fn.value(cfn, {}, False)
                 if values:
                     if isinstance(values, list):
                         for value in values:
@@ -538,6 +585,11 @@ class _ForEachCollection:
                         "Fn::ForEach collection must return a list", self._obj
                     )
             except _ResolveError:
+                if (
+                    isinstance(self._fn, _ForEachValueFnFindInMap)
+                    and self._fn._uses_runtime_account()
+                ):
+                    raise
                 if self._fn.hash in collection_cache:
                     yield from iter(collection_cache[self._fn.hash])
                 else:
