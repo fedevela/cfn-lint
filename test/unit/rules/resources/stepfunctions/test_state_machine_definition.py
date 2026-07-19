@@ -700,3 +700,30 @@ def test_validate(
 ):
     errs = list(rule.validate(validator, {}, instance, {}))
     assert errs == expected, f"{name!r} test failed with {errs!r}"
+
+
+@pytest.mark.parametrize(
+    "definition_string",
+    [
+        "not Amazon States Language",
+        {"Fn::Sub": "${AWS::Partition}-definition"},
+        {"Fn::Join": ["-", "not-an-array"]},
+        ["not", "a", "string"],
+    ],
+    ids=["literal", "intrinsic", "malformed-intrinsic", "non-string"],
+)
+def test_validate_ignores_definition_string(
+    definition_string,
+    rule,
+    validator,
+):
+    errs = list(
+        rule.validate(
+            validator,
+            {},
+            {"DefinitionString": definition_string},
+            {},
+        )
+    )
+
+    assert errs == []

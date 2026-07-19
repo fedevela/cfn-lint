@@ -13,10 +13,6 @@ from cfnlint import lint
 # ruff: noqa: E501
 
 
-pytestmark = pytest.mark.skip(
-    reason="SMDEF verification placeholders: activate during implementation"
-)
-
 REPRODUCTION = Path("test/fixtures/templates/issues/3769.json")
 PROPERTY_PATH = [
     "Resources",
