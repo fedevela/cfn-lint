@@ -1,10 +1,10 @@
 # Shared IAM Condition requirement-to-verification map
 
 The established shared-schema selectors are active in
-`test_iam_condition_contract.py`. The issue 122 selectors are inert in
-`test_iamcond_issue_122_contract.py` until Malkhut enables executable
-validation. Their parametrized node IDs preserve selection mode, rule family,
-operator or entry point, input shape, and expected outcome.
+`test_iam_condition_contract.py`. The issue 122 selectors are active in
+`test_iamcond_issue_122_contract.py`. Their parametrized node IDs preserve
+selection mode, rule family, operator or entry point, input shape, and expected
+outcome.
 
 The deterministic procedures for the established shared-schema and issue 122
 obligations are recorded in `IAMCOND-PSEUDOCODE.md`. The issue 122 procedures

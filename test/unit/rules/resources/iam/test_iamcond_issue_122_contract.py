@@ -2,11 +2,11 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Inert verification obligations for issue 122 (IAMCOND-001 and IAMCOND-003).
+Verification coverage for issue 122 (IAMCOND-001 and IAMCOND-003).
 
 The cases use the native Runner boundary so rule registration, resource keyword
 dispatch, CLI-style selection, severity, and complete finding paths remain part
-of the observable contract when Malkhut enables executable validation.
+of the observable contract exercised by the Atlas harness.
 """
 
 from __future__ import annotations
@@ -88,7 +88,6 @@ def _e3510_signatures(matches):
     }
 
 
-@pytest.mark.skip(reason="IAMCOND-001 awaits the issue 122 implementation")
 @pytest.mark.parametrize(
     "extra_cli_args",
     (
@@ -114,7 +113,6 @@ def test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_cond
     assert any(_is_at_or_beneath(match, expected_path) for match in findings)
 
 
-@pytest.mark.skip(reason="IAMCOND-003 awaits the issue 122 implementation")
 @pytest.mark.parametrize(
     "registered_keyword,policy_document_path", IDENTITY_POLICY_ENTRY_POINTS
 )
@@ -133,7 +131,6 @@ def test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_fo
     assert finding.rule.severity == "error"
 
 
-@pytest.mark.skip(reason="IAMCOND-003 awaits the issue 122 implementation")
 def test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result() -> None:
     default_config, default_matches = _run_fixture(MANAGED_POLICY_REPRODUCTION)
     information_config, information_matches = _run_fixture(
