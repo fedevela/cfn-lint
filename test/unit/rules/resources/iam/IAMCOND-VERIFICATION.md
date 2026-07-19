@@ -4,6 +4,10 @@ All selectors below are in `test_iam_condition_contract.py`. The module-level
 skip keeps these placeholders inert while preserving pytest discovery and
 parametrized node IDs for later executable validation.
 
+The deterministic procedures that fulfill these obligations are recorded in
+`IAMCOND-PSEUDOCODE.md`. Each procedure repeats its canonical requirement IDs
+and complete verification selector names at the owning logic locus.
+
 ## Requirement to verification
 
 | Requirement | Durable verification selector(s) |
@@ -46,3 +50,17 @@ parametrized node IDs for later executable validation.
   five E3512 entry points, and the E3513 entry point.
 - IAMCOND-013 is split between common independent policy defects and the
   principal defect applicable only to resource and ECR policy families.
+
+## Verification to logic
+
+| Verification selector prefix | Procedure(s) in `IAMCOND-PSEUDOCODE.md` |
+| --- | --- |
+| `test_IAMCOND_002_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` |
+| `test_IAMCOND_006_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_007_` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_008_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_009_` | `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_010_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT` |
+| `test_IAMCOND_011_` | `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION` |
+| `test_IAMCOND_012_` | `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
+| `test_IAMCOND_013_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION` |
