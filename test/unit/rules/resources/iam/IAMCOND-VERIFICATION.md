@@ -1,18 +1,23 @@
 # Shared IAM Condition requirement-to-verification map
 
-All selectors below are active in `test_iam_condition_contract.py`. Their
-parametrized node IDs preserve the rule family, operator or entry point, input
-shape, and expected outcome for focused harness validation.
+The established shared-schema selectors are active in
+`test_iam_condition_contract.py`. The issue 122 selectors are inert in
+`test_iamcond_issue_122_contract.py` until Malkhut enables executable
+validation. Their parametrized node IDs preserve selection mode, rule family,
+operator or entry point, input shape, and expected outcome.
 
-The deterministic procedures that fulfill these obligations are recorded in
-`IAMCOND-PSEUDOCODE.md`. Each procedure repeats its canonical requirement IDs
-and complete verification selector names at the owning logic locus.
+The deterministic procedures for the established shared-schema obligations are
+recorded in `IAMCOND-PSEUDOCODE.md`. The issue 122 obligations preserve their
+Runner, selection, fixture, and rule-keyword boundaries directly in the new
+verification module.
 
 ## Requirement to verification
 
 | Requirement | Durable verification selector(s) |
 | --- | --- |
+| IAMCOND-001 | `test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]` |
 | IAMCOND-002 | `test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition[shape-rule]` |
+| IAMCOND-003 | `test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]`; `test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result` |
 | IAMCOND-006 | `test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body[body-operator-rule]` |
 | IAMCOND-007 | `test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes[value-operator-rule]`; `test_IAMCOND_007_null_operator_preserves_boolean_context_value_shapes[value-rule]` |
 | IAMCOND-008 | `test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family[rule]` |
@@ -26,7 +31,9 @@ and complete verification selector names at the owning logic locus.
 
 | Verification selector prefix | Requirement coverage |
 | --- | --- |
+| `test_IAMCOND_001_` | IAMCOND-001 |
 | `test_IAMCOND_002_` | IAMCOND-002 |
+| `test_IAMCOND_003_` | IAMCOND-003 |
 | `test_IAMCOND_006_` | IAMCOND-006 |
 | `test_IAMCOND_007_` | IAMCOND-007 |
 | `test_IAMCOND_008_` | IAMCOND-008 |
@@ -38,6 +45,15 @@ and complete verification selector names at the owning logic locus.
 
 ## Shared and split coverage
 
+- IAMCOND-001 is shared across normal error-rule selection and
+  `--include-checks I`; both cases require an error-level E3510 at or beneath
+  the exact ManagedPolicy reproduction's Statement/Condition path.
+- IAMCOND-003 is split between six parametrized identity-policy entry-point
+  cases and a selection-continuity case. The entry-point node IDs distinguish
+  Group, ManagedPolicy, Policy, Role, User, and SSO PermissionSet ownership.
+- The IAMCOND-001 reproduction and IAMCOND-003 selection-continuity selector
+  share `managed_policy_missing_condition_operator.yaml`; the entry-point
+  matrix uses `identity_policy_entry_points_missing_condition_operator.yaml`.
 - The rule matrix explicitly shares IAMCOND-002, IAMCOND-006, IAMCOND-007,
   IAMCOND-008, IAMCOND-009, IAMCOND-011, and IAMCOND-012 across E3510, E3512,
   and E3513.

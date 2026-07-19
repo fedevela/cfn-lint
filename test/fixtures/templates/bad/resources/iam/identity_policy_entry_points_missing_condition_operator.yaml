@@ -1,0 +1,92 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  IAMGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      Policies:
+        - PolicyName: missing-operator
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: servicecatalog:List*
+                Resource: "*"
+                Condition:
+                  servicecatalog:accountLevel: self
+
+  IAMManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: servicecatalog:List*
+            Resource: "*"
+            Condition:
+              servicecatalog:accountLevel: self
+
+  IAMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: missing-operator
+      Roles:
+        - identity-role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: servicecatalog:List*
+            Resource: "*"
+            Condition:
+              servicecatalog:accountLevel: self
+
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: missing-operator
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: servicecatalog:List*
+                Resource: "*"
+                Condition:
+                  servicecatalog:accountLevel: self
+
+  IAMUser:
+    Type: AWS::IAM::User
+    Properties:
+      Policies:
+        - PolicyName: missing-operator
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: servicecatalog:List*
+                Resource: "*"
+                Condition:
+                  servicecatalog:accountLevel: self
+
+  SSOPermissionSet:
+    Type: AWS::SSO::PermissionSet
+    Properties:
+      InstanceArn: arn:aws:sso:::instance/ssoins-0123456789abcdef
+      Name: missing-operator
+      InlinePolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: servicecatalog:List*
+            Resource: "*"
+            Condition:
+              servicecatalog:accountLevel: self
