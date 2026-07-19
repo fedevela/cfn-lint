@@ -4,7 +4,9 @@
   "path": "/properties/Type/enum",
   "value": [
    "MANAGED",
-   "UNMANAGED"
+   "UNMANAGED",
+   "managed",
+   "unmanaged"
   ]
  },
  {

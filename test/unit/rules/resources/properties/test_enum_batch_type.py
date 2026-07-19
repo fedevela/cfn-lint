@@ -9,11 +9,6 @@ from cfnlint.rules.resources.properties.Enum import Enum
 from cfnlint.rules.resources.properties.Properties import Properties
 
 
-pytestmark = pytest.mark.skip(
-    reason="NETZACH placeholder: activate with the Batch Type implementation"
-)
-
-
 @pytest.fixture(scope="module")
 def rule():
     rule = Properties()
