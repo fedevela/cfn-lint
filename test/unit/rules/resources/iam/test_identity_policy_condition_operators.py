@@ -182,12 +182,6 @@ def test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_valid
     assert errors == []
 
 
-IAMCOND_009_010_PLACEHOLDER_REASON = (
-    "Netzach placeholder: enable during Malkhut validation"
-)
-
-
-@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
 @pytest.mark.parametrize(
     "malformed_operator",
     [
@@ -213,7 +207,6 @@ def test_iamcond_009_given_unknown_unsupported_or_malformed_operator_when_e3510_
     ]
 
 
-@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
 @pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
 @pytest.mark.parametrize(
     "invalid_value",
@@ -233,12 +226,11 @@ def test_iamcond_010_given_set_qualified_condition_key_maps_to_non_array_when_e3
 
     errors = _validate_identity_policy(policy)
 
-    assert [list(error.path) for error in errors] == [
-        ["Statement", "Condition", operator, "example:key"]
-    ]
+    assert {tuple(error.path) for error in errors} == {
+        ("Statement", "Condition", operator, "example:key")
+    }
 
 
-@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
 @pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
 def test_iamcond_010_given_set_qualified_array_contains_non_string_compatible_elements_when_e3510_validates_then_each_is_rejected_at_policy_relative_array_path(
     qualifier,
@@ -249,13 +241,12 @@ def test_iamcond_010_given_set_qualified_array_contains_non_string_compatible_el
 
     errors = _validate_identity_policy(policy)
 
-    assert [list(error.path) for error in errors] == [
-        ["Statement", "Condition", operator, "example:key", index]
+    assert {tuple(error.path) for error in errors} == {
+        ("Statement", "Condition", operator, "example:key", index)
         for index in (1, 2, 3, 4)
-    ]
+    }
 
 
-@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
 @pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
 def test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_supported_cfn_string_expressions_when_object_policy_with_functions_is_validated_then_no_type_or_operator_errors(
     qualifier,
@@ -276,7 +267,6 @@ def test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_suppor
     assert _validate_identity_policy_with_functions(policy) == []
 
 
-@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
 def test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error():
     malformed_operator = "ForAnyValues:StringEquals"
     corrected_operator = "ForAnyValue:StringEquals"
