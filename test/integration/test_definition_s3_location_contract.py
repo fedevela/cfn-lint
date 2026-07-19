@@ -4,17 +4,11 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from cfnlint import lint
 
 # Requirement-bearing test names intentionally retain their complete contracts.
 # ruff: noqa: E501
 
-
-pytestmark = pytest.mark.skip(
-    reason="SMDEF-011 verification placeholders: activate during implementation"
-)
 
 LOCATION_PATH = [
     "Resources",

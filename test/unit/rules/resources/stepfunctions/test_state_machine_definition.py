@@ -727,3 +727,29 @@ def test_validate_ignores_definition_string(
     )
 
     assert errs == []
+
+
+@pytest.mark.parametrize(
+    "definition_s3_location",
+    [
+        {"Bucket": "state-machine-definitions", "Key": "workflow.asl.json"},
+        {"Bucket": "state-machine-definitions"},
+    ],
+    ids=["provider-valid", "provider-invalid"],
+)
+def test_validate_ignores_definition_s3_location(
+    definition_s3_location,
+    rule,
+    validator,
+):
+    """SMDEF-011: E3601 never treats an external location as inline ASL."""
+    errs = list(
+        rule.validate(
+            validator,
+            {},
+            {"DefinitionS3Location": definition_s3_location},
+            {},
+        )
+    )
+
+    assert errs == []
