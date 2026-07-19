@@ -1,0 +1,74 @@
+{
+  "issue": 128,
+  "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_validation_continuity.py",
+  "inert_marker": "module pytestmark skip until Malkhut executable validation",
+  "acceptance_criterion_to_verification": {
+    "AC-1-concrete-invalid-task-resource-retains-E3601-format-finding": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource"
+    ],
+    "AC-2-substitution-aware-definition-retains-structural-findings": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type"
+    ],
+    "AC-3-substitution-aware-definition-retains-transition-and-termination-findings": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next"
+    ],
+    "AC-4-valid-object-definition-without-placeholders-retains-E3601-acceptance": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged"
+    ],
+    "AC-5-invalid-object-definition-without-placeholders-retains-E3601-findings-and-paths": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged"
+    ]
+  },
+  "requirement_to_verification": {
+    "CFNSFN-006": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource"
+    ],
+    "CFNSFN-007": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type"
+    ],
+    "CFNSFN-008": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next"
+    ],
+    "CFNSFN-012": [
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged",
+      "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged"
+    ]
+  },
+  "verification_to_requirements": {
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource": [
+      "CFNSFN-006"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state": [
+      "CFNSFN-007"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state": [
+      "CFNSFN-007"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type": [
+      "CFNSFN-007"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state": [
+      "CFNSFN-008"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property": [
+      "CFNSFN-008"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next": [
+      "CFNSFN-008"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged": [
+      "CFNSFN-012"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged": [
+      "CFNSFN-012"
+    ]
+  }
+}
