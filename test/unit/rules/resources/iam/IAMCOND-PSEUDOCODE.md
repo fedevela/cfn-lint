@@ -1,11 +1,12 @@
 # Shared IAM Condition procedural contract
 
 This artifact records implementation-ready logic for the shared IAM `Condition`
-schema consumed by E3510, E3512, and E3513, including the issue 122 E3510 and
-issue 123 E3512 Runner entry-point boundaries. It is procedural documentation
-only; it does not change runtime behavior. Verification selectors refer to
-`test_iam_condition_contract.py`, `test_iamcond_issue_122_contract.py`, and
-`test_iamcond_issue_123_contract.py` in this directory.
+schema consumed by E3510, E3512, and E3513, including the issue 122 E3510,
+issue 123 E3512, and issue 124 E3513 Runner entry-point boundaries. It is
+procedural documentation only; it does not change runtime behavior.
+Verification selectors refer to `test_iam_condition_contract.py`,
+`test_iamcond_issue_122_contract.py`, `test_iamcond_issue_123_contract.py`, and
+`test_iamcond_issue_124_contract.py` in this directory.
 
 ## Operator grammar
 
@@ -250,11 +251,127 @@ END PROCEDURE
 ```
 
 ```text
+PROCEDURE VALIDATE_ISSUE_124_ECR_REPOSITORY_POLICY(template)
+  REQUIREMENT_IDS: IAMCOND-005
+  VERIFICATION:
+    test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
+
+  INPUTS
+    template is the decoded CloudFormation template
+    ECR_ENTRY_POINT :=
+      AWS::ECR::Repository Properties/RepositoryPolicyText
+    MALFORMED_CONDITION := {servicecatalog:accountLevel: self}
+    RECOGNIZED_CONDITION :=
+      {StringEquals: {aws:SourceAccount: "123456789012"}}
+
+  PRECONDITIONS
+    template decoding completed successfully
+    RepositoryPolicyText is an object or a valid JSON string, as admitted by
+      the effective AWS::ECR::Repository provider schema
+    each candidate statement is otherwise valid for policy_resource_ecr.json:
+      Effect, one of Action or NotAction, and one of Principal or NotPrincipal
+        are present
+      Resource and NotResource remain optional under ECR policy semantics
+    Statement[0].Condition equals MALFORMED_CONDITION or RECOGNIZED_CONDITION
+
+  LOAD
+    REGISTERED_KEYWORD :=
+      Resources/AWS::ECR::Repository/Properties/RepositoryPolicyText
+    REQUIRE REGISTERED_KEYWORD to be present in ResourceEcrPolicy.keywords
+    REQUIRE ResourceEcrPolicy to retain id E3513 and severity error
+    FINDINGS := empty ordered collection
+
+  DISPATCH
+    FOR EACH resource in template.Resources in document order
+      IF resource.Type is not AWS::ECR::Repository
+        CONTINUE with the next resource
+      END IF
+      IF resource.Properties.RepositoryPolicyText is absent
+        CONTINUE with the next resource without E3513 delegation
+      END IF
+
+      DOCUMENT_PATH :=
+        Resources / resource logical-id / Properties / RepositoryPolicyText
+      REQUIRE the provider-schema cfnLint keyword at DOCUMENT_PATH to equal
+              REGISTERED_KEYWORD
+      DELEGATE RepositoryPolicyText and the current validator context through
+               E1101 to VALIDATE_IAM_POLICY_DOCUMENT(
+                 E3513, RepositoryPolicyText, current validator context
+               )
+
+      FOR EACH delegated finding in schema order
+        PREFIX its policy-relative path with DOCUMENT_PATH
+        PRESERVE E3513 as the owner of every non-intrinsic ECR policy finding
+        APPEND the finding to FINDINGS without suppressing later findings
+      END FOR
+    END FOR
+
+  CONDITION DECISION
+    FOR EACH dispatched Statement[0].Condition
+      CONDITION_PATH := DOCUMENT_PATH / Statement / 0 / Condition
+      DELEGATE the present Condition to VALIDATE_SHARED_CONDITION
+
+      IF the condition equals MALFORMED_CONDITION
+        MATCH_RECOGNIZED_CONDITION_OPERATOR(servicecatalog:accountLevel)
+          returns absent
+        CLASSIFY the shared additional-property result as an error-level E3513
+          finding
+        EMIT it at:
+          CONDITION_PATH / servicecatalog:accountLevel
+      ELSE IF the condition equals RECOGNIZED_CONDITION
+        MATCH_RECOGNIZED_CONDITION_OPERATOR(StringEquals)
+          returns CONDITION_VALUE_CONTRACT
+        DELEGATE its object body to VALIDATE_CONDITION_OPERATOR_BODY
+        ACCEPT aws:SourceAccount as an open context key and its string value
+        EMIT no E3513 finding at or beneath CONDITION_PATH
+        PRESERVE acceptance of the otherwise valid ECR statement, including
+          its omitted Resource and NotResource properties
+      END IF
+    END FOR
+
+  RETURN FINDINGS after every resource and delegated schema finding is visited
+
+  TERMINAL STATES
+    MALFORMED_CONDITION terminates with error-level E3513 at the exact offending
+      member beneath RepositoryPolicyText / Statement / 0 / Condition
+    RECOGNIZED_CONDITION terminates with no E3513 finding and an accepted ECR
+      statement
+    an absent property or unregistered resource terminates without E3513
+      repository-policy delegation
+
+  ON FAILURE template decoding or provider-schema traversal failure
+    RETURN the established parse or provider-schema finding
+    DO NOT claim an E3513 result for a policy value that was not dispatched
+
+  ON FAILURE invalid RepositoryPolicyText JSON string
+    PRESERVE Policy.validate's established no-IAM-schema-finding outcome
+    DO NOT claim either IAMCOND-005 acceptance result
+
+  ON FAILURE independent ECR policy defect
+    PRESERVE every independently produced E3513 finding
+    DO NOT suppress a missing-operator finding from the same or a later statement
+
+  REPEATED INVOCATION
+    Retain no state and mutate neither template nor RepositoryPolicyText;
+    equivalent inputs produce equivalent ordered E3513 path, message, and
+    severity signatures
+
+  CONCURRENCY / TRANSACTION / RETRY
+    Resource dispatch and schema traversal are synchronous, deterministic, and
+    read-only; no asynchronous completion, persistence, transaction, retry,
+    compensation, rollback, event emission, or recovery state applies
+END PROCEDURE
+```
+
+```text
 PROCEDURE CONFIGURE_IAM_POLICY_RULE_FAMILY(rule_id)
-  REQUIREMENT_IDS: IAMCOND-004, IAMCOND-008, IAMCOND-010, IAMCOND-013
+  REQUIREMENT_IDS: IAMCOND-004, IAMCOND-005, IAMCOND-008, IAMCOND-010, IAMCOND-013
   VERIFICATION:
     test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
     test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family
     test_IAMCOND_010_object_and_json_string_representations_have_equivalent_outcomes
     test_IAMCOND_013_condition_finding_does_not_suppress_independent_findings
@@ -284,13 +401,15 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_IAM_POLICY_DOCUMENT(rule_id, policy, incoming_validator_context)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-008, IAMCOND-009,
-                   IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-005, IAMCOND-008,
+                   IAMCOND-009, IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
     test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family
     test_IAMCOND_009_supported_intrinsic_in_place_of_condition_operator_is_not_unknown
     test_IAMCOND_009_supported_intrinsics_keep_existing_embedded_policy_outcomes
@@ -354,15 +473,17 @@ END PROCEDURE
 
 ```text
 PROCEDURE VALIDATE_SHARED_CONDITION(condition, path, validator_context)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
-                   IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-011,
-                   IAMCOND-012, IAMCOND-013
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-005,
+                   IAMCOND-006, IAMCOND-007, IAMCOND-008, IAMCOND-009,
+                   IAMCOND-011, IAMCOND-012, IAMCOND-013
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
@@ -424,14 +545,16 @@ END PROCEDURE
 
 ```text
 PROCEDURE MATCH_RECOGNIZED_CONDITION_OPERATOR(member_name)
-  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
-                   IAMCOND-007, IAMCOND-012
+  REQUIREMENT_IDS: IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-005,
+                   IAMCOND-006, IAMCOND-007, IAMCOND-012
   VERIFICATION:
     test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]
     test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition
     test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]
     test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]
     test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]
+    test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
@@ -459,9 +582,10 @@ END PROCEDURE
 PROCEDURE VALIDATE_CONDITION_OPERATOR_BODY(
   operator_name, operator_body, operator_contract, path, validator_context
 )
-  REQUIREMENT_IDS: IAMCOND-006, IAMCOND-007, IAMCOND-008, IAMCOND-009,
+  REQUIREMENT_IDS: IAMCOND-005, IAMCOND-006, IAMCOND-007, IAMCOND-008, IAMCOND-009,
                    IAMCOND-012
   VERIFICATION:
+    test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance
     test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body
     test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes
     test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes
