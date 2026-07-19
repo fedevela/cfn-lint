@@ -542,10 +542,9 @@ class _ForEachCollection:
                                 self._obj,
                             )
                     return
-                if values:
-                    raise _ValueError(
-                        "Fn::ForEach collection must return a list", self._obj
-                    )
+                raise _ValueError(
+                    "Fn::ForEach collection must return a list", self._obj
+                )
             except _ResolveError:
                 if self._fn.hash in collection_cache:
                     yield from iter(collection_cache[self._fn.hash])

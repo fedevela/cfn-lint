@@ -2,7 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for Fn::ForEach collection resolution classifications.
+Verification coverage for Fn::ForEach collection resolution classifications.
 """
 
 import unittest
@@ -16,7 +16,6 @@ from cfnlint.template.transforms._language_extensions import (
 )
 
 
-@unittest.skip("Phase 05 placeholder; activate during executable validation")
 class TestForEachCollectionResolutionClassificationsContract(unittest.TestCase):
     def _template(self, template=None):
         return Template(
