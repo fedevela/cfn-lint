@@ -2,8 +2,7 @@
 
 This record gives the procedures in `IAMCOND-PSEUDOCODE.md` concrete ownership,
 boundaries, dependency direction, and implementation order. It describes the
-smallest production change satisfying IAMCOND-001 through IAMCOND-004 and
-IAMCOND-006 through IAMCOND-013.
+smallest production change satisfying IAMCOND-001 through IAMCOND-013.
 
 ## Architectural decision
 
@@ -47,6 +46,7 @@ their behavior into a rule class.
 | IAMCOND-002 | `test_IAMCOND_002_unknown_top_level_member_is_rejected_beneath_condition` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` | `policy.json#/definitions/Condition`: complete operator patterns plus `additionalProperties: false`; `_keywords_cfn.additionalProperties` preserves supported intrinsic names and `_keywords.additionalProperties` emits the member path. |
 | IAMCOND-003 | `test_IAMCOND_003_missing_operator_is_rejected_beneath_statement_condition_for_each_identity_policy_entry_point[entry-point]`;<br>`test_IAMCOND_003_include_checks_I_preserves_default_error_warning_selection_and_E3510_result` | `RESOLVE_ISSUE_122_RULE_SELECTION`; `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR` | `IdentityPolicy.keywords` owns all six resource-property paths; provider-schema E1101 dispatch and `Policy.validate` converge them on `policy_identity.json` and the shared closed Condition schema without changing E3510 selection or severity. |
 | IAMCOND-004 | `test_IAMCOND_004_missing_operator_is_rejected_by_E3512_at_the_offending_condition_member_for_each_resource_policy_entry_point[entry-point]`;<br>`test_IAMCOND_004_recognized_nested_condition_has_no_missing_operator_E3512_finding_for_each_resource_policy_entry_point[entry-point]` | `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `ResourcePolicy.keywords` owns the five resource-property paths; provider-schema E1101 dispatch and `Policy.validate` converge them on `policy_resource.json` and the shared closed Condition schema while preserving E3512 attribution and concrete resource-relative prefixes. |
+| IAMCOND-005 | `test_IAMCOND_005_missing_operator_is_rejected_by_E3513_at_the_offending_ECR_repository_policy_condition_member`;<br>`test_IAMCOND_005_recognized_nested_condition_has_no_missing_operator_E3513_finding_and_preserves_ECR_statement_acceptance` | `VALIDATE_ISSUE_124_ECR_REPOSITORY_POLICY`; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `ResourceEcrPolicy.keywords` owns the ECR repository-policy path; provider-schema E1101 dispatch and `Policy.validate` converge it on `policy_resource_ecr.json` and the shared closed Condition schema while preserving E3513 attribution, the concrete repository-policy prefix, and ECR's optional Resource semantics. |
 | IAMCOND-006 | `test_IAMCOND_006_each_recognized_operator_rejects_a_non_object_body` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy.json#/definitions/Condition` routes explicit and patterned operators to `ConditionValue`, `ConditionSetValue`, or the `Null` object schema; each body contract owns `type: object`. |
 | IAMCOND-007 | `test_IAMCOND_007_condition_value_operators_preserve_context_value_shapes`;<br>`test_IAMCOND_007_set_operators_preserve_array_only_context_value_shapes`;<br>`test_IAMCOND_007_null_operator_preserves_boolean_context_value_shapes` | `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy.json#/definitions/ConditionValue`, `ConditionSetValue`, `Booleans`, and `Boolean` retain context-key value ownership. |
 | IAMCOND-008 | `test_IAMCOND_008_recognized_well_structured_condition_remains_valid_per_family` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `VALIDATE_CONDITION_OPERATOR_BODY` | `policy_identity.json`, `policy_resource.json`, and `policy_resource_ecr.json` retain family statement ownership and refer to `policy#/definitions/Condition`; the three rule classes retain family selection. |
@@ -119,6 +119,30 @@ prefix.
 | `AWS::SNS::TopicPolicy` | `Resources/AWS::SNS::TopicPolicy/Properties/PolicyDocument` → `Resources/SNSTopicPolicy/Properties/PolicyDocument` | prefix + `Statement/0/Condition/servicecatalog:accountLevel` | No E3512 finding beneath prefix + `Statement/0/Condition` |
 | `AWS::SQS::QueuePolicy` | `Resources/AWS::SQS::QueuePolicy/Properties/PolicyDocument` → `Resources/SQSQueuePolicy/Properties/PolicyDocument` | prefix + `Statement/0/Condition/servicecatalog:accountLevel` | No E3512 finding beneath prefix + `Statement/0/Condition` |
 
+## Issue 124 implementation-ready record
+
+The IAMCOND-005 flow crosses the following loci. Each row assigns one cohesive
+responsibility and preserves both issue 124 verification obligations and all six
+mapped procedures at their concrete implementation seams.
+
+| Trace | Owner and responsibility | Boundary, dependency, and data contract | Failure, lifecycle, and verification seam | Implementation order |
+| --- | --- | --- | --- | --- |
+| IAMCOND-005; `VALIDATE_ISSUE_124_ECR_REPOSITORY_POLICY`; both issue 124 verifications | `ResourceEcrPolicy.keywords` owns E3513 reach for `AWS::ECR::Repository.RepositoryPolicyText`; E1101 owns synchronous delegation from the provider-schema walk. | `FunctionFilter` adds `Resources/AWS::ECR::Repository/Properties/RepositoryPolicyText` as a `cfnLint` keyword. E1101 matches that registered string and passes the policy value plus current validator context to `ResourceEcrPolicy.validate`. E3513 depends on E1101 as a parent; the ECR provider schema remains independent of IAM internals. | An absent property or missing registration terminates without E3513 delegation. The selector pins registration, while provider traversal supplies `Resources/ECRRepository/Properties/RepositoryPolicyText` as the concrete prefix. Dispatch is stateless and read-only. | Preserve the existing keyword, E1101 dispatch, and provider schema; do not introduce an ECR-specific condition validator or provider patch. |
+| IAMCOND-005; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; both issue 124 verifications | `ResourceEcrPolicy.__init__` selects the `resource` resolver name and `policy_resource_ecr.json`; `Policy.validate` owns object/string normalization, resolver construction, exhaustive error streaming, and E3513 attribution. | Object policies retain the incoming CloudFormation-function context; valid JSON strings are parsed with functions disabled. Both representations enter the ECR family schema, whose relative errors return synchronously and receive `ResourceEcrPolicy` ownership unless an intrinsic or `cfnLint` validator already owns them. | Template decode and provider traversal failures retain their established owners. Invalid JSON strings retain the established no-IAM-schema-finding outcome. Independent ECR policy errors remain in the stream and cannot suppress the Condition finding. | Preserve normalization and finding attribution in `Policy`; no Python implementation delta is required. |
+| IAMCOND-005; `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; both issue 124 verifications | `policy_resource_ecr.json` owns ECR statement structure and imports `policy#/definitions/Condition`; `policy.json#/definitions/Condition` owns operator recognition. | The ECR schema requires Effect, an Action/NotAction choice, and a Principal/NotPrincipal choice. It intentionally does not require Resource or NotResource. `Statement.Condition` remains optional, but a present object crosses the stable shared-schema `$ref` without mutation. | Family-specific defects remain E3513 findings independent of Condition classification. The recognized fixture omits Resource and NotResource to pin the ECR-specific acceptance contract, while satisfying every other ECR statement requirement. | Preserve the ECR family schema and its `$ref`; evolve only the shared Condition contract when operator grammar changes. |
+| IAMCOND-005; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY`; both issue 124 verifications | The shared closed Condition schema and CloudFormation-aware JSON Schema keyword implementations own operator classification, body descent, and member-relative paths. | `servicecatalog:accountLevel` matches no recognized operator, so `additionalProperties: false` produces a relative error at `Statement/0/Condition/servicecatalog:accountLevel`. `StringEquals` selects `ConditionValue`, whose open context-key contract accepts `aws:SourceAccount` and its string value. `Policy.validate` preserves E3513 ownership on the malformed result. | Malformed input terminates with error-level E3513 at the exact offending member. Recognized input terminates with no E3513 finding and an accepted ECR statement. Traversal is synchronous, deterministic, exhaustive, stateless, and read-only; persistence, transactions, events, retries, compensation, rollback, and recovery do not apply. | Keep all recognized operator patterns complete before closing Condition membership; keep nested context-key namespaces open. |
+| IAMCOND-005; all six mapped procedures; both issue 124 verifications | `test/unit/rules/resources/iam/` and the paired good/bad IAM fixture directories own acceptance boundaries and requirement-to-verification-to-logic-to-architecture traceability. | Both object-form fixtures enter through the public Runner seam. The contract binds E3513 registration to the concrete prefix and shared Condition tail; production packages have no dependency on test artifacts. | The inert malformed selector pins E3513 identity, error severity, and exact offending-member path. The inert recognized selector pins the absence of all E3513 findings, thereby preserving both Condition acceptance and ECR statement semantics until Malkhut enables execution. | Keep both fixtures and selectors inert during Yesod; Malkhut owns skip removal and executable validation. |
+
+### E3513 entry-point topology
+
+The single registered ECR path converges on `policy_resource_ecr.json` before
+shared Condition validation. The ECR family boundary, rather than the shared
+schema, owns the statement's optional Resource behavior.
+
+| Resource owner | Registered E3513 keyword and concrete fixture prefix | Malformed terminal location | Recognized terminal outcome |
+| --- | --- | --- | --- |
+| `AWS::ECR::Repository` | `Resources/AWS::ECR::Repository/Properties/RepositoryPolicyText` → `Resources/ECRRepository/Properties/RepositoryPolicyText` | prefix + `Statement/0/Condition/servicecatalog:accountLevel` | No E3513 findings; `StringEquals` is accepted while Resource and NotResource remain omitted |
+
 ## Architectural loci
 
 ### Issue 122 selection and entry-point dispatch
@@ -146,9 +170,9 @@ prefix.
 
 ### Shared condition schema
 
-- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
-  IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-011, IAMCOND-012,
-  IAMCOND-013.
+- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004,
+  IAMCOND-005, IAMCOND-006, IAMCOND-007, IAMCOND-008, IAMCOND-009,
+  IAMCOND-011, IAMCOND-012, IAMCOND-013.
 - **Verification:** every selector except the representation-entry-point matrix,
   which crosses this locus after normalization.
 - **Procedures:** `VALIDATE_SHARED_CONDITION`,
@@ -171,16 +195,17 @@ prefix.
   `Statement/<index>/Condition/<operator>`.
 - **Test seam:** `test_iam_condition_contract.py` operator, body, value, intrinsic,
   multiplicity, omission, and independent-finding matrices, plus the issue 122
-  and issue 123 missing-operator Runner matrices.
+  through issue 124 missing-operator Runner matrices.
 - **Implementation order:** repair full-name patterns, close the Condition
-  object, then activate the tests.
+  object, then activate each issue contract in its Malkhut phase.
 
 ### Family policy schemas and rule delegates
 
-- **Requirements:** IAMCOND-004, IAMCOND-008, IAMCOND-010, IAMCOND-011,
+- **Requirements:** IAMCOND-004, IAMCOND-005, IAMCOND-008, IAMCOND-010, IAMCOND-011,
   IAMCOND-013.
-- **Verification:** `test_IAMCOND_004_*`, `test_IAMCOND_008_*`, `test_IAMCOND_010_*`,
-  `test_IAMCOND_011_*`, and both `test_IAMCOND_013_*` selectors.
+- **Verification:** `test_IAMCOND_004_*`, `test_IAMCOND_005_*`,
+  `test_IAMCOND_008_*`, `test_IAMCOND_010_*`, `test_IAMCOND_011_*`, and both
+  `test_IAMCOND_013_*` selectors.
 - **Procedure:** `CONFIGURE_IAM_POLICY_RULE_FAMILY`.
 - **Owners:** `policy_identity.json`, `policy_resource.json`, and
   `policy_resource_ecr.json`, selected by `IdentityPolicy`, `ResourcePolicy`, and
@@ -202,10 +227,11 @@ prefix.
 
 ### Policy normalization and finding ownership
 
-- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-008, IAMCOND-009,
-  IAMCOND-010, IAMCOND-013.
-- **Verification:** `test_IAMCOND_004_*`, `test_IAMCOND_008_*`, both `test_IAMCOND_009_*`,
-  `test_IAMCOND_010_*`, and both `test_IAMCOND_013_*` selectors.
+- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-005,
+  IAMCOND-008, IAMCOND-009, IAMCOND-010, IAMCOND-013.
+- **Verification:** `test_IAMCOND_004_*`, `test_IAMCOND_005_*`,
+  `test_IAMCOND_008_*`, both `test_IAMCOND_009_*`, `test_IAMCOND_010_*`, and
+  both `test_IAMCOND_013_*` selectors.
 - **Procedure:** `VALIDATE_IAM_POLICY_DOCUMENT`.
 - **Owner:** `src/cfnlint/rules/resources/iam/Policy.py`.
 - **Incoming dependency:** each concrete family rule supplies keywords, schema
@@ -255,14 +281,16 @@ prefix.
 
 ### Provider entry-point boundary
 
-- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-010.
+- **Requirements:** IAMCOND-001, IAMCOND-003, IAMCOND-004, IAMCOND-005, IAMCOND-010.
 - **Verification:**
   `test_IAMCOND_001_managed_policy_missing_operator_reports_error_E3510_at_condition_with_normal_and_information_selection[selection-mode]`,
-  both `test_IAMCOND_003_*` selectors, both `test_IAMCOND_004_*` selectors, and
+  both `test_IAMCOND_003_*` selectors, both `test_IAMCOND_004_*` selectors, both
+  `test_IAMCOND_005_*` selectors, and
   `test_IAMCOND_010_object_and_json_string_representations_have_equivalent_outcomes`.
 - **Procedures:** `RESOLVE_ISSUE_122_RULE_SELECTION`,
   `VALIDATE_ISSUE_122_IDENTITY_POLICY_ENTRY_POINTS`,
   `VALIDATE_ISSUE_123_RESOURCE_POLICY_ENTRY_POINTS`,
+  `VALIDATE_ISSUE_124_ECR_REPOSITORY_POLICY`,
   `CONFIGURE_IAM_POLICY_RULE_FAMILY`, and `VALIDATE_IAM_POLICY_DOCUMENT`.
 - **Owners:** concrete rule `keywords` define rule reach; effective provider
   schemas define whether a selected property admits object, string, or both.
@@ -277,24 +305,28 @@ prefix.
 - **Test seam:** `OBJECT_OR_JSON_STRING_ENTRY_POINTS` asserts both keyword
   registration and equivalent policy outcomes; the issue 122 matrix asserts all
   six E3510 keyword registrations, while the issue 123 matrices assert all five
-  E3512 keyword registrations and concrete Condition path prefixes.
+  E3512 keyword registrations and concrete Condition path prefixes. The issue
+  124 selectors assert E3513 registration, its concrete Condition path, and ECR
+  statement acceptance without Resource.
 - **Implementation order:** no provider schema or patch edit.
 
 ### Verification and traceability artifacts
 
-- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004, IAMCOND-006,
-  IAMCOND-007, IAMCOND-008, IAMCOND-009, IAMCOND-010, IAMCOND-011,
-  IAMCOND-012, IAMCOND-013.
+- **Requirements:** IAMCOND-001, IAMCOND-002, IAMCOND-003, IAMCOND-004,
+  IAMCOND-005, IAMCOND-006, IAMCOND-007, IAMCOND-008, IAMCOND-009,
+  IAMCOND-010, IAMCOND-011, IAMCOND-012, IAMCOND-013.
 - **Verification:** all named selectors in `IAMCOND-VERIFICATION.md`.
-- **Procedures:** all eight procedures in `IAMCOND-PSEUDOCODE.md`.
+- **Procedures:** all nine procedures in `IAMCOND-PSEUDOCODE.md`.
 - **Owner:** `test/unit/rules/resources/iam/`.
 - **Dependencies:** canonical requirement IDs map forward to verification,
   procedure, and production loci; the reverse map points each verification
   prefix back to its architectural seams.
 - **Contract:** the active shared-schema, issue 122, and issue 123 Runner
-  matrices are the acceptance boundaries for their mapped obligations.
-- **Implementation state:** the schema implementation and skip removal are
-  complete; execution remains owned by the Atlas harness.
+  matrices and the inert issue 124 Runner selectors are the acceptance
+  boundaries for their mapped obligations.
+- **Implementation state:** the shared schema implementation is complete. The
+  issue 124 skips remain intentionally present until Malkhut; execution remains
+  owned by the Atlas harness.
 
 ## Dependency direction
 
