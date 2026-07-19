@@ -1,6 +1,15 @@
 {
   "artifacts": {
+    "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition": [
+      "IAMCOND-006"
+    ],
+    "src/cfnlint/data/schemas/other/iam/policy_identity.json#/definitions/Statement/properties/Condition": [
+      "IAMCOND-006"
+    ],
     "src/cfnlint/rules/resources/iam/IdentityPolicy.py#IdentityPolicy.__init__.keywords": [
+      "IAMCOND-006"
+    ],
+    "src/cfnlint/rules/resources/iam/Policy.py#Policy.validate": [
       "IAMCOND-006"
     ],
     "test/requirements/issue_138_iam_condition_entry_point_verification.json": [
@@ -13,6 +22,24 @@
       "IAMCOND-006"
     ],
     "test/requirements/issue_138_iam_condition_entry_point_logic.md::validate_e3510_owned_policy_document": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A1_e3510_entry_point_registry": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A2_provider_schema_traversal_and_wildcard_expansion": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A3_identity_policy_and_shared_condition_contract": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A4_diagnostic_path_and_independent_accumulation_boundary": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A5_verification_and_activation_seam": [
+      "IAMCOND-006"
+    ],
+    "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A6_traceability_owner": [
       "IAMCOND-006"
     ],
     "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_owned_resource_type_is_linted_then_no_unsupported_operator_error": [
@@ -31,6 +58,9 @@
   "requirements": {
     "IAMCOND-006": [
       "src/cfnlint/rules/resources/iam/IdentityPolicy.py#IdentityPolicy.__init__.keywords",
+      "src/cfnlint/rules/resources/iam/Policy.py#Policy.validate",
+      "src/cfnlint/data/schemas/other/iam/policy_identity.json#/definitions/Statement/properties/Condition",
+      "src/cfnlint/data/schemas/other/iam/policy.json#/definitions/Condition",
       "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_owned_resource_type_is_linted_then_no_unsupported_operator_error",
       "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_group_role_or_user_with_multiple_policy_entries_when_corrected_operator_occurs_at_any_wildcard_location_then_e3510_accepts_that_entry",
       "test/unit/rules/resources/iam/test_identity_policy_entry_points.py::test_iamcond_006_given_genuine_condition_violation_at_each_owned_entry_point_when_template_is_linted_then_match_remains_e3510_with_full_owning_policy_path",
@@ -38,7 +68,13 @@
       "test/requirements/issue_138_iam_condition_entry_point_verification.json",
       "test/requirements/issue_138_iam_condition_entry_point_logic.md::register_e3510_identity_policy_entry_points",
       "test/requirements/issue_138_iam_condition_entry_point_logic.md::validate_e3510_owned_policy_document",
-      "test/requirements/issue_138_iam_condition_entry_point_logic.md::validate_all_e3510_identity_policy_entry_points"
+      "test/requirements/issue_138_iam_condition_entry_point_logic.md::validate_all_e3510_identity_policy_entry_points",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A1_e3510_entry_point_registry",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A2_provider_schema_traversal_and_wildcard_expansion",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A3_identity_policy_and_shared_condition_contract",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A4_diagnostic_path_and_independent_accumulation_boundary",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A5_verification_and_activation_seam",
+      "test/requirements/issue_138_iam_condition_entry_point_architecture.md::A6_traceability_owner"
     ]
   }
 }
