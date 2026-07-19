@@ -1,5 +1,31 @@
 {
+  "architecture_artifacts": {
+    "BATCHTYPE-007": [
+      "test/requirements/batchtype-issue-143.architecture.md::L1",
+      "test/requirements/batchtype-issue-143.architecture.md::L2",
+      "test/requirements/batchtype-issue-143.architecture.md::L3",
+      "test/requirements/batchtype-issue-143.architecture.md::L4"
+    ],
+    "BATCHTYPE-008": [
+      "test/requirements/batchtype-issue-143.architecture.md::L1",
+      "test/requirements/batchtype-issue-143.architecture.md::L2",
+      "test/requirements/batchtype-issue-143.architecture.md::L3",
+      "test/requirements/batchtype-issue-143.architecture.md::L4"
+    ]
+  },
   "issue": 143,
+  "logic_artifacts": {
+    "BATCHTYPE-007": [
+      "test/requirements/batchtype-issue-143.pseudocode.md::PRESERVE_BATCH_TYPE_STRUCTURAL_SCHEMA_CONTRACT",
+      "test/requirements/batchtype-issue-143.pseudocode.md::VALIDATE_BATCH_TYPE_STRUCTURAL_CONTRACT",
+      "test/requirements/batchtype-issue-143.pseudocode.md::VERIFY_BATCH_TYPE_STRUCTURAL_CONTRACT"
+    ],
+    "BATCHTYPE-008": [
+      "test/requirements/batchtype-issue-143.pseudocode.md::PRESERVE_BATCH_TYPE_STRUCTURAL_SCHEMA_CONTRACT",
+      "test/requirements/batchtype-issue-143.pseudocode.md::VALIDATE_BATCH_TYPE_STRUCTURAL_CONTRACT",
+      "test/requirements/batchtype-issue-143.pseudocode.md::VERIFY_BATCH_TYPE_STRUCTURAL_CONTRACT"
+    ]
+  },
   "requirements": {
     "BATCHTYPE-007": [
       "test/unit/rules/resources/properties/test_batch_type_structure.py::test_batchtype_007_omitted_resource_type_emits_e3003_at_properties_boundary",
