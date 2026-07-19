@@ -167,10 +167,8 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Coverage responsibility: verify undeclared standalone placeholders, declaration
   isolation between owners, fully declared embedded and comma-delimited forms, and
   the two partially declared negative forms.
-- Lifecycle: the module-level skip remains inert in this architecture phase.
-  Implementation validation removes only that skip, implements the predicate
-  delta, and executes this seam with the Issue #126 and existing E3601 regression
-  suites.
+- Lifecycle: the verification module is active. Harness validation covers this
+  seam together with the Issue #126 and existing E3601 regression suites.
 
 ## Flow and dependency direction
 
@@ -228,19 +226,19 @@ to ordinary E3601 validation; they do not create a separate recovery path.
   `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
   and `ISSUE_127_VERIFICATION_SEAM`.
 
-## Implementation sequence
+## Implementation status
 
-1. Strengthen only `DECLARED_PLACEHOLDER_PREDICATE` in
-   `StateMachineDefinition.py`: parse every regex capture into comma-separated exact
-   keys and require a non-empty, universally declared referenced-key collection.
-2. Preserve `OWNING_SUBSTITUTION_KEY_READER`, `DEFERRED_ERROR_TREE_FILTER`, and
-   `E3601_VALIDATION_ORCHESTRATOR` contracts and ordering; they already provide the
-   resource isolation and observable-failure boundaries required by Issue #127.
-3. Remove only the Issue #127 module-level skip and execute its six mapped
-   verification obligations during the implementation-validation phase.
-4. Execute the Issue #126 substitution suite and existing E3601 suite as
-   compatibility seams. No schema, provider-data, public-interface, packaging, or
-   deployment change is sequenced.
+1. `DECLARED_PLACEHOLDER_PREDICATE` parses every regex capture into
+   comma-separated exact keys and requires a non-empty, universally declared
+   referenced-key collection.
+2. `OWNING_SUBSTITUTION_KEY_READER`, `DEFERRED_ERROR_TREE_FILTER`, and
+   `E3601_VALIDATION_ORCHESTRATOR` retain their established contracts and ordering,
+   providing the resource isolation and observable-failure boundaries required by
+   Issue #127.
+3. The Issue #127 verification seam is active for its six mapped obligations.
+4. The Issue #126 substitution suite and existing E3601 suite remain compatibility
+   seams. No schema, provider-data, public-interface, packaging, or deployment
+   change is required.
 
-This ordering keeps runtime behavior unchanged until implementation and makes the
-smallest possible production delta independently reviewable.
+The implementation keeps the production delta within the private predicate and
+leaves the surrounding public and schema contracts unchanged.

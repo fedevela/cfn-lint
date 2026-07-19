@@ -2,8 +2,9 @@
   "issue": 127,
   "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py",
   "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
+  "implementation_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.py",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
-  "inert_marker": "module pytestmark skip until executable validation",
+  "verification_status": "active",
   "architectural_loci": {
     "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
     "DECLARED_PLACEHOLDER_PREDICATE": "StateMachineDefinition.py private all-referenced-keys helper",
@@ -118,6 +119,26 @@
       "E3601_VALIDATION_ORCHESTRATOR",
       "ASL_SCHEMA",
       "ISSUE_127_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_implementation": {
+    "CFNSFN-004": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate"
+    ],
+    "CFNSFN-005": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate"
+    ],
+    "CFNSFN-011": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate"
     ]
   },
   "requirement_to_architecture": {

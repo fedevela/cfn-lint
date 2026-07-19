@@ -41,10 +41,14 @@ def _string_contains_declared_substitution(
     if not isinstance(value, str) or not declared_keys:
         return False
 
-    return any(
-        parameter in declared_keys
-        for parameter in cfnlint.helpers.REGEX_SUB_PARAMETERS.findall(value)
-    )
+    parameters = cfnlint.helpers.REGEX_SUB_PARAMETERS.findall(value)
+    if not parameters:
+        return False
+
+    referenced_keys = [
+        key for parameter in parameters for key in parameter.split(",")
+    ]
+    return all(key and key in declared_keys for key in referenced_keys)
 
 
 def _retain_non_deferred_failure(

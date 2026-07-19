@@ -8,19 +8,12 @@ CFNSFN-011.
 
 from collections import deque
 
-import pytest
-
 from cfnlint.context import Path, create_context_for_template
 from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.stepfunctions.StateMachineDefinition import (
     StateMachineDefinition,
 )
 from cfnlint.template import Template
-
-
-pytestmark = pytest.mark.skip(
-    reason="Issue #127 verification placeholder; enable during executable validation"
-)
 
 
 def _task_definition(resource):

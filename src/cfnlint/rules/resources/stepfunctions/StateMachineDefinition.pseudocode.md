@@ -4,10 +4,10 @@ Issues: `#126`, `#127`
 
 Owning runtime artifact: `StateMachineDefinition.py`
 
-This design records the required logic without changing runtime behavior. The
-provider schema remains responsible for validating `DefinitionSubstitutions`
-values. E3601 only uses the presence of a declaration key to decide whether an
-ASL string contains a value that CloudFormation intentionally defers.
+This design records the logic embodied by the runtime implementation. The provider
+schema remains responsible for validating `DefinitionSubstitutions` values. E3601
+only uses the presence of a declaration key to decide whether an ASL string
+contains a value that CloudFormation intentionally defers.
 
 Issue #127 tightens that decision: the declaration set is loaded only from the
 current state-machine resource, and a string is deferred only when at least one
