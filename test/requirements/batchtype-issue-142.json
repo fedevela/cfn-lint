@@ -1,0 +1,55 @@
+{
+  "issue": 142,
+  "requirements": {
+    "BATCHTYPE-001": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_001_lowercase_resource_type_is_accepted"
+    ],
+    "BATCHTYPE-002": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_002_uppercase_resource_type_remains_accepted"
+    ],
+    "BATCHTYPE-003": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_003_unrelated_resource_type_is_rejected"
+    ],
+    "BATCHTYPE-005": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_005_lowercase_unrelated_enum_remains_rejected"
+    ],
+    "BATCHTYPE-006": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_each_nested_compute_resources_type_is_accepted",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_nested_type_case_drift_and_unrelated_values_are_rejected"
+    ],
+    "BATCHTYPE-013": [
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_001_lowercase_resource_type_is_accepted",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_002_uppercase_resource_type_remains_accepted",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_003_unrelated_resource_type_is_rejected",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_005_lowercase_unrelated_enum_remains_rejected",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_each_nested_compute_resources_type_is_accepted",
+      "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_nested_type_case_drift_and_unrelated_values_are_rejected"
+    ]
+  },
+  "verification_artifacts": {
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_001_lowercase_resource_type_is_accepted": [
+      "BATCHTYPE-001",
+      "BATCHTYPE-013"
+    ],
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_002_uppercase_resource_type_remains_accepted": [
+      "BATCHTYPE-002",
+      "BATCHTYPE-013"
+    ],
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_003_unrelated_resource_type_is_rejected": [
+      "BATCHTYPE-003",
+      "BATCHTYPE-013"
+    ],
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_005_lowercase_unrelated_enum_remains_rejected": [
+      "BATCHTYPE-005",
+      "BATCHTYPE-013"
+    ],
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_each_nested_compute_resources_type_is_accepted": [
+      "BATCHTYPE-006",
+      "BATCHTYPE-013"
+    ],
+    "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_006_nested_type_case_drift_and_unrelated_values_are_rejected": [
+      "BATCHTYPE-006",
+      "BATCHTYPE-013"
+    ]
+  }
+}
