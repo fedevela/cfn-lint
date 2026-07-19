@@ -64,3 +64,20 @@ and complete verification selector names at the owning logic locus.
 | `test_IAMCOND_011_` | `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION` |
 | `test_IAMCOND_012_` | `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION`; `MATCH_RECOGNIZED_CONDITION_OPERATOR`; `VALIDATE_CONDITION_OPERATOR_BODY` |
 | `test_IAMCOND_013_` | `CONFIGURE_IAM_POLICY_RULE_FAMILY`; `VALIDATE_IAM_POLICY_DOCUMENT`; `VALIDATE_SHARED_CONDITION` |
+
+## Verification to architecture
+
+The owning loci, contracts, dependency direction, and implementation order are
+recorded in `IAMCOND-ARCHITECTURE.md`.
+
+| Verification selector prefix | Architectural loci |
+| --- | --- |
+| `test_IAMCOND_002_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_006_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_007_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_008_` | Shared condition schema; family policy schemas and rule delegates; policy normalization and finding ownership |
+| `test_IAMCOND_009_` | Shared condition schema; policy normalization and finding ownership; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_010_` | Family policy schemas and rule delegates; policy normalization and finding ownership; provider entry-point boundary |
+| `test_IAMCOND_011_` | Shared condition schema; family policy schemas and rule delegates |
+| `test_IAMCOND_012_` | Shared condition schema; CloudFormation-aware JSON Schema engine |
+| `test_IAMCOND_013_` | Shared condition schema; family policy schemas and rule delegates; policy normalization and finding ownership; CloudFormation-aware JSON Schema engine |
