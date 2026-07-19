@@ -353,6 +353,7 @@ PROCEDURE VERIFY_BATCH_TYPE_OUTCOME_CONSISTENCY()
       collect CLI and Python API E3030 outcomes
       require both outcome lists are equal
       require an outcome exists exactly when value equals "invalid"
+      require the CLI exit status is 2 when E3030 is present and 0 otherwise
     END FOR
 
   VERIFY test_batchtype_011_equivalent_json_and_yaml_have_identical_resource_type_rule_ids_and_outcomes
@@ -369,6 +370,7 @@ PROCEDURE VERIFY_BATCH_TYPE_OUTCOME_CONSISTENCY()
     execute invalid resource-level Type through CLI JSON, CLI YAML, API JSON,
       and API YAML in REGION_PRIMARY
     require every execution equals [("E3030", RESOURCE_TYPE_PATH)]
+    require both CLI executions complete with error-only exit status 2
     require "ComputeResources" does not occur in the observed API path
 
   RETURN

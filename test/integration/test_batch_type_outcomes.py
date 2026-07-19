@@ -15,10 +15,6 @@ from cfnlint.helpers import REGION_PRIMARY, REGIONS
 from cfnlint.schema import PROVIDER_SCHEMA_MANAGER
 
 
-pytestmark = pytest.mark.skip(
-    reason="NETZACH placeholder: activate with the Batch Type outcome validation"
-)
-
 RESOURCE_TYPE = "AWS::Batch::ComputeEnvironment"
 RESOURCE_TYPE_PATH = ["Resources", "BatchEnvironment", "Properties", "Type"]
 ACCEPTED_BATCH_TYPES = ["managed", "unmanaged", "MANAGED", "UNMANAGED"]
@@ -74,12 +70,14 @@ def _cli_e3030(batch_type, region, template_format, tmp_path):
         capture_output=True,
         text=True,
     )
-    findings = json.loads(result.stdout or "[]")
-    return [
+    findings = json.loads(result.stdout)
+    e3030_findings = [
         (finding["Rule"]["Id"], finding["Location"]["Path"])
         for finding in findings
         if finding["Rule"]["Id"] == "E3030"
     ]
+    assert result.returncode == (2 if e3030_findings else 0), result.stderr
+    return e3030_findings
 
 
 def _supported_batch_regions():

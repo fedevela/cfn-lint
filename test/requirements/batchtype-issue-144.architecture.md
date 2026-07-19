@@ -217,7 +217,10 @@ separation from nested `ComputeResources.Type`.
   module.
 - **Contract:** helpers reduce native CLI JSON and API `Match` objects to the
   same `(rule id, logical path)` observation without changing the underlying
-  result. Temporary-file writes are test-owned and scoped to `tmp_path`.
+  result. The CLI helper also requires the native error-only exit status when
+  E3030 is present and a zero exit when the accepted template has no findings,
+  preventing a failed CLI invocation from masquerading as parity. Temporary-file
+  writes are test-owned and scoped to `tmp_path`.
 - **Lifecycle:** Malkhut removes only the module-level `NETZACH` skip after L1
   through L5 are confirmed. Verification names, parameter sets, region
   grouping assertions, and path assertions remain stable traceability anchors.
