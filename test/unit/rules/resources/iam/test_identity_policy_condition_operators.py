@@ -11,7 +11,9 @@ from pathlib import Path
 
 import pytest
 
+from cfnlint.context import Context
 from cfnlint.decode import cfn_yaml
+from cfnlint.helpers import FUNCTIONS
 from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 
@@ -44,6 +46,18 @@ def _validate_identity_policy(policy):
     return list(
         IdentityPolicy().validate(
             validator=CfnTemplateValidator(),
+            policy=policy,
+            schema={},
+            policy_type=None,
+        )
+    )
+
+
+def _validate_identity_policy_with_functions(policy):
+    validator = CfnTemplateValidator({}).evolve(context=Context(functions=FUNCTIONS))
+    return list(
+        IdentityPolicy().validate(
+            validator=validator,
             policy=policy,
             schema={},
             policy_type=None,
@@ -166,3 +180,115 @@ def test_iamcond_001_002_003_given_parallelcluster_reproduction_when_e3510_valid
     errors = [error for policy in policies for error in _validate_identity_policy(policy)]
 
     assert errors == []
+
+
+IAMCOND_009_010_PLACEHOLDER_REASON = (
+    "Netzach placeholder: enable during Malkhut validation"
+)
+
+
+@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
+@pytest.mark.parametrize(
+    "malformed_operator",
+    [
+        pytest.param("UnknownOperator", id="unknown"),
+        pytest.param("ForAnyValues:StringEquals", id="incorrect-plural-qualifier"),
+        pytest.param("ForAnyValue:StringEqual", id="misspelled-comparison"),
+        pytest.param(" ForAnyValue:StringEquals", id="leading-extraneous-character"),
+        pytest.param("ForAnyValue:StringEquals ", id="trailing-extraneous-character"),
+        pytest.param("ForAnyValue:String-Equals", id="embedded-extraneous-character"),
+    ],
+)
+def test_iamcond_009_given_unknown_unsupported_or_malformed_operator_when_e3510_validates_then_error_path_ends_at_that_operator(
+    malformed_operator,
+):
+    policy = _policy_with_condition(
+        {malformed_operator: {"example:key": ["value"]}}
+    )
+
+    errors = _validate_identity_policy(policy)
+
+    assert [list(error.path) for error in errors] == [
+        ["Statement", "Condition", malformed_operator]
+    ]
+
+
+@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
+@pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
+@pytest.mark.parametrize(
+    "invalid_value",
+    [
+        pytest.param("scalar", id="string"),
+        pytest.param(True, id="boolean"),
+        pytest.param(1, id="number"),
+        pytest.param({"unexpected": "object"}, id="object"),
+        pytest.param(None, id="null"),
+    ],
+)
+def test_iamcond_010_given_set_qualified_condition_key_maps_to_non_array_when_e3510_validates_then_value_is_rejected_at_operator_and_key_path(
+    qualifier, invalid_value
+):
+    operator = f"{qualifier}StringEquals"
+    policy = _policy_with_condition({operator: {"example:key": invalid_value}})
+
+    errors = _validate_identity_policy(policy)
+
+    assert [list(error.path) for error in errors] == [
+        ["Statement", "Condition", operator, "example:key"]
+    ]
+
+
+@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
+@pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
+def test_iamcond_010_given_set_qualified_array_contains_non_string_compatible_elements_when_e3510_validates_then_each_is_rejected_at_policy_relative_array_path(
+    qualifier,
+):
+    operator = f"{qualifier}StringEquals"
+    values = ["valid", True, 1, None, {"unexpected": "object"}]
+    policy = _policy_with_condition({operator: {"example:key": values}})
+
+    errors = _validate_identity_policy(policy)
+
+    assert [list(error.path) for error in errors] == [
+        ["Statement", "Condition", operator, "example:key", index]
+        for index in (1, 2, 3, 4)
+    ]
+
+
+@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
+@pytest.mark.parametrize("qualifier", ["ForAnyValue:", "ForAllValues:"])
+def test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_supported_cfn_string_expressions_when_object_policy_with_functions_is_validated_then_no_type_or_operator_errors(
+    qualifier,
+):
+    operator = f"{qualifier}StringEquals"
+    policy = _policy_with_condition(
+        {
+            operator: {
+                "example:first": ["literal", {"Ref": "AWS::Region"}],
+                "example:second": [
+                    {"Fn::Sub": "prefix-${AWS::Partition}"},
+                    "second-literal",
+                ],
+            }
+        }
+    )
+
+    assert _validate_identity_policy_with_functions(policy) == []
+
+
+@pytest.mark.skip(reason=IAMCOND_009_010_PLACEHOLDER_REASON)
+def test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error():
+    malformed_operator = "ForAnyValues:StringEquals"
+    corrected_operator = "ForAnyValue:StringEquals"
+    policy = _policy_with_condition(
+        {
+            malformed_operator: {"example:malformed": ["value"]},
+            corrected_operator: {"example:corrected": ["value"]},
+        }
+    )
+
+    errors = _validate_identity_policy(policy)
+
+    assert [list(error.path) for error in errors] == [
+        ["Statement", "Condition", malformed_operator]
+    ]

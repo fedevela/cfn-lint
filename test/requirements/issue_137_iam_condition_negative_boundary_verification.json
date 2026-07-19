@@ -1,0 +1,36 @@
+{
+  "artifacts": {
+    "test/requirements/issue_137_iam_condition_negative_boundary_verification.json": [
+      "IAMCOND-009",
+      "IAMCOND-010"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error": [
+      "IAMCOND-009"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_unknown_unsupported_or_malformed_operator_when_e3510_validates_then_error_path_ends_at_that_operator": [
+      "IAMCOND-009"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_supported_cfn_string_expressions_when_object_policy_with_functions_is_validated_then_no_type_or_operator_errors": [
+      "IAMCOND-010"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_set_qualified_array_contains_non_string_compatible_elements_when_e3510_validates_then_each_is_rejected_at_policy_relative_array_path": [
+      "IAMCOND-010"
+    ],
+    "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_set_qualified_condition_key_maps_to_non_array_when_e3510_validates_then_value_is_rejected_at_operator_and_key_path": [
+      "IAMCOND-010"
+    ]
+  },
+  "requirements": {
+    "IAMCOND-009": [
+      "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_unknown_unsupported_or_malformed_operator_when_e3510_validates_then_error_path_ends_at_that_operator",
+      "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_009_given_malformed_operator_alongside_corrected_operator_when_e3510_validates_then_malformed_error_remains_and_corrected_operator_adds_no_error",
+      "test/requirements/issue_137_iam_condition_negative_boundary_verification.json"
+    ],
+    "IAMCOND-010": [
+      "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_set_qualified_condition_key_maps_to_non_array_when_e3510_validates_then_value_is_rejected_at_operator_and_key_path",
+      "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_set_qualified_array_contains_non_string_compatible_elements_when_e3510_validates_then_each_is_rejected_at_policy_relative_array_path",
+      "test/unit/rules/resources/iam/test_identity_policy_condition_operators.py::test_iamcond_010_given_each_set_condition_key_has_literal_strings_and_supported_cfn_string_expressions_when_object_policy_with_functions_is_validated_then_no_type_or_operator_errors",
+      "test/requirements/issue_137_iam_condition_negative_boundary_verification.json"
+    ]
+  }
+}
