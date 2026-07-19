@@ -1,6 +1,66 @@
 {
   "issue": 126,
+  "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
+  "architectural_loci": {
+    "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
+    "CLOUDFORMATION_DECLARATION_SCHEMA": "src/cfnlint/data/schemas/providers/*/aws-stepfunctions-statemachine.json",
+    "DECLARED_PLACEHOLDER_PREDICATE": "StateMachineDefinition.py private pure helper",
+    "DEFERRED_ERROR_TREE_FILTER": "StateMachineDefinition.py private recursive helper",
+    "E3601_VALIDATION_ORCHESTRATOR": "StateMachineDefinition.validate",
+    "ISSUE_126_VERIFICATION_SEAM": "test_state_machine_definition_substitutions.py and issue_126_traceability.json",
+    "OWNING_SUBSTITUTION_KEY_READER": "StateMachineDefinition.py private path-scoped helper"
+  },
+  "logic_to_architecture": {
+    "load_definition_substitution_keys": [
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA"
+    ],
+    "retain_non_deferred_failure": [
+      "DEFERRED_ERROR_TREE_FILTER"
+    ],
+    "string_contains_declared_substitution": [
+      "DECLARED_PLACEHOLDER_PREDICATE"
+    ],
+    "validate_state_machine_definition": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_architecture": {
+    "CFNSFN-001": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-002": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-003": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-009": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ]
+  },
   "requirement_to_logic": {
     "CFNSFN-001": [
       "validate_state_machine_definition",
@@ -49,6 +109,103 @@
       "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]",
       "test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together",
       "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes"
+    ]
+  },
+  "verification_to_architecture": {
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_003_declared_activity_ref_task_resource_is_accepted": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[enum_nested_state_type]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[format_or_equivalent_nested_choice_string]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[pattern_task_resource]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_boolean_true]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_falsy_boolean_false]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_falsy_zero]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_integer]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_string]": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "CLOUDFORMATION_DECLARATION_SCHEMA",
+      "ISSUE_126_VERIFICATION_SEAM"
     ]
   },
   "verification_to_logic": {
