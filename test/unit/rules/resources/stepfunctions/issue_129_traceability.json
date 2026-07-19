@@ -1,0 +1,48 @@
+{
+  "issue": 129,
+  "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_validation_surface_boundaries.py",
+  "inert_marker": "module pytestmark skip until Malkhut executable validation",
+  "acceptance_criterion_to_verification": {
+    "AC-1-invalid-DefinitionSubstitutions-retains-provider-schema-finding-with-corresponding-object-placeholder": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable",
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_corresponding_placeholder_has_invalid_substitution_value_property_schema_finding_remains_observable"
+    ],
+    "AC-2-schema-valid-substitution-value-forms-preserve-provider-semantics-while-E3601-defers": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_substitution_value_is_schema_valid_property_schema_accepts_while_e3601_defers_placeholder"
+    ],
+    "AC-3-DefinitionString-lint-does-not-invoke-or-introduce-E3601": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding"
+    ],
+    "AC-4-provider-schema-exposes-both-interfaces-while-E3601-registers-only-object-Definition": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition"
+    ]
+  },
+  "requirement_to_verification": {
+    "CFNSFN-010": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable",
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_corresponding_placeholder_has_invalid_substitution_value_property_schema_finding_remains_observable",
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_substitution_value_is_schema_valid_property_schema_accepts_while_e3601_defers_placeholder"
+    ],
+    "CFNSFN-013": [
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding",
+      "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition"
+    ]
+  },
+  "verification_to_requirements": {
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_definition_substitutions_map_has_invalid_shape_property_schema_finding_remains_observable": [
+      "CFNSFN-010"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_corresponding_placeholder_has_invalid_substitution_value_property_schema_finding_remains_observable": [
+      "CFNSFN-010"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_010_when_substitution_value_is_schema_valid_property_schema_accepts_while_e3601_defers_placeholder": [
+      "CFNSFN-010"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_definition_string_contains_invalid_asl_lint_introduces_no_e3601_finding": [
+      "CFNSFN-013"
+    ],
+    "test_state_machine_validation_surface_boundaries.py::test_cfnsfn_013_when_provider_schema_has_both_definition_interfaces_e3601_registers_only_object_definition": [
+      "CFNSFN-013"
+    ]
+  }
+}
