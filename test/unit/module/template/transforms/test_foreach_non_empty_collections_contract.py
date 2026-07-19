@@ -2,7 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for the non-empty Fn::ForEach collection contract.
+Verification coverage for the non-empty Fn::ForEach collection contract.
 """
 
 import unittest
@@ -10,11 +10,6 @@ import unittest
 from cfnlint.decode import convert_dict
 from cfnlint.template import Template
 from cfnlint.template.transforms._language_extensions import language_extension
-
-
-_PLACEHOLDER_REASON = (
-    "Phase 05 verification placeholder; enable during Malkhut executable validation"
-)
 
 
 class TestForEachNonEmptyCollectionContract(unittest.TestCase):
@@ -31,7 +26,6 @@ class TestForEachNonEmptyCollectionContract(unittest.TestCase):
         self.assertIsNotNone(transformed)
         return transformed
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_007_008_non_empty_literal_resources_generate_one_substituted_fragment_per_value(
         self,
     ):
@@ -76,7 +70,6 @@ class TestForEachNonEmptyCollectionContract(unittest.TestCase):
             transformed["Resources"],
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_007_008_non_empty_find_in_map_outputs_generate_every_substituted_fragment(
         self,
     ):
@@ -113,7 +106,6 @@ class TestForEachNonEmptyCollectionContract(unittest.TestCase):
             transformed["Outputs"],
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_008_ampersand_form_sanitizes_non_alphanumeric_values_in_keys_and_values(
         self,
     ):
@@ -158,7 +150,6 @@ class TestForEachNonEmptyCollectionContract(unittest.TestCase):
             transformed["Resources"],
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_007_008_supported_nested_non_empty_loops_preserve_cross_product_and_substitution(
         self,
     ):
