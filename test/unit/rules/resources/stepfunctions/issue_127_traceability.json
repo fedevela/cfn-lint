@@ -1,0 +1,61 @@
+{
+  "issue": 127,
+  "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py",
+  "inert_marker": "module pytestmark skip until executable validation",
+  "acceptance_criterion_to_verification": {
+    "AC-1-undeclared-standalone-resource-placeholder-retains-E3601": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains"
+    ],
+    "AC-2-declarations-are-isolated-by-state-machine-owner": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only"
+    ],
+    "AC-3-fully-declared-embedded-forms-are-deferred": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string"
+    ],
+    "AC-4-fully-declared-comma-delimited-form-is-deferred": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form"
+    ],
+    "AC-5-partially-declared-embedded-or-comma-delimited-form-retains-E3601": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains"
+    ]
+  },
+  "requirement_to_verification": {
+    "CFNSFN-004": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains"
+    ],
+    "CFNSFN-005": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only"
+    ],
+    "CFNSFN-011": [
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains",
+      "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains"
+    ]
+  },
+  "verification_to_requirements": {
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_when_task_resource_placeholder_is_undeclared_e3601_pattern_finding_remains": [
+      "CFNSFN-004"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_005_when_only_first_owner_declares_shared_placeholder_e3601_reports_second_only": [
+      "CFNSFN-005"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_embedded_placeholders_are_all_declared_e3601_defers_complete_string": [
+      "CFNSFN-011"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_011_when_comma_delimited_keys_are_all_declared_e3601_defers_complete_form": [
+      "CFNSFN-011"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_embedded_placeholder_is_partially_declared_e3601_pattern_finding_remains": [
+      "CFNSFN-004",
+      "CFNSFN-011"
+    ],
+    "test_state_machine_definition_substitution_ownership.py::test_cfnsfn_004_cfnsfn_011_when_comma_delimited_keys_are_partially_declared_e3601_pattern_finding_remains": [
+      "CFNSFN-004",
+      "CFNSFN-011"
+    ]
+  }
+}
