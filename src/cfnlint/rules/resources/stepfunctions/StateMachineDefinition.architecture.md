@@ -1,6 +1,6 @@
 # E3601 object-definition substitution architecture
 
-Issues: `#126`, `#127`
+Issues: `#126`, `#127`, `#128`
 
 Runtime owner: `StateMachineDefinition.py`
 
@@ -10,6 +10,7 @@ Verification sources:
 
 - `test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitutions.py`
 - `test/unit/rules/resources/stepfunctions/test_state_machine_definition_substitution_ownership.py`
+- `test/unit/rules/resources/stepfunctions/test_state_machine_definition_validation_continuity.py`
 
 ## Decision
 
@@ -27,13 +28,23 @@ substitution token and every exact key referenced across all standalone, embedde
 and comma-delimited tokens is declared by that same resource. Existing path
 decoration, rule assignment, and error cleaning run after filtering.
 
+Issue #128 makes the preservation side of that boundary explicit. The complete
+ASL schema remains the authority for concrete Task `Resource` values, required
+and supported state fields, state-type discriminators, and `Next`/`End`
+relationships. A declaration elsewhere in the definition cannot authorize the
+suppression of those failures. When no failing string contains a declared
+placeholder, the filter is observationally transparent: acceptance, validators,
+paths, schema paths, rule ownership, context order, and emitted error order remain
+those of the existing E3601 pipeline.
+
 ## Architectural loci
 
 ### `E3601_VALIDATION_ORCHESTRATOR`
 
 - Owner: `StateMachineDefinition.validate` in `StateMachineDefinition.py`.
 - Requirements: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-  `CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`.
+  `CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+  `CFNSFN-011`, `CFNSFN-012`.
 - Procedures: `validate_state_machine_definition`.
 - Responsibility: preserve the existing JSON-string/object split and ASL resolver,
   load declaration keys once per invocation, run ordinary ASL validation, pass each
@@ -48,13 +59,17 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Failure ownership: JSON parse failure and ASL validator behavior remain exactly
   as today; substitution lookup failure degrades to an empty key set rather than
   becoming acceptance or a new finding.
+- Continuity contract: ASL validation always precedes filtering. The orchestrator
+  never replaces deferred strings before schema evaluation and never short-circuits
+  validation because a declaration exists elsewhere in the definition.
 
 ### `OWNING_SUBSTITUTION_KEY_READER`
 
 - Owner: a private helper in `StateMachineDefinition.py` implementing
   `load_definition_substitution_keys`.
 - Requirements: `CFNSFN-001`, `CFNSFN-003`, `CFNSFN-004`, `CFNSFN-005`,
-  `CFNSFN-009`, `CFNSFN-011`.
+  `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`, `CFNSFN-011`,
+  `CFNSFN-012`.
 - Contract: receive `Validator`; return `frozenset[str]` (or an equivalently
   immutable read-only set) containing sibling declaration keys.
 - Incoming dependencies: `validator.context.path.path` for the concrete resource
@@ -78,7 +93,8 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Owner: a private pure helper in `StateMachineDefinition.py` implementing
   `string_contains_declared_substitution`.
 - Requirements: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-  `CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`.
+  `CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+  `CFNSFN-011`, `CFNSFN-012`.
 - Contract: receive an arbitrary ASL assertion instance and the immutable declared
   key set; return only a boolean deferral decision.
 - Incoming dependency: `cfnlint.helpers.REGEX_SUB_PARAMETERS`, the workspace's
@@ -98,7 +114,8 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Owner: a private pure recursive helper in `StateMachineDefinition.py`
   implementing `retain_non_deferred_failure`.
 - Requirements: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-003`, `CFNSFN-004`,
-  `CFNSFN-005`, `CFNSFN-009`, `CFNSFN-011`.
+  `CFNSFN-005`, `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-009`,
+  `CFNSFN-011`, `CFNSFN-012`.
 - Contract: receive a fresh `ValidationError` tree and declared keys; return the
   unchanged error, a structurally equivalent error with filtered context, or
   `None` when every failing leaf is deferred.
@@ -108,8 +125,9 @@ decoration, rule assignment, and error cleaning run after filtering.
   path, rule metadata, and non-deferred child failures remain observable. If a
   partially retained node is copied, retained children are re-parented to that
   copy so absolute paths remain coherent.
-- Failure boundary: required properties, additional properties, invalid
-  containers, undeclared placeholders, and unrelated concrete-value failures are
+- Failure boundary: concrete `Resource`, `Type`, and `Next` failures; required and
+  additional properties; `requiredXor` transition/termination failures; invalid
+  containers; undeclared placeholders; and unrelated concrete-value failures are
   never suppressed merely because another error is deferred.
 - Error translation: an unauthorized or partially authorized string is not
   translated into a new error. Its original ASL failure remains in the tree and
@@ -132,9 +150,12 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Owner: `src/cfnlint/data/schemas/other/step_functions/statemachine.json` through
   the existing E3601 resolver.
 - Requirements: `CFNSFN-001`, `CFNSFN-002`, `CFNSFN-004`, `CFNSFN-005`,
-  `CFNSFN-011`.
+  `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-011`, `CFNSFN-012`.
 - Responsibility: remain the single source of concrete ASL structural, pattern,
-  enum, format-equivalent, and discriminator constraints.
+  enum, format-equivalent, discriminator, required-property,
+  additional-property, and `requiredXor` constraints. In particular, the Task
+  schema owns `Resource`'s pattern and required status, `Type: Task`, `Next`'s
+  non-empty pattern, and the exclusive `Next`/`End` relationship.
 - Dependency direction: `E3601_VALIDATION_ORCHESTRATOR` validates against this
   schema first; `DEFERRED_ERROR_TREE_FILTER` interprets emitted errors afterward.
   The schema is not parameterized or cloned for CloudFormation substitutions.
@@ -170,6 +191,27 @@ decoration, rule assignment, and error cleaning run after filtering.
 - Lifecycle: the verification module is active. Harness validation covers this
   seam together with the Issue #126 and existing E3601 regression suites.
 
+### `ISSUE_128_VERIFICATION_SEAM`
+
+- Owner:
+  `test/unit/rules/resources/stepfunctions/test_state_machine_definition_validation_continuity.py`
+  and `issue_128_traceability.json`.
+- Requirements: `CFNSFN-006`, `CFNSFN-007`, `CFNSFN-008`, `CFNSFN-012`.
+- Procedures: `validate_state_machine_definition`,
+  `load_definition_substitution_keys`, `string_contains_declared_substitution`,
+  and `retain_non_deferred_failure`.
+- Contract: construct an object-valued definition and its concrete resource
+  `Path`, optionally add one independently valid declared substitution, invoke
+  E3601 through `StateMachineDefinition.validate`, and observe validator names and
+  ASL-relative paths on retained errors.
+- Coverage responsibility: preserve concrete Task `Resource` pattern validation;
+  `required`, `additionalProperties`, and state `Type` enum failures; missing,
+  conflicting, and invalid transition/termination values; and ordinary valid and
+  invalid object-definition behavior when no placeholders occur.
+- Lifecycle: the seam is intentionally inert until Malkhut removes its module skip
+  and performs executable validation. Its helper boundary matches the active Issue
+  #126/#127 suites and introduces no production dependency.
+
 ## Flow and dependency direction
 
 ```text
@@ -192,6 +234,12 @@ configuration, or deployment topology. Keys from one state machine cannot cross
 into another because the concrete validator path determines the sibling lookup on
 every invocation. Missing declarations and malformed token components fail closed
 to ordinary E3601 validation; they do not create a separate recovery path.
+
+Error ownership crosses no asynchronous seam. The ASL schema creates each
+`ValidationError`; the filter may remove only an authorized string failure or copy
+a composite node to retain children; E3601 then preserves the existing path
+decoration, rule assignment, and cleaning lifecycle. There is no retry,
+compensation, or alternate error translator.
 
 ## Verification-to-locus map
 
@@ -225,6 +273,24 @@ to ordinary E3601 validation; they do not create a separate recovery path.
   `E3601_VALIDATION_ORCHESTRATOR`, `OWNING_SUBSTITUTION_KEY_READER`,
   `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
   and `ISSUE_127_VERIFICATION_SEAM`.
+- `CFNSFN-006` concrete invalid Task `Resource` obligation:
+  `E3601_VALIDATION_ORCHESTRATOR`, `OWNING_SUBSTITUTION_KEY_READER`,
+  `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
+  and `ISSUE_128_VERIFICATION_SEAM`.
+- `CFNSFN-007` missing `Resource`, unsupported field, and invalid `Type`
+  obligations: `E3601_VALIDATION_ORCHESTRATOR`,
+  `OWNING_SUBSTITUTION_KEY_READER`, `DECLARED_PLACEHOLDER_PREDICATE`,
+  `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`, and
+  `ISSUE_128_VERIFICATION_SEAM`.
+- `CFNSFN-008` missing, conflicting, and invalid `Next`/`End` obligations:
+  `E3601_VALIDATION_ORCHESTRATOR`, `OWNING_SUBSTITUTION_KEY_READER`,
+  `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
+  and `ISSUE_128_VERIFICATION_SEAM`.
+- `CFNSFN-012` valid and invalid object-definition continuity obligations:
+  `E3601_VALIDATION_ORCHESTRATOR`, `OWNING_SUBSTITUTION_KEY_READER`,
+  `DECLARED_PLACEHOLDER_PREDICATE`, `DEFERRED_ERROR_TREE_FILTER`, `ASL_SCHEMA`,
+  `ISSUE_128_VERIFICATION_SEAM`, and the existing
+  `test_state_machine_definition.py` regression seam.
 
 ## Implementation status
 
@@ -236,9 +302,13 @@ to ordinary E3601 validation; they do not create a separate recovery path.
    providing the resource isolation and observable-failure boundaries required by
    Issue #127.
 3. The Issue #127 verification seam is active for its six mapped obligations.
-4. The Issue #126 substitution suite and existing E3601 suite remain compatibility
+4. Issue #128 requires no new runtime locus: the ASL-first orchestration and
+   exact-failing-string filter already place every continuity obligation at a
+   cohesive owner. Its nine mapped verification cases are inert until Malkhut.
+5. The Issue #126 substitution suite and existing E3601 suite remain compatibility
    seams. No schema, provider-data, public-interface, packaging, or deployment
    change is required.
 
-The implementation keeps the production delta within the private predicate and
-leaves the surrounding public and schema contracts unchanged.
+The architecture keeps Issue #128's implementation delta within the existing
+private E3601 collaborators and leaves the surrounding public, schema, packaging,
+and deployment contracts unchanged.

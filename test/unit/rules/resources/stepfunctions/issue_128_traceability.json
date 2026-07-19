@@ -1,8 +1,61 @@
 {
   "issue": 128,
   "artifact": "test/unit/rules/resources/stepfunctions/test_state_machine_definition_validation_continuity.py",
+  "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
+  "implementation_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.py",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
   "inert_marker": "module pytestmark skip until Malkhut executable validation",
+  "verification_status": "inert-until-malkhut",
+  "architectural_loci": {
+    "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
+    "DECLARED_PLACEHOLDER_PREDICATE": "StateMachineDefinition.py private exact-failing-string helper",
+    "DEFERRED_ERROR_TREE_FILTER": "StateMachineDefinition.py private recursive preservation helper",
+    "E3601_VALIDATION_ORCHESTRATOR": "StateMachineDefinition.validate",
+    "ISSUE_128_VERIFICATION_SEAM": "test_state_machine_definition_validation_continuity.py and issue_128_traceability.json",
+    "OWNING_SUBSTITUTION_KEY_READER": "StateMachineDefinition.py private path-scoped helper"
+  },
+  "acceptance_criterion_to_architecture": {
+    "AC-1-concrete-invalid-task-resource-retains-E3601-format-finding": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "AC-2-substitution-aware-definition-retains-structural-findings": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "AC-3-substitution-aware-definition-retains-transition-and-termination-findings": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "AC-4-valid-object-definition-without-placeholders-retains-E3601-acceptance": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "AC-5-invalid-object-definition-without-placeholders-retains-E3601-findings-and-paths": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ]
+  },
   "acceptance_criterion_to_verification": {
     "AC-1-concrete-invalid-task-resource-retains-E3601-format-finding": [
       "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource"
@@ -56,6 +109,86 @@
       "retain_non_deferred_failure"
     ]
   },
+  "logic_to_architecture": {
+    "load_definition_substitution_keys": [
+      "OWNING_SUBSTITUTION_KEY_READER"
+    ],
+    "retain_non_deferred_failure": [
+      "DEFERRED_ERROR_TREE_FILTER"
+    ],
+    "string_contains_declared_substitution": [
+      "DECLARED_PLACEHOLDER_PREDICATE"
+    ],
+    "validate_state_machine_definition": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_architecture": {
+    "CFNSFN-006": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-007": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-008": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "CFNSFN-012": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ]
+  },
+  "requirement_to_implementation": {
+    "CFNSFN-006": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate",
+      "statemachine.json::definitions/task"
+    ],
+    "CFNSFN-007": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate",
+      "statemachine.json::definitions/task"
+    ],
+    "CFNSFN-008": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate",
+      "statemachine.json::definitions/task"
+    ],
+    "CFNSFN-012": [
+      "StateMachineDefinition.py::_load_definition_substitution_keys",
+      "StateMachineDefinition.py::_string_contains_declared_substitution",
+      "StateMachineDefinition.py::_retain_non_deferred_failure",
+      "StateMachineDefinition.py::StateMachineDefinition.validate",
+      "statemachine.json"
+    ]
+  },
   "requirement_to_verification": {
     "CFNSFN-006": [
       "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource"
@@ -99,6 +232,80 @@
       "load_definition_substitution_keys",
       "string_contains_declared_substitution",
       "retain_non_deferred_failure"
+    ]
+  },
+  "verification_to_architecture": {
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_006_when_task_resource_is_concrete_and_invalid_e3601_reports_pattern_at_resource": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_task_resource_is_missing_e3601_reports_required_at_state": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e3601_reports_additional_properties_at_state": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_007_when_substitution_exists_and_state_type_is_invalid_e3601_reports_enum_at_type": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_neither_next_nor_end_e3601_reports_required_xor_at_state": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_has_both_next_and_end_e3601_reports_required_xor_at_each_property": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_008_when_substitution_exists_and_task_next_is_empty_e3601_reports_pattern_at_next": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_is_valid_e3601_acceptance_is_unchanged": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
+    ],
+    "test_state_machine_definition_validation_continuity.py::test_cfnsfn_012_when_object_definition_has_no_placeholders_and_resource_is_invalid_e3601_pattern_and_path_are_unchanged": [
+      "E3601_VALIDATION_ORCHESTRATOR",
+      "OWNING_SUBSTITUTION_KEY_READER",
+      "DECLARED_PLACEHOLDER_PREDICATE",
+      "DEFERRED_ERROR_TREE_FILTER",
+      "ASL_SCHEMA",
+      "ISSUE_128_VERIFICATION_SEAM"
     ]
   },
   "verification_to_requirements": {
