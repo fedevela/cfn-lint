@@ -208,9 +208,9 @@ those of the existing E3601 pipeline.
   `required`, `additionalProperties`, and state `Type` enum failures; missing,
   conflicting, and invalid transition/termination values; and ordinary valid and
   invalid object-definition behavior when no placeholders occur.
-- Lifecycle: the seam is intentionally inert until Malkhut removes its module skip
-  and performs executable validation. Its helper boundary matches the active Issue
-  #126/#127 suites and introduces no production dependency.
+- Lifecycle: the seam is executable. Its helper boundary matches the active Issue
+  #126/#127 suites and introduces no production dependency. Atlas owns execution
+  through the focused Malkhut harness target.
 
 ## Flow and dependency direction
 
@@ -304,7 +304,8 @@ compensation, or alternate error translator.
 3. The Issue #127 verification seam is active for its six mapped obligations.
 4. Issue #128 requires no new runtime locus: the ASL-first orchestration and
    exact-failing-string filter already place every continuity obligation at a
-   cohesive owner. Its nine mapped verification cases are inert until Malkhut.
+   cohesive owner. Its nine mapped verification cases are executable and
+   nominated as the focused Malkhut harness surface.
 5. The Issue #126 substitution suite and existing E3601 suite remain compatibility
    seams. No schema, provider-data, public-interface, packaging, or deployment
    change is required.

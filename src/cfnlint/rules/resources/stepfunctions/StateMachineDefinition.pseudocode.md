@@ -375,7 +375,7 @@ PROCEDURE retain_non_deferred_failure(error, declared_keys)
   CONTINUITY CASES
     concrete invalid Task Resource -> retain pattern at States / state / Resource
     missing Task Resource -> retain required at States / state
-    unsupported state field -> retain additionalProperties at States / state
+    unsupported state field -> retain additionalProperties at States / state / field
     concrete invalid state Type -> retain enum at States / state / Type
     neither Next nor End -> retain requiredXor at States / state
     both Next and End -> retain requiredXor at each property path

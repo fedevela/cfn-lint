@@ -2,13 +2,11 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Issue #128 verification placeholders for CFNSFN-006, CFNSFN-007,
+Issue #128 verification coverage for CFNSFN-006, CFNSFN-007,
 CFNSFN-008, and CFNSFN-012.
 """
 
 from collections import deque
-
-import pytest
 
 from cfnlint.context import Path, create_context_for_template
 from cfnlint.jsonschema import CfnTemplateValidator
@@ -16,11 +14,6 @@ from cfnlint.rules.resources.stepfunctions.StateMachineDefinition import (
     StateMachineDefinition,
 )
 from cfnlint.template import Template
-
-
-pytestmark = pytest.mark.skip(
-    reason="Phase 05 inert placeholders: enable during Malkhut executable validation"
-)
 
 
 def _task_state(**overrides):
@@ -123,7 +116,9 @@ def test_cfnsfn_007_when_substitution_exists_and_state_has_unsupported_field_e36
     errors = _e3601_errors(definition, substitutions)
 
     assert _has_finding(
-        errors, "additionalProperties", ["States", "State under test"]
+        errors,
+        "additionalProperties",
+        ["States", "State under test", "Unsupported"],
     )
 
 
