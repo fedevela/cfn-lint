@@ -2,22 +2,17 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for the Fn::ForEach declaration contract.
+Verification coverage for the Fn::ForEach declaration contract.
 """
 
-import unittest
+from unittest import TestCase
 
 from cfnlint.decode import convert_dict
 from cfnlint.template import Template
 from cfnlint.template.transforms._language_extensions import language_extension
 
 
-_PLACEHOLDER_REASON = (
-    "Phase 05 verification placeholder; enable during Malkhut executable validation"
-)
-
-
-class TestForEachDeclarationContract(unittest.TestCase):
+class TestForEachDeclarationContract(TestCase):
     def _template(self, declaration):
         return Template(
             filename="foreach-declaration-contract.yaml",
@@ -40,7 +35,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
         self.assertEqual(["E0001"], [match.rule.id for match in matches])
         self.assertIn(diagnostic, matches[0].message)
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_010_non_list_declaration_transform_reports_three_element_list_error(
         self,
     ):
@@ -50,7 +44,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
             "Fn::ForEach values must be a list of 3 elements",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_010_two_element_declaration_transform_reports_three_element_list_error(
         self,
     ):
@@ -60,7 +53,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
             "Fn::ForEach values must be a list of 3 elements",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_010_four_element_declaration_transform_reports_three_element_list_error(
         self,
     ):
@@ -70,7 +62,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
             "Fn::ForEach values must be a list of 3 elements",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_011_non_empty_collection_with_non_object_output_transform_reports_output_type_error(
         self,
     ):
@@ -80,7 +71,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
             "Output must be a dict",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_011_empty_collection_with_non_object_output_transform_reports_output_type_error(
         self,
     ):
@@ -90,7 +80,6 @@ class TestForEachDeclarationContract(unittest.TestCase):
             "Output must be a dict",
         )
 
-    @unittest.skip(_PLACEHOLDER_REASON)
     def test_foreach_010_011_empty_collection_with_object_output_transform_succeeds_with_zero_iterations(
         self,
     ):
