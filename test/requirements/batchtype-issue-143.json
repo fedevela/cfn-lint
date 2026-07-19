@@ -14,6 +14,17 @@
     ]
   },
   "issue": 143,
+  "implementation_artifacts": {
+    "BATCHTYPE-007": [
+      "src/cfnlint/data/schemas/providers/us_east_1/aws-batch-computeenvironment.json::required",
+      "src/cfnlint/data/schemas/patches/extensions/all/aws_batch_computeenvironment/boto.json::/properties/Type/enum"
+    ],
+    "BATCHTYPE-008": [
+      "src/cfnlint/data/schemas/providers/us_east_1/aws-batch-computeenvironment.json::properties/Type/type",
+      "src/cfnlint/rules/resources/properties/Type.py::Type.type",
+      "test/unit/rules/resources/properties/test_value_primitive_type.py::TestType.test_validation_null"
+    ]
+  },
   "logic_artifacts": {
     "BATCHTYPE-007": [
       "test/requirements/batchtype-issue-143.pseudocode.md::PRESERVE_BATCH_TYPE_STRUCTURAL_SCHEMA_CONTRACT",

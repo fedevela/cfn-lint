@@ -64,7 +64,15 @@ class Type(CloudFormationLintRule):
             instance,
             schema,
         ):
-            for t in ["object", "array", "boolean", "integer", "number", "string"]:
+            for t in [
+                "object",
+                "array",
+                "boolean",
+                "integer",
+                "number",
+                "string",
+                "null",
+            ]:
                 if validator.is_type(instance, t):
                     err.extra_args = {
                         "actual_type": t,

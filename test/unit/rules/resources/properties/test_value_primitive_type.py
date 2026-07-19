@@ -48,6 +48,16 @@ class TestType(BaseRuleTestCase):
             },
         )
 
+    def test_validation_null(self):
+        self.check_args(
+            types="string",
+            instance=None,
+            extra_args={
+                "actual_type": "null",
+                "expected_type": "string",
+            },
+        )
+
     def test_validation_strict(self):
         self.rule.config["strict"] = True
         # sub is a string boolean

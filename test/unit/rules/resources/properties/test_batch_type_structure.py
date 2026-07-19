@@ -11,11 +11,6 @@ from cfnlint.rules.resources.properties.Required import Required
 from cfnlint.rules.resources.properties.Type import Type
 
 
-pytestmark = pytest.mark.skip(
-    reason="NETZACH placeholder: activate with the Batch Type structural validation"
-)
-
-
 @pytest.fixture(scope="module")
 def rule():
     rule = Properties()

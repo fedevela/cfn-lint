@@ -95,9 +95,11 @@ normalizer, coercion adapter, or Batch-aware branch belongs in E3012 or E3030.
   by the configured child rule and become ordinary lint findings.
 - **Value and error contract:** missing `Type` yields E3003 at `Properties`;
   null, arrays, and objects fail the non-strict CloudFormation string check and
-  yield E3012 at `Properties.Type`; booleans and numbers retain shared scalar
-  compatibility but fail exact enum membership through E3030; accepted strings
-  satisfy all three keywords and unrelated strings retain E3030.
+  yield E3012 at `Properties.Type`. The E3012 adapter classifies null as the
+  existing JSON Schema `null` type so the keyword error is not discarded;
+  booleans and numbers retain shared scalar compatibility but fail exact enum
+  membership through E3030; accepted strings satisfy all three keywords and
+  unrelated strings retain E3030.
 - **Mutation and concurrency:** runtime validation reads resource values and
   schemas without mutation, persistence, retry, compensation, events, queues,
   or asynchronous work. Repeated calls with the same inputs follow the same
@@ -106,9 +108,13 @@ normalizer, coercion adapter, or Batch-aware branch belongs in E3012 or E3030.
   remains unchanged. Exact enum comparison is the existing secondary rejection
   seam for boolean and numeric literals.
 
-L3 requires no production change. Altering shared type strictness or enum
-comparison would exceed the Batch resource boundary and risk unrelated
-CloudFormation compatibility.
+Harness evidence required a narrow production correction in L3: add `null` to
+the E3012 adapter's exhaustive actual-type classification. This does not alter
+shared type strictness or enum comparison; it exposes the error already emitted
+by `cfn_type` and gives it the same `actual_type` metadata as every other JSON
+type. The generic unit witness in
+`test/unit/rules/resources/properties/test_value_primitive_type.py` protects this
+adapter contract alongside the Batch boundary regression.
 
 ### L4 — Structural regression module owns executable evidence
 
@@ -165,8 +171,10 @@ regional files as independent write boundaries.
    `/required` or widening of `/properties/Type/type`.
 3. Remove only the module-level skip at L4; preserve verification names,
    parameters, rule wiring, and assertions.
-4. In Malkhut, run the focused structural regression module and the
-   workspace-required broader validation.
+4. Ensure the E3012 adapter classifies `null` and yields the pre-existing
+   `cfn_type` validation error with `actual_type := "null"`.
+5. In Malkhut, nominate the focused structural regression module and the E3012
+   adapter unit module for harness validation.
 
 The patch and materialized schema are a single maintenance compatibility unit,
 while the three schema keywords remain separate validation contracts. No

@@ -46,7 +46,7 @@ PROCEDURE PRESERVE_BATCH_TYPE_STRUCTURAL_SCHEMA_CONTRACT(provider_schema)
     do not remove, replace, or widen type_contract_path
     do not add null, boolean, number, array, or object members to accepted_domain
     do not normalize or mutate an input resource value
-    do not modify the shared Required, Type, Enum, or JSON Schema keyword logic
+    do not relax the shared Required, Type, Enum, or JSON Schema keyword logic
 
   PERSIST
     apply provider patches before extension patches for each regional schema
@@ -130,6 +130,7 @@ PROCEDURE VALIDATE_BATCH_TYPE_STRUCTURAL_CONTRACT(resource, validation_regions,
       DECIDE STRING CONTRACT
         IF value is null
           the non-strict CloudFormation type check still rejects null
+          classify its actual JSON type as "null" in the E3012 adapter
           emit E3012 at ["Properties", "Type"] stating that null does not
             satisfy declared_type "string"
         ELSE IF value is an array or object
