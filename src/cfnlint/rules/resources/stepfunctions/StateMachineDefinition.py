@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT-0
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
+from copy import copy
 from typing import Any
 
 import cfnlint.data.schemas.other.resources
@@ -14,6 +16,67 @@ import cfnlint.helpers
 from cfnlint.jsonschema import ValidationError, ValidationResult, Validator
 from cfnlint.rules.jsonschema.CfnLintJsonSchema import CfnLintJsonSchema, SchemaDetails
 from cfnlint.schema.resolver import RefResolver
+
+
+def _load_definition_substitution_keys(validator: Validator) -> frozenset[str]:
+    path = list(validator.context.path.path)
+    if path[-2:] != ["Properties", "Definition"]:
+        return frozenset()
+
+    value: Any = validator.cfn.template
+    for part in [*path[:-1], "DefinitionSubstitutions"]:
+        if not isinstance(value, Mapping) or part not in value:
+            return frozenset()
+        value = value[part]
+
+    if not isinstance(value, Mapping):
+        return frozenset()
+
+    return frozenset(key for key in value if isinstance(key, str))
+
+
+def _string_contains_declared_substitution(
+    value: Any, declared_keys: frozenset[str]
+) -> bool:
+    if not isinstance(value, str) or not declared_keys:
+        return False
+
+    return any(
+        parameter in declared_keys
+        for parameter in cfnlint.helpers.REGEX_SUB_PARAMETERS.findall(value)
+    )
+
+
+def _retain_non_deferred_failure(
+    error: ValidationError, declared_keys: frozenset[str]
+) -> ValidationError | None:
+    if _string_contains_declared_substitution(error.instance, declared_keys):
+        return None
+
+    if not error.context:
+        return error
+
+    retained_context = []
+    context_changed = False
+    for child_error in error.context:
+        retained_error = _retain_non_deferred_failure(child_error, declared_keys)
+        if retained_error is None:
+            context_changed = True
+            continue
+        if retained_error is not child_error:
+            context_changed = True
+        retained_context.append(retained_error)
+
+    if not retained_context:
+        return None
+    if not context_changed:
+        return error
+
+    retained_error = copy(error)
+    retained_error.context = retained_context
+    for child_error in retained_context:
+        child_error.parent = retained_error
+    return retained_error
 
 
 class StateMachineDefinition(CfnLintJsonSchema):
@@ -55,6 +118,8 @@ class StateMachineDefinition(CfnLintJsonSchema):
     def validate(
         self, validator: Validator, keywords: Any, instance: Any, schema: dict[str, Any]
     ) -> ValidationResult:
+        declared_keys = _load_definition_substitution_keys(validator)
+
         # First time child rules are configured against the rule
         # so we can run this now
         add_path_to_message = False
@@ -78,6 +143,9 @@ class StateMachineDefinition(CfnLintJsonSchema):
             )
 
         for err in step_validator.iter_errors(instance):
+            err = _retain_non_deferred_failure(err, declared_keys)
+            if err is None:
+                continue
             if add_path_to_message:
                 err = self._fix_message(err)
             if not err.validator.startswith("fn_") and err.validator not in ["cfnLint"]:

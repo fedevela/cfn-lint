@@ -2,8 +2,8 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Issue #126 verification placeholders for CFNSFN-001, CFNSFN-002,
-CFNSFN-003, and CFNSFN-009.
+Issue #126 verification coverage for CFNSFN-001, CFNSFN-002, CFNSFN-003,
+and CFNSFN-009.
 """
 
 from collections import deque
@@ -18,8 +18,9 @@ from cfnlint.rules.resources.stepfunctions.StateMachineDefinition import (
 from cfnlint.template import Template
 
 
-pytestmark = pytest.mark.skip(
-    reason="Phase 05 inert placeholders: enable during Malkhut implementation validation"
+_LONG_DEFERRED_NEXT_STATE_KEY = (
+    "DeferredNextStateNameThatIsIntentionallyLongEnoughToExceedTheAmazonStates"
+    "LanguageMaximumLengthOfOneHundredTwentyEightCharacters"
 )
 
 
@@ -123,15 +124,15 @@ def test_cfnsfn_001_cfnsfn_003_declared_activity_ref_task_resource_is_accepted()
         pytest.param(
             "format-or-equivalent",
             {
-                "StartAt": "Choose by timestamp",
+                "StartAt": "Choose next state",
                 "States": {
-                    "Choose by timestamp": {
+                    "Choose next state": {
                         "Type": "Choice",
                         "Choices": [
                             {
-                                "Variable": "$.createdAt",
-                                "TimestampEquals": "${DeferredTimestamp}",
-                                "Next": "Done",
+                                "Variable": "$.ready",
+                                "BooleanEquals": True,
+                                "Next": f"${{{_LONG_DEFERRED_NEXT_STATE_KEY}}}",
                             }
                         ],
                         "Default": "Done",
@@ -139,7 +140,7 @@ def test_cfnsfn_001_cfnsfn_003_declared_activity_ref_task_resource_is_accepted()
                     "Done": {"Type": "Succeed"},
                 },
             },
-            {"DeferredTimestamp": "2025-01-01T00:00:00Z"},
+            {_LONG_DEFERRED_NEXT_STATE_KEY: "Done"},
             id="format_or_equivalent_nested_choice_string",
         ),
     ],
@@ -203,9 +204,30 @@ def test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together()
     assert _e3601_errors(definition, declarations) == []
 
 
-def test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes():
+def test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes(
+):
     """E3601 accepts the complete valid ASL object containing a declared Resource."""
     definition = _task_definition()
     substitutions = {"UploadUsageActivityArn": {"Ref": "UploadUsageActivity"}}
 
     assert _e3601_errors(definition, substitutions) == []
+
+
+def test_undeclared_placeholder_retains_concrete_asl_validation():
+    """A placeholder is deferred only by its owning declaration mapping."""
+    errors = _e3601_errors(_task_definition("${NotDeclared}"), {})
+
+    assert any(error.validator == "pattern" for error in errors)
+
+
+def test_declared_placeholder_does_not_hide_unrelated_definition_failure():
+    """Deferral does not weaken structural validation elsewhere in Definition."""
+    definition = _task_definition()
+    definition["States"]["Broken"] = {"Type": "Succeed", "Unexpected": True}
+
+    errors = _e3601_errors(
+        definition,
+        {"UploadUsageActivityArn": {"Ref": "UploadUsageActivity"}},
+    )
+
+    assert any(error.validator == "additionalProperties" for error in errors)
