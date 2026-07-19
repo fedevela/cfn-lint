@@ -1,5 +1,35 @@
 {
   "issue": 142,
+  "logic_artifacts": {
+    "BATCHTYPE-001": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::APPLY_BATCH_COMPUTE_ENVIRONMENT_TYPE_SCHEMA_PATCH",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VALIDATE_RESOURCE_ENUM_DOMAINS",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ],
+    "BATCHTYPE-002": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::APPLY_BATCH_COMPUTE_ENVIRONMENT_TYPE_SCHEMA_PATCH",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VALIDATE_RESOURCE_ENUM_DOMAINS",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ],
+    "BATCHTYPE-003": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::APPLY_BATCH_COMPUTE_ENVIRONMENT_TYPE_SCHEMA_PATCH",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VALIDATE_RESOURCE_ENUM_DOMAINS",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ],
+    "BATCHTYPE-005": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::APPLY_BATCH_COMPUTE_ENVIRONMENT_TYPE_SCHEMA_PATCH",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VALIDATE_RESOURCE_ENUM_DOMAINS",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ],
+    "BATCHTYPE-006": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::APPLY_BATCH_COMPUTE_ENVIRONMENT_TYPE_SCHEMA_PATCH",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VALIDATE_RESOURCE_ENUM_DOMAINS",
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ],
+    "BATCHTYPE-013": [
+      "test/requirements/batchtype-issue-142.pseudocode.md::VERIFY_BATCH_TYPE_REGRESSION_CONTRACT"
+    ]
+  },
   "requirements": {
     "BATCHTYPE-001": [
       "test/unit/rules/resources/properties/test_enum_batch_type.py::test_batchtype_001_lowercase_resource_type_is_accepted"
