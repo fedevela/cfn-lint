@@ -1,5 +1,23 @@
 {
   "issue": 144,
+  "logic_artifacts": {
+    "BATCHTYPE-004": [
+      "test/requirements/batchtype-issue-144.pseudocode.md::GROUP_SUPPORTED_BATCH_SCHEMA_REGIONS",
+      "test/requirements/batchtype-issue-144.pseudocode.md::VALIDATE_RESOURCE_LEVEL_BATCH_TYPE",
+      "test/requirements/batchtype-issue-144.pseudocode.md::VERIFY_BATCH_TYPE_OUTCOME_CONSISTENCY"
+    ],
+    "BATCHTYPE-009": [
+      "test/requirements/batchtype-issue-144.pseudocode.md::VALIDATE_RESOURCE_LEVEL_BATCH_TYPE",
+      "test/requirements/batchtype-issue-144.pseudocode.md::EXPOSE_BATCH_TYPE_OUTCOME",
+      "test/requirements/batchtype-issue-144.pseudocode.md::VERIFY_BATCH_TYPE_OUTCOME_CONSISTENCY"
+    ],
+    "BATCHTYPE-011": [
+      "test/requirements/batchtype-issue-144.pseudocode.md::VALIDATE_RESOURCE_LEVEL_BATCH_TYPE",
+      "test/requirements/batchtype-issue-144.pseudocode.md::DECODE_EQUIVALENT_BATCH_TEMPLATE",
+      "test/requirements/batchtype-issue-144.pseudocode.md::EXPOSE_BATCH_TYPE_OUTCOME",
+      "test/requirements/batchtype-issue-144.pseudocode.md::VERIFY_BATCH_TYPE_OUTCOME_CONSISTENCY"
+    ]
+  },
   "requirements": {
     "BATCHTYPE-004": [
       "test/integration/test_batch_type_outcomes.py::test_batchtype_004_every_supported_region_including_cached_primary_accepts_all_four_resource_type_spellings",
