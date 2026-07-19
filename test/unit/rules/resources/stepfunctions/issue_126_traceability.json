@@ -1,5 +1,31 @@
 {
   "issue": 126,
+  "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
+  "requirement_to_logic": {
+    "CFNSFN-001": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "CFNSFN-002": [
+      "validate_state_machine_definition",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "CFNSFN-003": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "CFNSFN-009": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ]
+  },
   "requirement_to_verification": {
     "CFNSFN-001": [
       "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_003_declared_activity_ref_task_resource_is_accepted",
@@ -23,6 +49,77 @@
       "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]",
       "test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together",
       "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes"
+    ]
+  },
+  "verification_to_logic": {
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_003_declared_activity_ref_task_resource_is_accepted": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_001_cfnsfn_009_complete_valid_definition_with_deferred_resource_passes": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[enum_nested_state_type]": [
+      "validate_state_machine_definition",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[format_or_equivalent_nested_choice_string]": [
+      "validate_state_machine_definition",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_002_declared_placeholder_in_any_definition_string_bypasses_constraint[pattern_task_resource]": [
+      "validate_state_machine_definition",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_boolean_true]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_cloudformation_intrinsic]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_falsy_boolean_false]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_falsy_zero]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_integer]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_substitution_key_presence_defers_regardless_of_value[schema_valid_string]": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
+    ],
+    "test_state_machine_definition_substitutions.py::test_cfnsfn_009_all_schema_valid_declaration_forms_are_recognized_together": [
+      "validate_state_machine_definition",
+      "load_definition_substitution_keys",
+      "string_contains_declared_substitution",
+      "retain_non_deferred_failure"
     ]
   },
   "verification_to_requirements": {
