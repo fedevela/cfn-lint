@@ -173,11 +173,12 @@ items traversable, but they do not own identity-policy semantics.
   wildcard indices for group/role/user, exact E3510 path attribution, and
   combined-versus-isolated independence through the public lint boundary.
 - **Dependencies and data:** resource factories build valid provider-shaped
-  templates; the helper invokes `cfnlint.lint` with only E3510 enabled; matches
-  or empty lists are asserted without private-schema calls.
-- **Contract and sequence:** placeholders remain skipped in Yesod. Malkhut owns
-  removing these four skip markers, executing the entry-point suite, and then
-  executing the established identity-policy and shared-condition regressions.
+  templates; the helper invokes `cfnlint.lint` with E3510 requested through the
+  public include-check configuration; matches or empty lists are asserted
+  without private-schema calls.
+- **Contract and sequence:** the four issue-specific tests are executable
+  witnesses. The Atlas harness owns execution of the entry-point suite and the
+  established identity-policy and shared-condition regressions.
 
 ### A6. Traceability owner
 
@@ -214,8 +215,7 @@ owners of this entry-point continuity requirement.
 
 The current production structure already registers all six required paths and
 routes them through one identity schema to the shared corrected Condition
-contract. Therefore Yesod plans no production-source edit and preserves runtime
-behavior. Malkhut should activate the four issue-specific verification
-functions first. A production change is justified only by executable evidence
-that isolates a discrepancy at A1 through A4; any such change must preserve the
-ownership and dependency direction recorded here.
+contract. The four issue-specific verification functions are active. A
+production change is justified only by harness evidence that isolates a
+discrepancy at A1 through A4; any such change must preserve the ownership and
+dependency direction recorded here.

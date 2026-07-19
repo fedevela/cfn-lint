@@ -2,8 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Netzach verification placeholders for IAMCOND-006 E3510 entry-point continuity.
-Remove the skip markers only when these obligations move to executable validation.
+Verification coverage for IAMCOND-006 E3510 entry-point continuity.
 """
 
 # ruff: noqa: E501 -- canonical requirement IDs and scenario names stay readable
@@ -17,9 +16,6 @@ import pytest
 
 from cfnlint import lint
 from cfnlint.config import ManualArgs
-
-
-PLACEHOLDER_REASON = "Netzach placeholder: enable during Malkhut validation"
 
 
 def _policy_document(operator="StringEqualsIfExists"):
@@ -134,7 +130,6 @@ def _lint_e3510(resources):
     )
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize("resource_factory,_policy_path", ENTRY_POINTS)
 def test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_owned_resource_type_is_linted_then_no_unsupported_operator_error(
     resource_factory, _policy_path
@@ -144,7 +139,6 @@ def test_iamcond_006_given_equivalent_valid_corrected_condition_when_each_e3510_
     assert matches == []
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize("resource_factory", [_group, _role, _user])
 @pytest.mark.parametrize("corrected_policy_index", [0, 1])
 def test_iamcond_006_given_group_role_or_user_with_multiple_policy_entries_when_corrected_operator_occurs_at_any_wildcard_location_then_e3510_accepts_that_entry(
@@ -163,7 +157,6 @@ def test_iamcond_006_given_group_role_or_user_with_multiple_policy_entries_when_
     assert _lint_e3510({"WildcardOwner": resource}) == []
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 @pytest.mark.parametrize("resource_factory,policy_path", ENTRY_POINTS)
 def test_iamcond_006_given_genuine_condition_violation_at_each_owned_entry_point_when_template_is_linted_then_match_remains_e3510_with_full_owning_policy_path(
     resource_factory, policy_path
@@ -186,7 +179,6 @@ def test_iamcond_006_given_genuine_condition_violation_at_each_owned_entry_point
     ]
 
 
-@pytest.mark.skip(reason=PLACEHOLDER_REASON)
 def test_iamcond_006_given_one_valid_corrected_condition_per_owned_resource_type_when_all_are_linted_together_then_entry_point_validation_is_independent_and_unchanged():
     operators_and_factories = [
         ("StringEqualsIfExists", _group),
