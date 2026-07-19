@@ -33,10 +33,10 @@ StringLike, StringNotLike
 Recognition is a full-name match. Regex anchors belong at the boundaries of the
 complete operator name, including any set qualifier. No alias, prefix, suffix,
 or partial match is accepted. This explicit rule is significant because the
-current `policy.json` set-qualified pattern spellings place `^` after the
-qualifier, and the final `ForAnyValues` string-like pattern spells `Like?`.
-Runtime implementation must express the grammar above while preserving all of
-its variants before unknown-member rejection is enabled.
+original `policy.json` set-qualified pattern spellings placed `^` after the
+qualifier, and the final `ForAnyValues` string-like pattern spelled `Like?`.
+The runtime schema now expresses the grammar above before applying
+unknown-member rejection.
 
 ## Procedures
 

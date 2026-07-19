@@ -68,53 +68,54 @@
    ]
   },
   "Condition": {
+   "additionalProperties": false,
    "patternProperties": {
-    "ForAllValues:^(Not)?IpAddress$": {
+    "^ForAllValues:(Not)?IpAddress$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^Arn(Not)?Equals$": {
+    "^ForAllValues:Arn(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^Arn(Not)?Like$": {
+    "^ForAllValues:Arn(Not)?Like$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^Date(Not)?Equals$": {
+    "^ForAllValues:Date(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^Number(Less|Greater)Than(Equals)?$": {
+    "^ForAllValues:Number(Less|Greater)Than(Equals)?$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^Number(Not)?Equals$": {
+    "^ForAllValues:Number(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^String(Not)?Equals(IgnoreCase)?$": {
+    "^ForAllValues:String(Not)?Equals(IgnoreCase)?$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAllValues:^String(Not)?Like$": {
+    "^ForAllValues:String(Not)?Like$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^(Not)?IpAddress$": {
+    "^ForAnyValues:(Not)?IpAddress$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^Arn(Not)?Equals$": {
+    "^ForAnyValues:Arn(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^Arn(Not)?Like$": {
+    "^ForAnyValues:Arn(Not)?Like$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^Date(Not)?Equals$": {
+    "^ForAnyValues:Date(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^Number(Less|Greater)Than(Equals)?$": {
+    "^ForAnyValues:Number(Less|Greater)Than(Equals)?$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^Number(Not)?Equals$": {
+    "^ForAnyValues:Number(Not)?Equals$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^String(Not)?Equals(IgnoreCase)?$": {
+    "^ForAnyValues:String(Not)?Equals(IgnoreCase)?$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
-    "ForAnyValues:^String(Not)?Like?$": {
+    "^ForAnyValues:String(Not)?Like$": {
      "$ref": "#/definitions/ConditionSetValue"
     },
     "^(Not)?IpAddress(Exists)?$": {

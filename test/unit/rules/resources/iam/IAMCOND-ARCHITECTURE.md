@@ -2,8 +2,8 @@
 
 This record gives the procedures in `IAMCOND-PSEUDOCODE.md` concrete ownership,
 boundaries, dependency direction, and implementation order. It describes the
-smallest production change that can satisfy IAMCOND-002 and IAMCOND-006 through
-IAMCOND-013 without changing runtime behavior during this architecture phase.
+smallest production change satisfying IAMCOND-002 and IAMCOND-006 through
+IAMCOND-013.
 
 ## Architectural decision
 
@@ -19,7 +19,7 @@ through family-schema `$ref` declarations, and the existing JSON Schema engine
 already supplies the required additional-property paths, exhaustive keyword
 iteration, intrinsic filtering, and value validation.
 
-Implementation changes to `definitions.Condition` must be ordered as follows:
+Implementation changes to `definitions.Condition` were applied in this order:
 
 1. Correct every set-qualified `patternProperties` key so `^` precedes the full
    `ForAllValues:` or `ForAnyValues:` name and `$` follows the complete base
@@ -30,8 +30,8 @@ Implementation changes to `definitions.Condition` must be ordered as follows:
    unknown-member detection to the existing CloudFormation-aware
    `additionalProperties` validator after all intended operator variants are
    recognizable.
-3. Remove the module-level skip from `test_iam_condition_contract.py` only in the
-   implementation or validation phase, after the schema delta exists.
+3. Remove the module-level skip from `test_iam_condition_contract.py` after the
+   schema delta exists.
 
 The three existing operator-body definitions remain unchanged. Their `type:
 object` declarations already enforce IAMCOND-006, and their
@@ -191,10 +191,10 @@ their behavior into a rule class.
 - **Dependencies:** canonical requirement IDs map forward to verification,
   procedure, and production loci; the reverse map points each verification
   prefix back to its architectural seams.
-- **Contract:** test placeholders remain inert in this phase and become the
-  executable acceptance boundary only after implementation.
-- **Implementation order:** schema implementation precedes skip removal and test
-  execution.
+- **Contract:** the active test matrix is the executable acceptance boundary for
+  the shared schema implementation.
+- **Implementation state:** the schema implementation and skip removal are
+  complete; execution remains owned by the Atlas harness.
 
 ## Dependency direction
 

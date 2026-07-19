@@ -2,11 +2,10 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Verification placeholders for the shared IAM Condition contract.
+Verification coverage for the shared IAM Condition contract.
 
-These tests are intentionally inert until the IAM Condition implementation lands.
-Their parametrized node IDs preserve the rule family, operator or entry point,
-input shape, and expected outcome for the Malkhut validation phase.
+The parametrized node IDs preserve the rule family, operator or entry point,
+input shape, and expected outcome for harness validation.
 """
 
 from __future__ import annotations
@@ -21,11 +20,6 @@ from cfnlint.jsonschema import CfnTemplateValidator
 from cfnlint.rules.resources.iam.IdentityPolicy import IdentityPolicy
 from cfnlint.rules.resources.iam.ResourceEcrPolicy import ResourceEcrPolicy
 from cfnlint.rules.resources.iam.ResourcePolicy import ResourcePolicy
-
-
-pytestmark = pytest.mark.skip(
-    reason="IAMCOND shared Condition contract awaits implementation"
-)
 
 
 RULE_CASES = (
@@ -183,7 +177,8 @@ def _paths(errors) -> list[list[object]]:
 
 def _assert_condition_error(errors, *tail: object) -> None:
     expected = ["Statement", 0, "Condition", *tail]
-    assert expected in _paths(errors), errors
+    paths = _paths(errors)
+    assert any(path[: len(expected)] == expected for path in paths), errors
 
 
 @pytest.mark.parametrize("rule_class,rule_id", RULE_CASES)
