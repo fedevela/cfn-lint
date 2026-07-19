@@ -18,6 +18,7 @@ import regex as re
 
 from cfnlint.conditions._utils import get_hash
 from cfnlint.decode.node import str_node
+from cfnlint.decode.utils import convert_dict
 from cfnlint.helpers import FUNCTION_FOR_EACH
 from cfnlint.template.transforms._types import TransformResult
 
@@ -104,7 +105,12 @@ class _Transform:
 
     def transform(self, cfn: Any) -> TransformResult:
         """Transform the template"""
-        return [], self._walk(cfn.template, {}, cfn)
+        # A transformed template is a JSON-compatible CloudFormation model. YAML
+        # allows an unquoted account ID to decode as an integer mapping key, but
+        # downstream rules correctly expect every object key to be a string.
+        # Normalize only the successful deep-copied result so failed expansion
+        # cannot mutate or publish any part of the source template.
+        return [], convert_dict(self._walk(cfn.template, {}, cfn))
 
     # pylint: disable=too-many-return-statements
     def _walk(self, item: Any, params: MutableMapping[str, Any], cfn: Any):
