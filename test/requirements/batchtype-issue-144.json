@@ -1,0 +1,35 @@
+{
+  "issue": 144,
+  "requirements": {
+    "BATCHTYPE-004": [
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_004_every_supported_region_including_cached_primary_accepts_all_four_resource_type_spellings",
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_004_every_supported_region_rejects_invalid_value_at_resource_type_path"
+    ],
+    "BATCHTYPE-009": [
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_009_cli_and_python_api_agree_on_resource_type_acceptance_or_rejection",
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_009_011_invalid_cli_api_json_yaml_findings_identify_resource_type_not_nested_type"
+    ],
+    "BATCHTYPE-011": [
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_011_equivalent_json_and_yaml_have_identical_resource_type_rule_ids_and_outcomes",
+      "test/integration/test_batch_type_outcomes.py::test_batchtype_009_011_invalid_cli_api_json_yaml_findings_identify_resource_type_not_nested_type"
+    ]
+  },
+  "verification_artifacts": {
+    "test/integration/test_batch_type_outcomes.py::test_batchtype_004_every_supported_region_including_cached_primary_accepts_all_four_resource_type_spellings": [
+      "BATCHTYPE-004"
+    ],
+    "test/integration/test_batch_type_outcomes.py::test_batchtype_004_every_supported_region_rejects_invalid_value_at_resource_type_path": [
+      "BATCHTYPE-004"
+    ],
+    "test/integration/test_batch_type_outcomes.py::test_batchtype_009_cli_and_python_api_agree_on_resource_type_acceptance_or_rejection": [
+      "BATCHTYPE-009"
+    ],
+    "test/integration/test_batch_type_outcomes.py::test_batchtype_011_equivalent_json_and_yaml_have_identical_resource_type_rule_ids_and_outcomes": [
+      "BATCHTYPE-011"
+    ],
+    "test/integration/test_batch_type_outcomes.py::test_batchtype_009_011_invalid_cli_api_json_yaml_findings_identify_resource_type_not_nested_type": [
+      "BATCHTYPE-009",
+      "BATCHTYPE-011"
+    ]
+  }
+}
