@@ -2,7 +2,7 @@
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 
-Issue #129 verification placeholders for CFNSFN-010 and CFNSFN-013.
+Issue #129 verification coverage for CFNSFN-010 and CFNSFN-013.
 """
 
 import json
@@ -15,11 +15,6 @@ from cfnlint.rules.resources.stepfunctions.StateMachineDefinition import (
     StateMachineDefinition,
 )
 from cfnlint.schema import PROVIDER_SCHEMA_MANAGER
-
-
-pytestmark = pytest.mark.skip(
-    reason="Phase 05 inert placeholders: enable during Malkhut executable validation"
-)
 
 
 _DEFINITION_KEYWORD = (

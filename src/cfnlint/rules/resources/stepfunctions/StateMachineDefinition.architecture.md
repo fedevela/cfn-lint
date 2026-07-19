@@ -272,9 +272,9 @@ property does not broaden E3601's intentionally object-only registration.
   boolean, zero, false, and intrinsic values while E3601 defers the corresponding
   placeholder; and prove that `DefinitionString` introduces no E3601 finding or
   registration.
-- Lifecycle: this seam is intentionally inert until Malkhut removes its module
-  skip and performs executable validation. It introduces no production,
-  provider-schema, or dispatch dependency.
+- Lifecycle: the seam is executable and introduces no production,
+  provider-schema, or dispatch dependency. Atlas owns execution through the
+  focused Malkhut harness target.
 
 ## Flow and dependency direction
 
@@ -398,7 +398,7 @@ delete or translate the other's findings.
 5. Issue #129 requires no new runtime locus: provider-property validation,
    exact-keyword E1101 dispatch, and E3601's private error filter already establish
    the required ownership boundaries. Its five mapped verification obligations
-   are inert until Malkhut.
+   are executable and nominated as the focused Malkhut harness surface.
 6. The Issue #126 substitution suite and existing E3601 suite remain compatibility
    seams. No schema, provider-data, public-interface, packaging, or deployment
    change is required.

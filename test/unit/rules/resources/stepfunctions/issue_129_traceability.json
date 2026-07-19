@@ -4,8 +4,7 @@
   "architecture_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.architecture.md",
   "implementation_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.py",
   "logic_artifact": "src/cfnlint/rules/resources/stepfunctions/StateMachineDefinition.pseudocode.md",
-  "inert_marker": "module pytestmark skip until Malkhut executable validation",
-  "verification_status": "inert-until-malkhut",
+  "verification_status": "executable",
   "architectural_loci": {
     "ASL_SCHEMA": "src/cfnlint/data/schemas/other/step_functions/statemachine.json",
     "CLOUDFORMATION_DECLARATION_SCHEMA": "Properties.validate, E3012/E3017 child rules, and regional provider schemas",
